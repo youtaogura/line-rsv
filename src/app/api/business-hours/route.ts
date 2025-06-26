@@ -36,10 +36,42 @@ export async function POST(request: NextRequest) {
     }
 
     const startHour = parseInt(start_time.split(':')[0])
+    const startMinute = parseInt(start_time.split(':')[1])
     const endHour = parseInt(end_time.split(':')[0])
+    const endMinute = parseInt(end_time.split(':')[1])
     
-    if (startHour < 9 || endHour > 18 || startHour >= endHour) {
-      return NextResponse.json({ error: 'Invalid time range. Business hours must be between 09:00-18:00' }, { status: 400 })
+    if (startHour < 9 || endHour > 18 || startHour >= endHour || (startHour === endHour && startMinute >= endMinute)) {
+      return NextResponse.json({ error: 'Invalid time range. Business hours must be between 09:00-18:00 and start time must be before end time' }, { status: 400 })
+    }
+
+    // Check for overlapping business hours on the same day
+    const { data: existingHours, error: fetchError } = await supabase
+      .from('business_hours')
+      .select('*')
+      .eq('day_of_week', day_of_week)
+      .eq('is_active', true)
+
+    if (fetchError) {
+      console.error('Error fetching existing business hours:', fetchError)
+      return NextResponse.json({ error: 'Failed to check for conflicts' }, { status: 500 })
+    }
+
+    // Check for time overlap
+    const newStartMinutes = startHour * 60 + startMinute
+    const newEndMinutes = endHour * 60 + endMinute
+
+    for (const existingHour of existingHours) {
+      const existingStartParts = existingHour.start_time.split(':')
+      const existingEndParts = existingHour.end_time.split(':')
+      const existingStartMinutes = parseInt(existingStartParts[0]) * 60 + parseInt(existingStartParts[1])
+      const existingEndMinutes = parseInt(existingEndParts[0]) * 60 + parseInt(existingEndParts[1])
+
+      // Check if there's any overlap
+      if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
+        return NextResponse.json({ 
+          error: `時間が重複しています。${existingHour.start_time}-${existingHour.end_time}の時間帯と重複します。` 
+        }, { status: 409 })
+      }
     }
 
     const { data, error } = await supabase

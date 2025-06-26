@@ -2,17 +2,26 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Reservation, BusinessHour } from '@/lib/supabase'
+import type { Reservation, BusinessHour, User } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 
 export default function AdminPage() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    phone: '',
+    member_type: 'guest' as 'regular' | 'guest'
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
-  const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours'>('reservations')
+  const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users'>('reservations')
   
   const [newBusinessHour, setNewBusinessHour] = useState({
     day_of_week: 1,
@@ -31,7 +40,7 @@ export default function AdminPage() {
   }
 
   const fetchData = async () => {
-    await Promise.all([fetchReservations(), fetchBusinessHours()])
+    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers()])
   }
 
   const fetchReservations = async () => {
@@ -65,6 +74,23 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('Fetch business hours error:', error)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching users:', error)
+      } else {
+        setUsers(data || [])
+      }
+    } catch (error) {
+      console.error('Fetch users error:', error)
     }
   }
 
@@ -117,6 +143,60 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Delete business hour error:', error)
       alert('営業時間の削除に失敗しました')
+    }
+  }
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user)
+    setEditFormData({
+      name: user.name,
+      phone: user.phone || '',
+      member_type: user.member_type
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const closeEditModal = () => {
+    setEditingUser(null)
+    setIsEditModalOpen(false)
+    setEditFormData({
+      name: '',
+      phone: '',
+      member_type: 'guest'
+    })
+  }
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+
+    setIsUpdating(true)
+    
+    try {
+      const response = await fetch(`/api/users/${editingUser.user_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData),
+      })
+      
+      if (response.ok) {
+        const updatedUser = await response.json()
+        setUsers(users.map(user => 
+          user.user_id === editingUser.user_id ? updatedUser : user
+        ))
+        closeEditModal()
+        alert('ユーザー情報を更新しました')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'ユーザー情報の更新に失敗しました')
+      }
+    } catch (error) {
+      console.error('Error updating user:', error)
+      alert('ユーザー情報の更新に失敗しました')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -199,14 +279,14 @@ export default function AdminPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
                 placeholder="パスワード"
               />
             </div>
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 ログイン
               </button>
@@ -239,7 +319,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('reservations')}
               className={`px-4 py-2 rounded-md font-medium ${
                 activeTab === 'reservations'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -249,11 +329,21 @@ export default function AdminPage() {
               onClick={() => setActiveTab('business-hours')}
               className={`px-4 py-2 rounded-md font-medium ${
                 activeTab === 'business-hours'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
               営業時間管理
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-4 py-2 rounded-md font-medium ${
+                activeTab === 'users'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              ユーザー管理
             </button>
           </nav>
         </div>
@@ -263,13 +353,13 @@ export default function AdminPage() {
             <div className="mb-6 flex space-x-4">
               <button
                 onClick={exportToJson}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover"
               >
                 JSON出力
               </button>
               <button
                 onClick={exportToCsv}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                className="bg-success text-white px-4 py-2 rounded-md hover:bg-success/90"
               >
                 CSV出力
               </button>
@@ -312,8 +402,8 @@ export default function AdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             reservation.member_type === 'regular' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-success/10 text-success' 
+                              : 'bg-warning/10 text-warning'
                           }`}>
                             {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
                           </span>
@@ -351,7 +441,7 @@ export default function AdminPage() {
                         id="dayOfWeek"
                         value={newBusinessHour.day_of_week}
                         onChange={(e) => setNewBusinessHour({...newBusinessHour, day_of_week: parseInt(e.target.value)})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                       >
                         <option value={1}>月曜日</option>
                         <option value={2}>火曜日</option>
@@ -370,7 +460,7 @@ export default function AdminPage() {
                         id="startTime"
                         value={newBusinessHour.start_time}
                         onChange={(e) => setNewBusinessHour({...newBusinessHour, start_time: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                       >
                         {generateTimeOptions().map(time => (
                           <option key={time} value={time}>{time}</option>
@@ -385,7 +475,7 @@ export default function AdminPage() {
                         id="endTime"
                         value={newBusinessHour.end_time}
                         onChange={(e) => setNewBusinessHour({...newBusinessHour, end_time: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                       >
                         {generateTimeOptions().map(time => (
                           <option key={time} value={time}>{time}</option>
@@ -395,7 +485,7 @@ export default function AdminPage() {
                     <div className="flex items-end">
                       <button
                         type="submit"
-                        className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                       >
                         追加
                       </button>
@@ -473,6 +563,151 @@ export default function AdminPage() {
               </table>
             </div>
           </>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">ユーザー管理</h2>
+              <p className="text-sm text-gray-600 mt-1">登録ユーザーの会員種別を管理できます</p>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ユーザーID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    名前
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    電話番号
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    会員種別
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    登録日時
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      登録ユーザーがいません
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => (
+                    <tr key={user.user_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        {user.user_id.substring(0, 8)}...
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {user.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.phone || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.member_type === 'regular' 
+                            ? 'bg-success/10 text-success' 
+                            : 'bg-warning/10 text-warning'
+                        }`}>
+                          {user.member_type === 'regular' ? '会員' : 'ゲスト'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDateTime(user.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="text-primary hover:text-primary-hover font-medium"
+                        >
+                          編集
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Edit User Modal */}
+        {isEditModalOpen && editingUser && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">ユーザー情報編集</h3>
+                <form onSubmit={handleUpdateUser} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      名前 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.name}
+                      onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      電話番号
+                    </label>
+                    <input
+                      type="tel"
+                      value={editFormData.phone}
+                      onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      会員種別 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editFormData.member_type}
+                      onChange={(e) => setEditFormData({...editFormData, member_type: e.target.value as 'regular' | 'guest'})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
+                    >
+                      <option value="guest">ゲスト</option>
+                      <option value="regular">会員</option>
+                    </select>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={closeEditModal}
+                      disabled={isUpdating}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdating || !editFormData.name.trim()}
+                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isUpdating ? '更新中...' : '更新'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

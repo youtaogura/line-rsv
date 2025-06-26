@@ -80,7 +80,10 @@ export default function ReservePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !selectedDateTime || !name) return
+    if (!user || !selectedDateTime || !name.trim()) {
+      alert('必要な項目を入力してください。')
+      return
+    }
 
     console.log('User data:', user)
     console.log('User ID:', user.user_id)
@@ -144,6 +147,7 @@ export default function ReservePage() {
     }
   }
 
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -166,27 +170,35 @@ export default function ReservePage() {
         <h1 className="text-2xl font-bold text-center mb-6">レッスン予約</h1>
         
         {user && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mb-6 p-4 bg-primary-light rounded-lg">
             <p className="text-sm text-gray-600">ログイン中</p>
             <p className="font-semibold">{user.displayName}</p>
-            {dbUser && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">会員</span>}
-            {!dbUser && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">ゲスト</span>}
+            <div className="mt-2">
+              {dbUser && <span className="text-xs bg-success/10 text-success px-2 py-1 rounded font-medium">会員</span>}
+              {!dbUser && <span className="text-xs bg-warning/10 text-warning px-2 py-1 rounded font-medium">ゲスト</span>}
+            </div>
           </div>
         )}
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              お名前 {!dbUser && <span className="text-red-500">*</span>}
+              お名前 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={!!dbUser}
-              required={!dbUser}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
+              placeholder="お名前を入力してください"
             />
+            {dbUser && (
+              <p className="text-xs text-secondary mt-1">
+                会員として表示名を変更できます
+              </p>
+            )}
           </div>
 
           {!dbUser && (
@@ -198,7 +210,7 @@ export default function ReservePage() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
               />
             </div>
           )}
@@ -216,7 +228,7 @@ export default function ReservePage() {
               }}
               min={format(new Date(), 'yyyy-MM-dd')}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
             />
           </div>
 
@@ -229,7 +241,7 @@ export default function ReservePage() {
                 value={selectedDateTime}
                 onChange={(e) => setSelectedDateTime(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
               >
                 <option value="">時間を選択してください</option>
                 {availableSlots.map((slot) => (
@@ -252,7 +264,7 @@ export default function ReservePage() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
               placeholder="初回レッスンです、など"
             />
           </div>
@@ -260,7 +272,7 @@ export default function ReservePage() {
           <button
             type="submit"
             disabled={submitting || !selectedDateTime || !name}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {submitting ? '予約中...' : '予約する'}
           </button>
