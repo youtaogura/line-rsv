@@ -1,8 +1,9 @@
 'use client'
 
 import { useTenant, buildUrlWithTenantId, useTenantId } from '@/lib/tenant-helpers'
+import { Suspense } from 'react'
 
-export default function Home() {
+function HomeContent() {
   const { tenant, loading } = useTenant()
   const tenantId = useTenantId()
 
@@ -54,5 +55,17 @@ export default function Home() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   )
 }

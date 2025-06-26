@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import type { User, AvailableSlot } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 import { useTenant, buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
 
-export default function ReservePage() {
+function ReserveContent() {
   const { tenant, loading: tenantLoading } = useTenant()
   const tenantId = useTenantId()
   const [user, setUser] = useState<{ user_id: string; displayName: string; pictureUrl?: string } | null>(null)
@@ -294,5 +294,17 @@ export default function ReservePage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function ReservePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    }>
+      <ReserveContent />
+    </Suspense>
   )
 }
