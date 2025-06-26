@@ -1,0 +1,38 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+export type User = {
+  user_id: string
+  name: string
+  phone?: string
+  member_type: 'regular' | 'guest'
+  created_at: string
+}
+
+export type Reservation = {
+  id: string
+  user_id: string
+  name: string
+  datetime: string
+  note?: string
+  member_type: 'regular' | 'guest'
+  created_at: string
+}
+
+export type AvailableSlot = {
+  datetime: string
+  is_booked: boolean
+}
+
+export type BusinessHour = {
+  id: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  is_active: boolean
+  created_at: string
+}

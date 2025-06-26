@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ゴルフレッスンスタジオ向けLINE予約システム
 
-## Getting Started
+LINE公式アカウントと連携したゴルフレッスンの予約システムです。
 
-First, run the development server:
+## 主な機能
+
+- LINEログインによる認証
+- 会員/ゲストの識別
+- 予約フォーム
+- 管理画面（予約一覧・エクスポート）
+- LINE Notify通知
+
+## セットアップ手順
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. Supabaseプロジェクトの設定
+
+1. [Supabase](https://supabase.com/)でプロジェクトを作成
+2. `supabase-schema.sql`を実行してテーブルを作成
+   - SQL Editor > New Query で実行
+3. 環境変数に設定するURLとAPIキーを取得
+
+### 3. LINE Loginの設定
+
+1. [LINE Developers](https://developers.line.biz/)でプロバイダーとチャンネルを作成
+2. Callback URLを設定: `http://localhost:3000/api/auth/line/callback`
+3. Channel IDとChannel Secretを取得
+
+### 4. LINE Notifyの設定（任意）
+
+1. [LINE Notify](https://notify-bot.line.me/)でトークンを取得
+2. 通知を受け取りたいグループ/個人にLINE Notifyを追加
+
+### 5. 環境変数の設定
+
+`.env.local`ファイルを以下の内容で作成：
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# LINE Login
+NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID=your_line_channel_id
+LINE_LOGIN_CHANNEL_SECRET=your_line_channel_secret
+
+# LINE Notify
+LINE_NOTIFY_TOKEN=your_line_notify_token
+
+# Next.js
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+### 6. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 でアクセス可能
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ファイル構成
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/line/          # LINE認証API
+│   │   ├── user/               # ユーザー情報API
+│   │   └── notify/             # 通知API
+│   ├── login/                  # ログインページ
+│   ├── reserve/                # 予約フォーム
+│   ├── admin/                  # 管理画面
+│   └── page.tsx                # トップページ
+└── lib/
+    └── supabase.ts             # Supabase設定
 
-## Learn More
+supabase-schema.sql             # データベーススキーマ
+```
 
-To learn more about Next.js, take a look at the following resources:
+## データベース構造
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### users テーブル
+- userId (LINE UID、主キー)
+- name (名前)
+- phone (電話番号、任意)
+- memberType ('regular'/'guest')
+- createdAt (作成日時)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### reservations テーブル
+- id (UUID、主キー)
+- userId (LINE UID)
+- name (名前)
+- datetime (予約日時)
+- note (備考、任意)
+- memberType ('regular'/'guest')
+- createdAt (作成日時)
 
-## Deploy on Vercel
+### available_slots テーブル
+- datetime (予約可能日時、主キー)
+- isBooked (予約済みフラグ)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 管理画面
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- URL: `/admin`
+- パスワード: `admin123`（本番環境では変更してください）
+- 機能: 予約一覧表示、JSON/CSV出力
+
+## デプロイ
+
+Vercelでのデプロイを推奨：
+
+1. GitHubにプッシュ
+2. Vercelでプロジェクトをインポート
+3. 環境変数を設定
+4. LINE LoginのCallback URLを本番URLに更新
+
+## 注意事項
+
+- 本番環境では管理画面のパスワードを変更してください
+- HTTPS必須（LINEログインの要件）
+- 予約可能時間は手動でデータベースに追加する必要があります
