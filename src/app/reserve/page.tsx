@@ -2,10 +2,10 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { User, AvailableSlot } from '@/lib/supabase'
-import { format } from 'date-fns'
-import { format as formatTz } from 'date-fns-tz'
+import type { User } from '@/lib/supabase'
 import { useTenant, buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
+import { ReservationCalendar } from '@/components/reservation/ReservationCalendar'
+import { format as formatTz } from 'date-fns-tz'
 
 function ReserveContent() {
   const searchParams = useSearchParams()
@@ -22,9 +22,7 @@ function ReserveContent() {
   
   const [user, setUser] = useState<{ user_id: string; displayName: string; pictureUrl?: string } | null>(null)
   const [dbUser, setDbUser] = useState<User | null>(null)
-  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedDateTime, setSelectedDateTime] = useState('')
+  const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [note, setNote] = useState('')
@@ -97,32 +95,6 @@ function ReserveContent() {
     Promise.all([initializeUser()])
       .finally(() => setLoading(false))
   }, [tenant, tenantId, urlUserId, urlDisplayName])
-
-  useEffect(() => {
-    const fetchAvailableSlots = async () => {
-      if (!selectedDate || !tenantId) {
-        setAvailableSlots([])
-        return
-      }
-
-      try {
-        const response = await fetch(buildApiUrl(`/api/available-slots?date=${selectedDate}`, tenantId))
-        console.log('Fetching available slots for date:', selectedDate)
-        if (response.ok) {
-          const data = await response.json()
-          setAvailableSlots(data)
-        } else {
-          console.error('Error fetching slots')
-          setAvailableSlots([])
-        }
-      } catch (error) {
-        console.error('Error fetching slots:', error)
-        setAvailableSlots([])
-      }
-    }
-
-    fetchAvailableSlots()
-  }, [selectedDate, tenantId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -244,127 +216,124 @@ function ReserveContent() {
     )
   }
 
-  const formatDateTime = (datetime: string) => {
-    return formatTz(
-      new Date(datetime),
-      'yyyy/M/d HH:mm',
-      { timeZone: 'Asia/Tokyo' }
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center mb-6">レッスン予約</h1>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">レッスン予約</h1>
         
         {user && (
-          <div className="mb-6 p-4 bg-primary-light rounded-lg">
+          <div className="mb-8 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">ログイン中</p>
-            <p className="font-semibold">{user.displayName}</p>
+            <p className="font-semibold text-lg">{user.displayName}</p>
             <div className="mt-2">
-              {dbUser && <span className="text-xs bg-success/10 text-success px-2 py-1 rounded font-medium">会員</span>}
-              {!dbUser && <span className="text-xs bg-warning/10 text-warning px-2 py-1 rounded font-medium">ゲスト</span>}
+              {dbUser && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">会員</span>}
+              {!dbUser && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium">ゲスト</span>}
             </div>
           </div>
         )}
 
+        {/* 新しいカレンダーUI */}
+        <ReservationCalendar
+          tenantId={tenantId}
+          selectedDateTime={selectedDateTime}
+          onDateTimeSelect={setSelectedDateTime}
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              お名前 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-              placeholder="お名前を入力してください"
-            />
-            {dbUser && (
-              <p className="text-xs text-secondary mt-1">
-                会員として表示名を変更できます
-              </p>
-            )}
-          </div>
-
-          {!dbUser && (
+        {/* フォーム */}
+        <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">予約情報入力</h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                電話番号
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                お名前 <span className="text-red-500">*</span>
               </label>
               <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              予約日 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value)
-                setSelectedDateTime('')
-              }}
-              min={format(new Date(), 'yyyy-MM-dd')}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-            />
-          </div>
-
-          {selectedDate && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                予約時間 <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedDateTime}
-                onChange={(e) => setSelectedDateTime(e.target.value)}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-              >
-                <option value="">時間を選択してください</option>
-                {availableSlots.map((slot) => (
-                  <option key={slot.datetime} value={slot.datetime}>
-                    {formatDateTime(slot.datetime)}
-                  </option>
-                ))}
-              </select>
-              {availableSlots.length === 0 && (
-                <p className="text-sm text-gray-500 mt-1">この日は予約可能な時間がありません</p>
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                placeholder="お名前を入力してください"
+              />
+              {dbUser && (
+                <p className="text-xs text-gray-500 mt-1">
+                  会員として表示名を変更できます
+                </p>
               )}
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              メモ（任意）
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-              placeholder="初回レッスンです、など"
-            />
-          </div>
+            {/* 選択した日時の表示 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                予約日時 <span className="text-red-500">*</span>
+              </label>
+              <div className={`w-full px-4 py-3 border rounded-md transition-colors ${
+                selectedDateTime 
+                  ? 'border-green-300 bg-green-50 text-green-800' 
+                  : 'border-red-300 bg-red-50 text-red-800'
+              }`}>
+                {selectedDateTime ? (
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="font-medium">
+                      {formatTz(
+                        new Date(selectedDateTime),
+                        'yyyy年M月d日 HH:mm',
+                        { timeZone: 'Asia/Tokyo' }
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>日時を選択してください。</span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={submitting || !selectedDateTime || !name}
-            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {submitting ? '予約中...' : '予約する'}
-          </button>
-        </form>
+            {!dbUser && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  電話番号
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                  placeholder="電話番号を入力してください"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                メモ（任意）
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                placeholder="初回レッスンです、など"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting || !selectedDateTime || !name}
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {submitting ? '予約中...' : '予約する'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
