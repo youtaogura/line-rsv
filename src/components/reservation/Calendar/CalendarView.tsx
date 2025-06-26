@@ -109,7 +109,7 @@ export function CalendarView({
         minDate={today}
         maxDetail="month"
         minDetail="month"
-        className="w-full border-0 bg-white rounded-lg shadow-sm"
+        className="w-full border-0 bg-white rounded-lg"
       />
     </div>
   )

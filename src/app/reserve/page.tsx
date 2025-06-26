@@ -220,17 +220,6 @@ function ReserveContent() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">レッスン予約</h1>
-        
-        {user && (
-          <div className="mb-8 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">ログイン中</p>
-            <p className="font-semibold text-lg">{user.displayName}</p>
-            <div className="mt-2">
-              {dbUser && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">会員</span>}
-              {!dbUser && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium">ゲスト</span>}
-            </div>
-          </div>
-        )}
 
         {/* 新しいカレンダーUI */}
         <ReservationCalendar
@@ -248,19 +237,23 @@ function ReserveContent() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 お名前 <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
-                placeholder="お名前を入力してください"
-              />
-              {dbUser && (
-                <p className="text-xs text-gray-500 mt-1">
-                  会員として表示名を変更できます
-                </p>
-              )}
+              {
+                !dbUser ? (
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                    placeholder="お名前を入力してください"
+                  />
+
+                ): 
+                <div className='flex gap-4 items-center'>
+                <p>{name}</p>
+                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">登録済み</span>
+                  </div>
+              }
             </div>
 
             {/* 選択した日時の表示 */}
@@ -321,7 +314,7 @@ function ReserveContent() {
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
-                placeholder="初回レッスンです、など"
+                placeholder="特記事項やご要望があればご記入ください"
               />
             </div>
 

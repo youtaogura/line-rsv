@@ -60,7 +60,7 @@ export function ReservationCalendar({
   return (
     <div className="space-y-6">
       {/* カレンダー表示 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">予約日を選択</h2>
         <CalendarView
           selectedDate={selectedDate}
@@ -74,7 +74,7 @@ export function ReservationCalendar({
 
       {/* 時間選択 */}
       {selectedDate && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
           <TimeSlotList
             selectedDate={selectedDate}
             availableSlots={availableSlots}
