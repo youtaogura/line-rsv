@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Reservation, BusinessHour, User } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 import {  buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
 
-export default function AdminPage() {
+function AdminContent() {
   const tenantId = useTenantId()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
@@ -713,5 +713,17 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    }>
+      <AdminContent />
+    </Suspense>
   )
 }
