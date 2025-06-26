@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-export default function LiffBridge() {
+function LiffBridgeContent() {
+  const searchParams = useSearchParams()
+
   useEffect(() => {
     import('@line/liff').then(async (liff) => {
       await liff.default.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! })
@@ -14,11 +17,26 @@ export default function LiffBridge() {
 
       const profile = await liff.default.getProfile()
       const userId = profile.userId
+      const tenantId = searchParams.get('tenantId') || ''
 
-      // 任意のクエリ付きで予約ページにリダイレクト
-      window.location.href = `/liff-redirect?user_id=${userId}&displayName=${profile.displayName}`
+      // /reserve画面にリダイレクト
+      const params = new URLSearchParams({
+        userId,
+        displayName: profile.displayName,
+        ...(tenantId && { tenantId })
+      })
+      
+      window.location.href = `/reserve?${params.toString()}`
     })
-  }, [])
+  }, [searchParams])
 
   return <p>読み込み中...</p>
+}
+
+export default function LiffBridge() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <LiffBridgeContent />
+    </Suspense>
+  )
 }

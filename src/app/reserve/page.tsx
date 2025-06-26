@@ -1,14 +1,25 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { User, AvailableSlot } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 import { useTenant, buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
 
 function ReserveContent() {
+  const searchParams = useSearchParams()
   const { tenant, loading: tenantLoading } = useTenant()
-  const tenantId = useTenantId()
+  const defaultTenantId = useTenantId()
+  
+  // URLパラメータから値を取得
+  const urlUserId = searchParams.get('userId')
+  const urlDisplayName = searchParams.get('displayName')
+  const urlTenantId = searchParams.get('tenantId')
+  
+  // tenantIdの優先順位: URLパラメータ > デフォルト
+  const tenantId = urlTenantId || defaultTenantId
+  
   const [user, setUser] = useState<{ user_id: string; displayName: string; pictureUrl?: string } | null>(null)
   const [dbUser, setDbUser] = useState<User | null>(null)
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
@@ -25,39 +36,67 @@ function ReserveContent() {
       return
     }
 
-    const getUserFromCookie = async () => {
-      try {
-        const response = await fetch('/api/user')
-        if (response.ok) {
-          const userData = await response.json()
-          setUser(userData)
-          
-          // ユーザー情報をAPIから取得
+    const initializeUser = async () => {
+      // URLパラメータからユーザー情報が渡された場合
+      if (urlUserId && urlDisplayName) {
+        const userData = {
+          user_id: urlUserId,
+          displayName: urlDisplayName
+        }
+        setUser(userData)
+        
+        // ユーザー情報をAPIから取得
+        try {
+          const userResponse = await fetch(buildApiUrl(`/api/users/${urlUserId}`, tenantId))
+          if (userResponse.ok) {
+            const existingUser = await userResponse.json()
+            setDbUser(existingUser)
+            setName(existingUser.name)
+          } else {
+            setName(urlDisplayName)
+          }
+        } catch (error) {
+          console.error('Error fetching user from API:', error)
+          setName(urlDisplayName)
+        }
+      } else {
+        // 従来のCookie認証を使用
+        const getUserFromCookie = async () => {
           try {
-            const userResponse = await fetch(buildApiUrl(`/api/users/${userData.user_id}`, tenantId))
-            if (userResponse.ok) {
-              const existingUser = await userResponse.json()
-              setDbUser(existingUser)
-              setName(existingUser.name)
+            const response = await fetch('/api/user')
+            if (response.ok) {
+              const userData = await response.json()
+              setUser(userData)
+              
+              // ユーザー情報をAPIから取得
+              try {
+                const userResponse = await fetch(buildApiUrl(`/api/users/${userData.user_id}`, tenantId))
+                if (userResponse.ok) {
+                  const existingUser = await userResponse.json()
+                  setDbUser(existingUser)
+                  setName(existingUser.name)
+                } else {
+                  setName(userData.displayName)
+                }
+              } catch (error) {
+                console.error('Error fetching user from API:', error)
+                setName(userData.displayName)
+              }
             } else {
-              setName(userData.displayName)
+              window.location.href = '/login'
             }
           } catch (error) {
-            console.error('Error fetching user from API:', error)
-            setName(userData.displayName)
+            console.error('User fetch error:', error)
+            window.location.href = '/login'
           }
-        } else {
-          window.location.href = '/login'
         }
-      } catch (error) {
-        console.error('User fetch error:', error)
-        window.location.href = '/login'
+        await getUserFromCookie()
       }
     }
 
-    Promise.all([getUserFromCookie()])
+    Promise.all([initializeUser()])
       .finally(() => setLoading(false))
-  }, [tenant, tenantId])
+  }, [tenant, tenantId, urlUserId, urlDisplayName])
 
   useEffect(() => {
     const fetchAvailableSlots = async () => {
