@@ -5,8 +5,10 @@ import { supabase } from '@/lib/supabase'
 import type { Reservation, BusinessHour, User } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
+import {  buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
 
 export default function AdminPage() {
+  const tenantId = useTenantId()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -64,7 +66,7 @@ export default function AdminPage() {
 
   const fetchBusinessHours = async () => {
     try {
-      const response = await fetch('/api/business-hours')
+      const response = await fetch(buildApiUrl('/api/business-hours', tenantId))
       const data = await response.json()
       
       if (response.ok) {
@@ -98,7 +100,7 @@ export default function AdminPage() {
     e.preventDefault()
     
     try {
-      const response = await fetch('/api/business-hours', {
+      const response = await fetch(buildApiUrl('/api/business-hours', tenantId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +131,7 @@ export default function AdminPage() {
     if (!confirm('この営業時間を削除しますか？')) return
     
     try {
-      const response = await fetch(`/api/business-hours?id=${id}`, {
+      const response = await fetch(buildApiUrl(`/api/business-hours?id=${id}`, tenantId), {
         method: 'DELETE',
       })
       

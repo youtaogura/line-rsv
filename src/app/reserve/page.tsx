@@ -143,7 +143,41 @@ function ReserveContent() {
     setSubmitting(true)
 
     try {
-      const member_type = dbUser ? 'regular' : 'guest'
+      // ユーザー存在チェック・登録処理
+      let finalDbUser = dbUser
+      
+      if (!dbUser) {
+        // ユーザーがDBに存在しない場合、ゲストとして登録
+        try {
+          const createUserResponse = await fetch(buildApiUrl(`/api/users/${user.user_id}`, tenantId), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: name.trim(),
+              phone: phone?.trim() || null,
+            }),
+          })
+
+          if (createUserResponse.ok) {
+            finalDbUser = await createUserResponse.json()
+            setDbUser(finalDbUser)
+            console.log('Guest user created:', finalDbUser)
+          } else {
+            const errorResult = await createUserResponse.json()
+            console.error('Failed to create guest user:', errorResult)
+            alert('ゲストユーザーの登録に失敗しました。')
+            return
+          }
+        } catch (error) {
+          console.error('Error creating guest user:', error)
+          alert('ゲストユーザーの登録でエラーが発生しました。')
+          return
+        }
+      }
+
+      const member_type = finalDbUser ? 'regular' : 'guest'
       
       const reservationData = {
         user_id: user.user_id,
@@ -151,7 +185,7 @@ function ReserveContent() {
         datetime: selectedDateTime,
         note,
         member_type,
-        phone: !dbUser ? phone : undefined
+        phone: !finalDbUser ? phone : undefined
       }
 
       console.log('Reservation data:', reservationData)

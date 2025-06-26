@@ -127,6 +127,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const tenant = await requireValidTenant(request)
+    
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -138,6 +140,7 @@ export async function DELETE(request: NextRequest) {
       .from('business_hours')
       .update({ is_active: false })
       .eq('id', id)
+      .eq('tenant_id', tenant.id)
 
     if (error) {
       console.error('Error deactivating business hour:', error)
