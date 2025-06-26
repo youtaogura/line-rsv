@@ -19,14 +19,21 @@ function LiffBridgeContent() {
       const userId = profile.userId
       const tenantId = searchParams.get('tenantId') || ''
 
-      // /reserve画面にリダイレクト
-      const params = new URLSearchParams({
+      if (!tenantId) {
+        alert('不正なアクセスです。')
+        window.location.href = '/error?error=missing_tenant'
+      }
+
+      // パラメータをsession storageに保存
+      const userData = {
         userId,
         displayName: profile.displayName,
         ...(tenantId && { tenantId })
-      })
+      }
+      sessionStorage.setItem('reserveParams', JSON.stringify(userData))
       
-      window.location.href = `/reserve?${params.toString()}`
+      // /reserve画面にリダイレクト
+      window.location.href = '/reserve'
     })
   }, [searchParams])
 

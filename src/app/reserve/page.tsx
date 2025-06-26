@@ -1,25 +1,32 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
 import type { User } from '@/lib/supabase'
-import { useTenant, buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
+import {  buildApiUrl } from '@/lib/tenant-helpers'
 import { ReservationCalendar } from '@/components/reservation/ReservationCalendar'
 import { format as formatTz } from 'date-fns-tz'
 
 function ReserveContent() {
-  const searchParams = useSearchParams()
-  const { tenant, loading: tenantLoading } = useTenant()
-  const defaultTenantId = useTenantId()
+  const [urlUserId, setUrlUserId] = useState<string | null>(null)
+  const [urlDisplayName, setUrlDisplayName] = useState<string | null>(null)
+  const [urlTenantId, setUrlTenantId] = useState<string | null>(null)
   
-  // URLパラメータから値を取得
-  const urlUserId = searchParams.get('userId')
-  const urlDisplayName = searchParams.get('displayName')
-  const urlTenantId = searchParams.get('tenantId')
+  useEffect(() => {
+    const storedParams = sessionStorage.getItem('reserveParams')
+    if (storedParams) {
+      console.log('Stored params:', storedParams)
+      const params = JSON.parse(storedParams)
+      setUrlUserId(params.userId)
+      setUrlDisplayName(params.displayName)
+      setUrlTenantId(params.tenantId)
+      // 使用後はsession storageをクリア
+      if (process.env.NODE_ENV !== 'development') {
+        sessionStorage.removeItem('reserveParams')
+      }
+    }
+  }, [])
   
-  // tenantIdの優先順位: URLパラメータ > デフォルト
-  const tenantId = urlTenantId || defaultTenantId
-  
+  const [tenant, setTenant] = useState<{ tenant_id: string; name: string; } | null>(null)
   const [user, setUser] = useState<{ user_id: string; displayName: string; pictureUrl?: string } | null>(null)
   const [dbUser, setDbUser] = useState<User | null>(null)
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null)
@@ -30,71 +37,53 @@ function ReserveContent() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!tenant || !tenantId) {
+    if (!urlTenantId || !urlUserId) {
       return
     }
 
     const initializeUser = async () => {
-      // URLパラメータからユーザー情報が渡された場合
-      if (urlUserId && urlDisplayName) {
-        const userData = {
-          user_id: urlUserId,
-          displayName: urlDisplayName
+      const userData = {
+        user_id: urlUserId,
+        displayName: urlDisplayName ?? ""
+      }
+      setUser(userData)
+      
+      // ユーザー情報をAPIから取得
+      try {
+        const userResponse = await fetch(buildApiUrl(`/api/users/${urlUserId}`, urlTenantId))
+        if (userResponse.ok) {
+          const existingUser = await userResponse.json()
+          setDbUser(existingUser)
+          setName(existingUser.name)
+        } else {
+          setName(urlDisplayName ?? "")
         }
-        setUser(userData)
-        
-        // ユーザー情報をAPIから取得
-        try {
-          const userResponse = await fetch(buildApiUrl(`/api/users/${urlUserId}`, tenantId))
-          if (userResponse.ok) {
-            const existingUser = await userResponse.json()
-            setDbUser(existingUser)
-            setName(existingUser.name)
-          } else {
-            setName(urlDisplayName)
-          }
-        } catch (error) {
-          console.error('Error fetching user from API:', error)
-          setName(urlDisplayName)
-        }
-      } else {
-        // 従来のCookie認証を使用
-        const getUserFromCookie = async () => {
-          try {
-            const response = await fetch('/api/user')
-            if (response.ok) {
-              const userData = await response.json()
-              setUser(userData)
-              
-              // ユーザー情報をAPIから取得
-              try {
-                const userResponse = await fetch(buildApiUrl(`/api/users/${userData.user_id}`, tenantId))
-                if (userResponse.ok) {
-                  const existingUser = await userResponse.json()
-                  setDbUser(existingUser)
-                  setName(existingUser.name)
-                } else {
-                  setName(userData.displayName)
-                }
-              } catch (error) {
-                console.error('Error fetching user from API:', error)
-                setName(userData.displayName)
-              }
-            } else {
-              window.location.href = '/login'
-            }
-          } catch (error) {
-            console.error('User fetch error:', error)
-            window.location.href = '/login'
-          }
-        }
-        await getUserFromCookie()
+      } catch (error) {
+        console.error('Error fetching user from API:', error)
+        setName(urlDisplayName ?? "")
       }
     }
 
-    Promise.all([initializeUser()])
-      .finally(() => setLoading(false))
-  }, [tenant, tenantId, urlUserId, urlDisplayName])
+    const initializeTenant = async () => {
+      try {
+        const tenantResponse = await fetch(buildApiUrl(`/api/tenants/${urlTenantId}`, urlTenantId))
+        if (tenantResponse.ok) {
+          const existingTenant = await tenantResponse.json()
+          setTenant(existingTenant)
+        } else {
+          setTenant({ tenant_id: urlTenantId, name: urlDisplayName ?? "" })
+        }
+      } catch (error) {
+        console.error('Error fetching tenant from API:', error)
+        setTenant({ tenant_id: urlTenantId, name: urlDisplayName ?? "" })
+      }
+    }
+
+    Promise.all([initializeUser(), initializeTenant()])
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [urlTenantId, urlUserId, urlDisplayName])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -121,7 +110,7 @@ function ReserveContent() {
       if (!dbUser) {
         // ユーザーがDBに存在しない場合、ゲストとして登録
         try {
-          const createUserResponse = await fetch(buildApiUrl(`/api/users/${user.user_id}`, tenantId), {
+          const createUserResponse = await fetch(buildApiUrl(`/api/users/${user.user_id}`, urlTenantId), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -162,7 +151,7 @@ function ReserveContent() {
 
       console.log('Reservation data:', reservationData)
       
-      const response = await fetch(buildApiUrl('/api/reservations', tenantId), {
+      const response = await fetch(buildApiUrl('/api/reservations', urlTenantId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +167,7 @@ function ReserveContent() {
         return
       }
 
-      await fetch(buildApiUrl('/api/notify', tenantId), {
+      await fetch(buildApiUrl('/api/notify', urlTenantId), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -200,7 +189,7 @@ function ReserveContent() {
   }
 
   // テナントが読み込まれるまで待機
-  if (tenantLoading || !tenant) {
+  if (!tenant) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">読み込み中...</div>
@@ -219,11 +208,11 @@ function ReserveContent() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">レッスン予約</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">{tenant?.name} レッスン予約</h1>
 
         {/* 新しいカレンダーUI */}
         <ReservationCalendar
-          tenantId={tenantId}
+          tenantId={urlTenantId}
           selectedDateTime={selectedDateTime}
           onDateTimeSelect={setSelectedDateTime}
         />
