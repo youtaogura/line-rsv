@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const { data, error } = await supabase
       .from('business_hours')
       .select('*')
+      .eq('tenant_id', tenant.id)
       .eq('is_active', true)
       .order('day_of_week', { ascending: true })
       .order('start_time', { ascending: true })
@@ -24,6 +37,17 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const body = await request.json()
     const { day_of_week, start_time, end_time } = body
 
@@ -48,6 +72,7 @@ export async function POST(request: NextRequest) {
     const { data: existingHours, error: fetchError } = await supabase
       .from('business_hours')
       .select('*')
+      .eq('tenant_id', tenant.id)
       .eq('day_of_week', day_of_week)
       .eq('is_active', true)
 
@@ -77,6 +102,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('business_hours')
       .insert([{
+        tenant_id: tenant.id,
         day_of_week,
         start_time,
         end_time,

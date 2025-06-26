@@ -1,11 +1,33 @@
+'use client'
+
+import { useTenant, buildUrlWithTenantId, useTenantId } from '@/lib/tenant-helpers'
+
 export default function Home() {
+  const { tenant, loading } = useTenant()
+  const tenantId = useTenantId()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (!tenant) {
+    return null // useTenant フックがエラーページにリダイレクトする
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            ゴルフレッスン予約システム
+            {tenant.name}
           </h1>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            レッスン予約システム
+          </h2>
           <p className="text-gray-600 mb-8">
             LINEアカウントでログインして予約をお取りください
           </p>
@@ -13,15 +35,15 @@ export default function Home() {
         
         <div className="space-y-4">
           <a
-            href="/login"
-            className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors text-center block font-medium"
+            href={buildUrlWithTenantId('/login', tenantId)}
+            className="w-full bg-success text-white py-3 px-4 rounded-lg hover:bg-success/90 transition-colors text-center block font-medium"
           >
             予約を取る
           </a>
           
           <a
-            href="/admin"
-            className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors text-center block font-medium"
+            href={buildUrlWithTenantId('/admin', tenantId)}
+            className="w-full bg-secondary text-white py-3 px-4 rounded-lg hover:bg-secondary/90 transition-colors text-center block font-medium"
           >
             管理画面
           </a>

@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react'
 import type { User, AvailableSlot } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
+import { useTenant, buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
 
 export default function ReservePage() {
+  const { tenant, loading: tenantLoading } = useTenant()
+  const tenantId = useTenantId()
   const [user, setUser] = useState<{ user_id: string; displayName: string; pictureUrl?: string } | null>(null)
   const [dbUser, setDbUser] = useState<User | null>(null)
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
@@ -18,6 +21,10 @@ export default function ReservePage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
+    if (!tenant || !tenantId) {
+      return
+    }
+
     const getUserFromCookie = async () => {
       try {
         const response = await fetch('/api/user')
@@ -27,7 +34,7 @@ export default function ReservePage() {
           
           // ユーザー情報をAPIから取得
           try {
-            const userResponse = await fetch(`/api/users/${userData.user_id}`)
+            const userResponse = await fetch(buildApiUrl(`/api/users/${userData.user_id}`, tenantId))
             if (userResponse.ok) {
               const existingUser = await userResponse.json()
               setDbUser(existingUser)
@@ -50,17 +57,17 @@ export default function ReservePage() {
 
     Promise.all([getUserFromCookie()])
       .finally(() => setLoading(false))
-  }, [])
+  }, [tenant, tenantId])
 
   useEffect(() => {
     const fetchAvailableSlots = async () => {
-      if (!selectedDate) {
+      if (!selectedDate || !tenantId) {
         setAvailableSlots([])
         return
       }
 
       try {
-        const response = await fetch(`/api/available-slots?date=${selectedDate}`)
+        const response = await fetch(buildApiUrl(`/api/available-slots?date=${selectedDate}`, tenantId))
         console.log('Fetching available slots for date:', selectedDate)
         if (response.ok) {
           const data = await response.json()
@@ -76,7 +83,7 @@ export default function ReservePage() {
     }
 
     fetchAvailableSlots()
-  }, [selectedDate])
+  }, [selectedDate, tenantId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,7 +117,7 @@ export default function ReservePage() {
 
       console.log('Reservation data:', reservationData)
       
-      const response = await fetch('/api/reservations', {
+      const response = await fetch(buildApiUrl('/api/reservations', tenantId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +133,7 @@ export default function ReservePage() {
         return
       }
 
-      await fetch('/api/notify', {
+      await fetch(buildApiUrl('/api/notify', tenantId), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -147,6 +154,14 @@ export default function ReservePage() {
     }
   }
 
+  // テナントが読み込まれるまで待機
+  if (tenantLoading || !tenant) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

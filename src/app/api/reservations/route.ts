@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
 
 export async function POST(request: NextRequest) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const body = await request.json()
     const { user_id, name, datetime, note, member_type, phone } = body
 
@@ -13,10 +25,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // 予約の重複チェック
+    // 予約の重複チェック（テナント内で）
     const { data: existingReservation } = await supabase
       .from('reservations')
       .select('id')
+      .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .eq('datetime', datetime)
       .single()
@@ -31,6 +44,7 @@ export async function POST(request: NextRequest) {
     const { data: reservation, error: reservationError } = await supabase
       .from('reservations')
       .insert({
+        tenant_id: tenant.id,
         user_id,
         name,
         datetime,
@@ -51,6 +65,7 @@ export async function POST(request: NextRequest) {
     const { error: slotError } = await supabase
       .from('available_slots')
       .upsert({ 
+        tenant_id: tenant.id,
         datetime,
         is_booked: true 
       })
@@ -64,6 +79,7 @@ export async function POST(request: NextRequest) {
       const { data: existingUser } = await supabase
         .from('users')
         .select('user_id')
+        .eq('tenant_id', tenant.id)
         .eq('user_id', user_id)
         .single()
 
@@ -71,6 +87,7 @@ export async function POST(request: NextRequest) {
         const { error: userError } = await supabase
           .from('users')
           .insert({
+            tenant_id: tenant.id,
             user_id,
             name,
             phone,

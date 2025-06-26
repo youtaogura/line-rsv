@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { parseISO, addMinutes, isBefore } from 'date-fns'
 import { fromZonedTime } from 'date-fns-tz'
+import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
 
 export async function GET(request: NextRequest) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const { searchParams } = new URL(request.url)
     const date = searchParams.get('date')
     
@@ -18,6 +30,7 @@ export async function GET(request: NextRequest) {
     const { data: businessHours, error: businessError } = await supabase
       .from('business_hours')
       .select('*')
+      .eq('tenant_id', tenant.id)
       .eq('day_of_week', dayOfWeek)
       .eq('is_active', true)
 
@@ -54,10 +67,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 既存の予約済みスロットを取得
+    // 既存の予約済みスロットを取得（テナント内で）
     const { data: bookedSlots, error: slotsError } = await supabase
       .from('available_slots')
       .select('datetime')
+      .eq('tenant_id', tenant.id)
       .eq('is_booked', true)
       .in('datetime', slots)
 
@@ -66,10 +80,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch booked slots' }, { status: 500 })
     }
 
-    // 予約済み時間を取得
+    // 予約済み時間を取得（テナント内で）
     const { data: reservations, error: reservationsError } = await supabase
       .from('reservations')
       .select('datetime')
+      .eq('tenant_id', tenant.id)
       .in('datetime', slots)
 
     if (reservationsError) {

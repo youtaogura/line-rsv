@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const { user_id } = await params
 
     if (!user_id) {
@@ -15,6 +27,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('users')
       .select('*')
+      .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .single()
 
@@ -39,6 +52,17 @@ export async function PUT(
   { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
     const { user_id } = await params
     const body = await request.json()
     const { name, phone, member_type } = body
@@ -55,6 +79,7 @@ export async function PUT(
     const { error: fetchError } = await supabase
       .from('users')
       .select('*')
+      .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .single()
 
@@ -74,6 +99,7 @@ export async function PUT(
     const { data, error } = await supabase
       .from('users')
       .update(updateData)
+      .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .select()
       .single()

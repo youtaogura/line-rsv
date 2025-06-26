@@ -5,8 +5,17 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export type Tenant = {
+  id: string
+  name: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type User = {
   user_id: string
+  tenant_id: string
   name: string
   phone?: string
   member_type: 'regular' | 'guest'
@@ -15,6 +24,7 @@ export type User = {
 
 export type Reservation = {
   id: string
+  tenant_id: string
   user_id: string
   name: string
   datetime: string
@@ -24,12 +34,14 @@ export type Reservation = {
 }
 
 export type AvailableSlot = {
+  tenant_id: string
   datetime: string
   is_booked: boolean
 }
 
 export type BusinessHour = {
   id: string
+  tenant_id: string
   day_of_week: number
   start_time: string
   end_time: string
