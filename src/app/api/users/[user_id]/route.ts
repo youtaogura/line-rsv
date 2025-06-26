@@ -3,10 +3,10 @@ import { supabase } from '@/lib/supabase'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { user_id: string } }
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
-    const { user_id } = params
+    const { user_id } = await params
 
     if (!user_id) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
