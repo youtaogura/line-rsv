@@ -70,16 +70,7 @@ function consolidateTimeSlots(
           processedSlots.add(s.time)
         }
       })
-    } else if (!slot.isAvailable) {
-      // 予約不可スロット（重複により）
-      consolidatedSlots.push({
-        startTime: slot.time,
-        isAvailable: false,
-        isConflicted: true,
-        datetime: slot.datetime
-      })
-      processedSlots.add(slot.time)
-    } else {
+    } else if (slot.isAvailable) {
       // 空きスロット
       consolidatedSlots.push({
         startTime: slot.time,
@@ -100,7 +91,7 @@ export function AdminReservationCalendar({
   onDeleteReservation,
   onCreateReservation
 }: AdminReservationCalendarProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()))
   const [dayReservations, setDayReservations] = useState<DayReservations>({})
 
@@ -165,7 +156,7 @@ export function AdminReservationCalendar({
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">予約カレンダー</h3>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96 lg:h-auto lg:min-h-96">
           {/* カレンダー部分 */}
           <div>
             <CalendarView
@@ -181,45 +172,17 @@ export function AdminReservationCalendar({
           </div>
 
           {/* 選択日の予約詳細 */}
-          <div>
+          <div className="flex flex-col h-full">
             <h4 className="text-md font-medium text-gray-900 mb-3">
               {selectedDate ? format(selectedDate, 'M月d日の予約') : '日付を選択してください'}
             </h4>
             
             {selectedDate ? (
-              <div className="space-y-4">
-                {/* 空き状況サマリー */}
-                {selectedDayAvailability && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h5 className="font-medium text-blue-900 mb-2">空き状況</h5>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">
-                          {selectedDayAvailability.availableSlots}
-                        </div>
-                        <div className="text-blue-800">空き</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-red-600">
-                          {selectedDayAvailability.reservedSlots}
-                        </div>
-                        <div className="text-red-800">予約済み</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-gray-600">
-                          {selectedDayAvailability.totalSlots}
-                        </div>
-                        <div className="text-gray-800">合計</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
+              <div className="flex-1 flex flex-col min-h-0">
                 {/* タイムスロット一覧 */}
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-2">タイムスロット一覧</h5>
+                <div className="flex-1 overflow-hidden">
                   {consolidatedSlots.length > 0 ? (
-                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                    <div className="space-y-2 max-h-140 overflow-y-auto">
                       {consolidatedSlots.map((slot, index) => {
                         const displayTime = slot.endTime ? `${slot.startTime}-${slot.endTime}` : slot.startTime
                         const isReserved = slot.reservation

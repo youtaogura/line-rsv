@@ -93,16 +93,6 @@ export function updateSlotsWithReservations(timeSlots: TimeSlot[], reservations:
       
       const overlaps = slotStartTime < reservationEndTime && slotEndTime > reservationStartTime
       
-      // デバッグ: 15:00スロットの場合のみログ出力
-      if (slot.time === '15:00') {
-        console.log(`=== 15:00スロットのチェック ===`)
-        console.log(`スロット: ${slot.time} (${slotStartTime.toISOString()} - ${slotEndTime.toISOString()})`)
-        console.log(`予約: ${format(reservationStartTime, 'HH:mm')} (${reservationStartTime.toISOString()} - ${reservationEndTime.toISOString()}) 時間:${reservationDuration}分`)
-        console.log(`slotStartTime < reservationEndTime: ${slotStartTime.toISOString()} < ${reservationEndTime.toISOString()} = ${slotStartTime < reservationEndTime}`)
-        console.log(`slotEndTime > reservationStartTime: ${slotEndTime.toISOString()} > ${reservationStartTime.toISOString()} = ${slotEndTime > reservationStartTime}`)
-        console.log(`重複判定: ${overlaps}`)
-      }
-      
       // 時間重複をチェック（より厳密な重複判定）
       // 2つの時間帯が重複する条件: スロット開始 < 予約終了 AND スロット終了 > 予約開始
       return overlaps

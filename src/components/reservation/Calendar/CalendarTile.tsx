@@ -15,22 +15,14 @@ export function CalendarTile({ date, availabilityData, reservationCount, availab
   const isPastDate = isBefore(startOfDay(date), today)
 
   const getIndicator = () => {
-    // 管理者モードの場合、予約数と空きスロット数を表示
+    // 管理者モードの場合も○×表示に統一
     if (typeof reservationCount === 'number') {
-      return (
-        <div className="flex flex-col items-center space-y-1">
-          {reservationCount > 0 && (
-            <div className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              {reservationCount}
-            </div>
-          )}
-          {typeof availableSlots === 'number' && availableSlots > 0 && (
-            <div className="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              {availableSlots}
-            </div>
-          )}
-        </div>
-      )
+      // 空きスロットがある場合は○、ない場合は×
+      if (typeof availableSlots === 'number' && availableSlots > 0) {
+        return <span className="text-green-500 font-bold">⚪︎</span>
+      } else {
+        return <span className="text-red-500 font-bold">×</span>
+      }
     }
     
     // 通常モードの場合、空き状況を表示

@@ -71,6 +71,26 @@
   justify-content: center !important;
 }
 
+/* 土曜日の文字色を青色に */
+.react-calendar__month-view__weekdays__weekday:nth-child(6) {
+  color: #2563eb !important;
+}
+
+/* 日曜日の文字色を赤色に（明示的に設定） */
+.react-calendar__month-view__weekdays__weekday:nth-child(7) {
+  color: #dc2625 !important;
+}
+
+/* 土曜日の日付を青色に */
+.react-calendar__month-view__days__day:nth-child(7n-1) {
+  color: #2563eb !important;
+}
+
+/* 日曜日の日付を赤色に */
+.react-calendar__month-view__days__day:nth-child(7n) {
+  color: #dc2625 !important;
+}
+
 .react-calendar__month-view__days {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
