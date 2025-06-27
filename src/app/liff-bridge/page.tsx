@@ -2,6 +2,9 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { LoadingSpinner } from '@/components/common';
+import { UI_TEXT } from '@/constants/ui';
+import { ROUTES } from '@/constants/routes';
 
 function LiffBridgeContent() {
   const searchParams = useSearchParams();
@@ -21,7 +24,7 @@ function LiffBridgeContent() {
 
       if (!tenantId) {
         alert("不正なアクセスです。");
-        window.location.href = "/error?error=missing_tenant";
+        window.location.href = `${ROUTES.ERROR}?error=missing_tenant`;
       }
 
       // パラメータをsession storageに保存
@@ -33,16 +36,20 @@ function LiffBridgeContent() {
       sessionStorage.setItem("reserveParams", JSON.stringify(userData));
 
       // /reserve画面にリダイレクト
-      window.location.href = "/reserve";
+      window.location.href = ROUTES.RESERVE;
     });
   }, [searchParams]);
 
-  return <p>読み込み中...</p>;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-lg">{UI_TEXT.LOADING}</p>
+    </div>
+  );
 }
 
 export default function LiffBridge() {
   return (
-    <Suspense fallback={<p>読み込み中...</p>}>
+    <Suspense fallback={<LoadingSpinner />}>
       <LiffBridgeContent />
     </Suspense>
   );

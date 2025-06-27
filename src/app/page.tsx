@@ -6,17 +6,14 @@ import {
   useTenantId,
 } from "@/lib/tenant-helpers";
 import { Suspense } from "react";
+import { LoadingSpinner, PageLayout, ActionButton } from '@/components/common';
 
 function HomeContent() {
   const { tenant, loading } = useTenant();
   const tenantId = useTenantId();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!tenant) {
@@ -24,7 +21,7 @@ function HomeContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <PageLayout centerContent>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -39,38 +36,32 @@ function HomeContent() {
         </div>
 
         <div className="space-y-4">
-          <a
+          <ActionButton
             href={buildUrlWithTenantId("/login", tenantId)}
-            className="w-full bg-success text-white py-3 px-4 rounded-lg hover:bg-success/90 transition-colors text-center block font-medium"
+            variant="success"
           >
             予約を取る
-          </a>
+          </ActionButton>
 
-          <a
+          <ActionButton
             href={buildUrlWithTenantId("/admin", tenantId)}
-            className="w-full bg-secondary text-white py-3 px-4 rounded-lg hover:bg-secondary/90 transition-colors text-center block font-medium"
+            variant="secondary"
           >
             管理画面
-          </a>
+          </ActionButton>
         </div>
 
         <div className="text-center text-sm text-gray-500">
           <p>初回のお客様もご利用いただけます</p>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-xl">読み込み中...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner />}>
       <HomeContent />
     </Suspense>
   );

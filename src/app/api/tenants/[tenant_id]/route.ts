@@ -1,5 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+  createNotFoundResponse,
+} from "@/utils/api";
 
 export async function GET(
   request: NextRequest,
@@ -9,10 +15,7 @@ export async function GET(
     const { tenant_id } = await params;
 
     if (!tenant_id) {
-      return NextResponse.json(
-        { error: "Tenant ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ tenant_id: "Tenant ID is required" });
     }
 
     const { data, error } = await supabase
@@ -24,25 +27,16 @@ export async function GET(
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tenant not found" },
-          { status: 404 },
-        );
+        return createNotFoundResponse("Tenant");
       }
       console.error("Error fetching tenant:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch tenant" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch tenant");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -56,10 +50,7 @@ export async function PUT(
     const { name, is_active } = body;
 
     if (!tenant_id) {
-      return NextResponse.json(
-        { error: "Tenant ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ tenant_id: "Tenant ID is required" });
     }
 
     const updateData: {
@@ -72,17 +63,14 @@ export async function PUT(
 
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim().length === 0) {
-        return NextResponse.json({ error: "Invalid name" }, { status: 400 });
+        return createValidationErrorResponse({ name: "Invalid name" });
       }
       updateData.name = name.trim();
     }
 
     if (is_active !== undefined) {
       if (typeof is_active !== "boolean") {
-        return NextResponse.json(
-          { error: "Invalid is_active value" },
-          { status: 400 },
-        );
+        return createValidationErrorResponse({ is_active: "Invalid is_active value" });
       }
       updateData.is_active = is_active;
     }
@@ -96,25 +84,16 @@ export async function PUT(
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tenant not found" },
-          { status: 404 },
-        );
+        return createNotFoundResponse("Tenant");
       }
       console.error("Error updating tenant:", error);
-      return NextResponse.json(
-        { error: "Failed to update tenant" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to update tenant");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -126,10 +105,7 @@ export async function DELETE(
     const { tenant_id } = await params;
 
     if (!tenant_id) {
-      return NextResponse.json(
-        { error: "Tenant ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ tenant_id: "Tenant ID is required" });
     }
 
     // ソフトデリート（is_activeをfalseに設定）
@@ -145,24 +121,15 @@ export async function DELETE(
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tenant not found" },
-          { status: 404 },
-        );
+        return createNotFoundResponse("Tenant");
       }
       console.error("Error deleting tenant:", error);
-      return NextResponse.json(
-        { error: "Failed to delete tenant" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to delete tenant");
     }
 
-    return NextResponse.json({ message: "Tenant deleted successfully", data });
+    return createApiResponse({ message: "Tenant deleted successfully", data });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

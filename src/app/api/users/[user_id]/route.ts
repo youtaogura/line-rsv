@@ -1,9 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import {
   requireValidTenant,
   TenantValidationError,
 } from "@/lib/tenant-validation";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+  createNotFoundResponse,
+} from "@/utils/api";
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +22,7 @@ export async function GET(
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -24,10 +30,7 @@ export async function GET(
     const { user_id } = await params;
 
     if (!user_id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ user_id: "User ID is required" });
     }
 
     const { data, error } = await supabase
@@ -40,22 +43,16 @@ export async function GET(
     if (error) {
       if (error.code === "PGRST116") {
         // No rows found
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+        return createNotFoundResponse("User");
       }
       console.error("Error fetching user:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch user" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch user");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -70,7 +67,7 @@ export async function POST(
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -80,14 +77,11 @@ export async function POST(
     const { name, phone } = body;
 
     if (!user_id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ user_id: "User ID is required" });
     }
 
     if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      return createValidationErrorResponse({ name: "Name is required" });
     }
 
     // Check if user already exists
@@ -99,7 +93,7 @@ export async function POST(
       .single();
 
     if (existingUser) {
-      return NextResponse.json(existingUser);
+      return createApiResponse(existingUser);
     }
 
     // Create new guest user
@@ -117,19 +111,13 @@ export async function POST(
 
     if (error) {
       console.error("Error creating user:", error);
-      return NextResponse.json(
-        { error: "Failed to create user" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to create user");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -144,7 +132,7 @@ export async function PUT(
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -154,17 +142,11 @@ export async function PUT(
     const { name, phone, member_type } = body;
 
     if (!user_id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ user_id: "User ID is required" });
     }
 
     if (member_type && !["regular", "guest"].includes(member_type)) {
-      return NextResponse.json(
-        { error: 'Invalid member_type. Must be "regular" or "guest"' },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ member_type: 'Invalid member_type. Must be "regular" or "guest"' });
     }
 
     // Check if user exists
@@ -176,13 +158,10 @@ export async function PUT(
       .single();
 
     if (fetchError && fetchError.code === "PGRST116") {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return createNotFoundResponse("User");
     } else if (fetchError) {
       console.error("Error fetching user:", fetchError);
-      return NextResponse.json(
-        { error: "Failed to fetch user" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch user");
     }
 
     // Update user
@@ -205,18 +184,12 @@ export async function PUT(
 
     if (error) {
       console.error("Error updating user:", error);
-      return NextResponse.json(
-        { error: "Failed to update user" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to update user");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

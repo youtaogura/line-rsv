@@ -2,6 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { LoadingSpinner, PageLayout, ErrorIcon } from '@/components/common';
+import { UI_TEXT } from '@/constants/ui';
 
 function ErrorContent() {
   const searchParams = useSearchParams();
@@ -25,9 +27,9 @@ function ErrorContent() {
         };
       default:
         return {
-          title: "エラーが発生しました",
+          title: UI_TEXT.ERROR_OCCURRED,
           message: "アクセスに問題があります。",
-          detail: "しばらくしてから再度お試しください。",
+          detail: UI_TEXT.TRY_AGAIN,
         };
     }
   };
@@ -35,24 +37,10 @@ function ErrorContent() {
   const errorInfo = getErrorMessage();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <PageLayout centerContent>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 text-error">
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
-          </div>
+          <ErrorIcon />
           <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-4">
             {errorInfo.title}
           </h1>
@@ -69,23 +57,17 @@ function ErrorContent() {
           </button>
 
           <div className="text-center text-sm text-gray-500">
-            <p>お困りの場合は管理者にお問い合わせください</p>
+            <p>{UI_TEXT.CONTACT_SUPPORT}</p>
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
 
 export default function ErrorPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-xl">読み込み中...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner />}>
       <ErrorContent />
     </Suspense>
   );

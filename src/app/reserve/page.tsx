@@ -5,6 +5,7 @@ import type { User, Reservation } from "@/lib/supabase";
 import { buildApiUrl } from "@/lib/tenant-helpers";
 import { ReservationForm } from "@/components/reservation/ReservationForm";
 import { format as formatTz } from "date-fns-tz";
+import { LoadingSpinner, PageLayout } from '@/components/common';
 
 function ReserveContent() {
   const [urlUserId, setUrlUserId] = useState<string | null>(null);
@@ -126,25 +127,12 @@ function ReserveContent() {
     }
   };
 
-  // テナントが読み込まれるまで待機
-  if (!tenant) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    );
+  if (!tenant || loading) {
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <PageLayout className="py-8">
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">
           {tenant?.name} レッスン予約
@@ -203,19 +191,13 @@ function ReserveContent() {
           tenantName={tenant?.name}
         />
       </div>
-    </div>
+    </PageLayout>
   );
 }
 
 export default function ReservePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-xl">読み込み中...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner />}>
       <ReserveContent />
     </Suspense>
   );

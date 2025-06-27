@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { createApiResponse } from "@/utils/api";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,7 +8,7 @@ export async function POST(request: NextRequest) {
     const token = process.env.LINE_NOTIFY_TOKEN;
     if (!token) {
       console.error("LINE_NOTIFY_TOKEN not configured");
-      return NextResponse.json({ success: false });
+      return createApiResponse({ success: false });
     }
 
     const date = new Date(datetime);
@@ -40,13 +41,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (response.ok) {
-      return NextResponse.json({ success: true });
+      return createApiResponse({ success: true });
     } else {
       console.error("LINE Notify error:", await response.text());
-      return NextResponse.json({ success: false });
+      return createApiResponse({ success: false });
     }
   } catch (error) {
     console.error("Notify API error:", error);
-    return NextResponse.json({ success: false });
+    return createApiResponse({ success: false });
   }
 }

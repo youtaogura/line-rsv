@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { startOfMonth, endOfMonth, addDays, format } from "date-fns";
 import {
@@ -11,6 +11,11 @@ import type {
   Reservation,
   ReservationMenu,
 } from "@/lib/supabase";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from "@/utils/api";
 
 interface DayAvailability {
   date: string;
@@ -25,7 +30,7 @@ export async function GET(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -35,20 +40,14 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get("month");
 
     if (!year || !month) {
-      return NextResponse.json(
-        { error: "Year and month parameters are required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ params: "Year and month parameters are required" });
     }
 
     const yearNum = parseInt(year);
     const monthNum = parseInt(month) - 1; // JavaScript months are 0-indexed
 
     if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 0 || monthNum > 11) {
-      return NextResponse.json(
-        { error: "Invalid year or month" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ params: "Invalid year or month" });
     }
 
     // 指定月の開始日と終了日を取得
@@ -64,10 +63,7 @@ export async function GET(request: NextRequest) {
 
     if (businessError) {
       console.error("Error fetching business hours:", businessError);
-      return NextResponse.json(
-        { error: "Failed to fetch business hours" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch business hours");
     }
 
     // 予約メニューを取得
@@ -79,10 +75,7 @@ export async function GET(request: NextRequest) {
 
     if (menuError) {
       console.error("Error fetching reservation menu:", menuError);
-      return NextResponse.json(
-        { error: "Failed to fetch reservation menu" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservation menu");
     }
 
     const reservationMenu = reservationMenus?.[0] as
@@ -102,10 +95,7 @@ export async function GET(request: NextRequest) {
 
     if (reservationsError) {
       console.error("Error fetching reservations:", reservationsError);
-      return NextResponse.json(
-        { error: "Failed to fetch reservations" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservations");
     }
 
     // 新しいロジックで月間空き状況を計算
@@ -133,12 +123,9 @@ export async function GET(request: NextRequest) {
       currentDay = addDays(currentDay, 1);
     }
 
-    return NextResponse.json(dayAvailabilities);
+    return createApiResponse(dayAvailabilities);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

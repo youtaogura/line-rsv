@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { parseISO } from "date-fns";
 import {
@@ -14,6 +14,11 @@ import type {
   Reservation,
   ReservationMenu,
 } from "@/lib/supabase";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from "@/utils/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +28,7 @@ export async function GET(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -32,10 +37,7 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get("date");
 
     if (!date) {
-      return NextResponse.json(
-        { error: "Date parameter is required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ date: "Date parameter is required" });
     }
 
     const targetDate = parseISO(date);
@@ -49,14 +51,11 @@ export async function GET(request: NextRequest) {
 
     if (businessError) {
       console.error("Error fetching business hours:", businessError);
-      return NextResponse.json(
-        { error: "Failed to fetch business hours" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch business hours");
     }
 
     if (!businessHours || businessHours.length === 0) {
-      return NextResponse.json([]);
+      return createApiResponse([]);
     }
 
     // 予約メニューを取得（1テナント1メニューの想定）
@@ -68,10 +67,7 @@ export async function GET(request: NextRequest) {
 
     if (menuError) {
       console.error("Error fetching reservation menu:", menuError);
-      return NextResponse.json(
-        { error: "Failed to fetch reservation menu" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservation menu");
     }
 
     const reservationMenu = reservationMenus?.[0] as
@@ -88,10 +84,7 @@ export async function GET(request: NextRequest) {
 
     if (reservationsError) {
       console.error("Error fetching reservations:", reservationsError);
-      return NextResponse.json(
-        { error: "Failed to fetch reservations" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservations");
     }
 
     // 新しいロジックでタイムスロットを生成
@@ -116,12 +109,9 @@ export async function GET(request: NextRequest) {
         is_booked: false,
       }));
 
-    return NextResponse.json(availableSlots);
+    return createApiResponse(availableSlots);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

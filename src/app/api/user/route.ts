@@ -1,16 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import {
+  createApiResponse,
+  createUnauthorizedResponse,
+  createValidationErrorResponse,
+} from "@/utils/api";
 
 export async function GET(request: NextRequest) {
   const lineUser = request.cookies.get("line_user")?.value;
 
   if (!lineUser) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return createUnauthorizedResponse();
   }
 
   try {
     const userData = JSON.parse(lineUser);
-    return NextResponse.json(userData);
+    return createApiResponse(userData);
   } catch (_error) {
-    return NextResponse.json({ error: "Invalid user data" }, { status: 400 });
+    return createValidationErrorResponse({ user_data: "Invalid user data" });
   }
 }

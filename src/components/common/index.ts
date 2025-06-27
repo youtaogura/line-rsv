@@ -3,3 +3,6 @@ export { ErrorMessage } from './ErrorMessage';
 export { AdminLayout } from './AdminLayout';
 export { AuthGuard } from './AuthGuard';
 export { ViewModeToggle } from './ViewModeToggle';
+export { PageLayout } from './PageLayout';
+export { ActionButton } from './ActionButton';
+export { ErrorIcon } from './ErrorIcon';

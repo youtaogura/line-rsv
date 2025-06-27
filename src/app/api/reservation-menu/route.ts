@@ -1,9 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import {
   requireValidTenant,
   TenantValidationError,
 } from "@/lib/tenant-validation";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+  createNotFoundResponse,
+} from "@/utils/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -29,24 +35,15 @@ export async function GET(request: NextRequest) {
     if (error) {
       if (error.code === "PGRST116") {
         // データが見つからない場合
-        return NextResponse.json(
-          { error: "Reservation menu not found" },
-          { status: 404 },
-        );
+        return createNotFoundResponse("Reservation menu");
       }
       console.error("Error fetching reservation menu:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch reservation menu" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservation menu");
     }
 
-    return NextResponse.json(reservationMenu);
+    return createApiResponse(reservationMenu);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

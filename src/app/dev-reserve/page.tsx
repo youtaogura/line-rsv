@@ -2,6 +2,8 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { LoadingSpinner } from '@/components/common';
+import { UI_TEXT } from '@/constants/ui';
 
 function DevReserveContent() {
   const searchParams = useSearchParams();
@@ -28,12 +30,16 @@ function DevReserveContent() {
     window.location.href = "/reserve";
   }, [searchParams]);
 
-  return <p>開発用リダイレクト中...</p>;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-lg">{UI_TEXT.DEV_MODE} - リダイレクト中...</p>
+    </div>
+  );
 }
 
 export default function DevReserve() {
   return (
-    <Suspense fallback={<p>読み込み中...</p>}>
+    <Suspense fallback={<LoadingSpinner />}>
       <DevReserveContent />
     </Suspense>
   );

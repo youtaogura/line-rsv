@@ -40,4 +40,20 @@ export const UI_TEXT = {
   SYSTEM_ACCESS_DESCRIPTION: 'システムの各機能にアクセスできます',
   LOGGED_IN_AS: 'ログイン中',
   TENANT: 'テナント',
+  
+  // Reservation flow
+  RESERVE_TITLE: '予約フォーム',
+  SELECT_DATE_TIME: '日時を選択してください',
+  ENTER_DETAILS: '詳細を入力してください',
+  CONFIRM_RESERVATION: '予約を確認してください',
+  RESERVATION_COMPLETE: '予約が完了しました',
+  
+  // Error messages
+  ERROR_OCCURRED: 'エラーが発生しました',
+  TRY_AGAIN: 'しばらくしてから再度お試しください',
+  CONTACT_SUPPORT: 'お困りの場合は管理者にお問い合わせください',
+  
+  // Development
+  DEV_RESERVE: '開発用予約ページ',
+  DEV_MODE: '開発モード',
 } as const;

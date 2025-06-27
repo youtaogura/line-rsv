@@ -1,9 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import {
   requireValidTenant,
   TenantValidationError,
 } from "@/lib/tenant-validation";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from "@/utils/api";
+import { HTTP_STATUS } from "@/constants/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -28,19 +34,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Error fetching business hours:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch business hours" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch business hours");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -61,17 +61,11 @@ export async function POST(request: NextRequest) {
     const { day_of_week, start_time, end_time } = body;
 
     if (typeof day_of_week !== "number" || day_of_week < 0 || day_of_week > 6) {
-      return NextResponse.json(
-        { error: "Invalid day_of_week. Must be 0-6." },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ day_of_week: "Invalid day_of_week. Must be 0-6." });
     }
 
     if (!start_time || !end_time) {
-      return NextResponse.json(
-        { error: "start_time and end_time are required" },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ time: "start_time and end_time are required" });
     }
 
     const startHour = parseInt(start_time.split(":")[0]);
@@ -85,13 +79,9 @@ export async function POST(request: NextRequest) {
       startHour >= endHour ||
       (startHour === endHour && startMinute >= endMinute)
     ) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid time range. Business hours must be between 09:00-18:00 and start time must be before end time",
-        },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({
+        time_range: "Invalid time range. Business hours must be between 09:00-18:00 and start time must be before end time"
+      });
     }
 
     // Check for overlapping business hours on the same day
@@ -104,10 +94,7 @@ export async function POST(request: NextRequest) {
 
     if (fetchError) {
       console.error("Error fetching existing business hours:", fetchError);
-      return NextResponse.json(
-        { error: "Failed to check for conflicts" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to check for conflicts");
     }
 
     // Check for time overlap
@@ -127,11 +114,9 @@ export async function POST(request: NextRequest) {
         newStartMinutes < existingEndMinutes &&
         newEndMinutes > existingStartMinutes
       ) {
-        return NextResponse.json(
-          {
-            error: `時間が重複しています。${existingHour.start_time}-${existingHour.end_time}の時間帯と重複します。`,
-          },
-          { status: 409 },
+        return createErrorResponse(
+          `時間が重複しています。${existingHour.start_time}-${existingHour.end_time}の時間帯と重複します。`,
+          409
         );
       }
     }
@@ -151,25 +136,16 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       if (error.code === "23505") {
-        return NextResponse.json(
-          { error: "This time slot already exists" },
-          { status: 409 },
-        );
+        return createErrorResponse("This time slot already exists", 409);
       }
       console.error("Error creating business hour:", error);
-      return NextResponse.json(
-        { error: "Failed to create business hour" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to create business hour");
     }
 
-    return NextResponse.json(data[0], { status: 201 });
+    return createApiResponse(data[0], HTTP_STATUS.CREATED);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -181,7 +157,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+      return createValidationErrorResponse({ id: "ID is required" });
     }
 
     const { error } = await supabase
@@ -192,18 +168,12 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error("Error deactivating business hour:", error);
-      return NextResponse.json(
-        { error: "Failed to delete business hour" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to delete business hour");
     }
 
-    return NextResponse.json({ message: "Business hour deleted successfully" });
+    return createApiResponse({ message: "Business hour deleted successfully" });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

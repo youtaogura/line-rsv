@@ -1,9 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import {
   requireValidTenant,
   TenantValidationError,
 } from "@/lib/tenant-validation";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+  createNotFoundResponse,
+} from "@/utils/api";
+import { HTTP_STATUS } from "@/constants/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +19,7 @@ export async function GET(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -21,12 +28,7 @@ export async function GET(request: NextRequest) {
     const user_id = searchParams.get("user_id");
 
     if (!user_id) {
-      return NextResponse.json(
-        {
-          error: "user_id parameter is required",
-        },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ user_id: "user_id parameter is required" });
     }
 
     const now = new Date().toISOString();
@@ -43,21 +45,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Reservation fetch error:", error);
-      return NextResponse.json(
-        {
-          error: "Failed to fetch reservations",
-        },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch reservations");
     }
 
-    return NextResponse.json(reservations);
+    return createApiResponse(reservations);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -69,7 +63,7 @@ export async function POST(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -89,13 +83,9 @@ export async function POST(request: NextRequest) {
 
     // 必須フィールドのバリデーション
     if (!user_id || !name || !datetime || !member_type) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields: user_id, name, datetime, member_type",
-        },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({
+        fields: "Missing required fields: user_id, name, datetime, member_type"
+      });
     }
 
     // 予約メニューを取得
@@ -111,12 +101,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (menuError) {
-        return NextResponse.json(
-          {
-            error: "Invalid reservation menu",
-          },
-          { status: 400 },
-        );
+        return createValidationErrorResponse({ reservation_menu_id: "Invalid reservation menu" });
       }
 
       reservationMenu = menuData;
@@ -146,11 +131,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingReservation) {
-      return NextResponse.json(
-        {
-          error: "You already have a reservation at this time",
-        },
-        { status: 409 },
+      return createErrorResponse(
+        "You already have a reservation at this time",
+        409
       );
     }
 
@@ -174,12 +157,7 @@ export async function POST(request: NextRequest) {
 
         if (userError) {
           console.error("User creation error:", userError);
-          return NextResponse.json(
-            {
-              error: "Failed to create user",
-            },
-            { status: 500 },
-          );
+          return createErrorResponse("Failed to create user");
         }
       }
     }
@@ -203,12 +181,7 @@ export async function POST(request: NextRequest) {
 
     if (reservationError) {
       console.error("Reservation error:", reservationError);
-      return NextResponse.json(
-        {
-          error: "Failed to create reservation",
-        },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to create reservation");
     }
 
     // available_slotsテーブルを更新
@@ -246,13 +219,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(reservation, { status: 201 });
+    return createApiResponse(reservation, HTTP_STATUS.CREATED);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -264,7 +234,7 @@ export async function DELETE(request: NextRequest) {
       tenant = await requireValidTenant(request);
     } catch (error) {
       if (error instanceof TenantValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return createValidationErrorResponse({ tenant: error.message });
       }
       throw error;
     }
@@ -273,12 +243,7 @@ export async function DELETE(request: NextRequest) {
     const reservationId = searchParams.get("id");
 
     if (!reservationId) {
-      return NextResponse.json(
-        {
-          error: "Reservation ID is required",
-        },
-        { status: 400 },
-      );
+      return createValidationErrorResponse({ id: "Reservation ID is required" });
     }
 
     // 予約が存在し、テナントに属していることを確認
@@ -290,12 +255,7 @@ export async function DELETE(request: NextRequest) {
       .single();
 
     if (!existingReservation) {
-      return NextResponse.json(
-        {
-          error: "Reservation not found",
-        },
-        { status: 404 },
-      );
+      return createNotFoundResponse("Reservation");
     }
 
     // 予約を削除
@@ -307,12 +267,7 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteError) {
       console.error("Reservation deletion error:", deleteError);
-      return NextResponse.json(
-        {
-          error: "Failed to delete reservation",
-        },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to delete reservation");
     }
 
     // available_slotsテーブルを更新（予約を解除）
@@ -326,12 +281,9 @@ export async function DELETE(request: NextRequest) {
       console.error("Slot update error:", slotError);
     }
 
-    return NextResponse.json({ message: "Reservation deleted successfully" });
+    return createApiResponse({ message: "Reservation deleted successfully" });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }

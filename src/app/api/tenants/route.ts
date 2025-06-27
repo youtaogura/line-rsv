@@ -1,5 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
+import {
+  createApiResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from "@/utils/api";
+import { HTTP_STATUS } from "@/constants/api";
 
 export async function GET() {
   try {
@@ -11,19 +17,13 @@ export async function GET() {
 
     if (error) {
       console.error("Error fetching tenants:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch tenants" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to fetch tenants");
     }
 
-    return NextResponse.json(data);
+    return createApiResponse(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const { name } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      return createValidationErrorResponse({ name: "Name is required" });
     }
 
     const { data, error } = await supabase
@@ -49,18 +49,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Error creating tenant:", error);
-      return NextResponse.json(
-        { error: "Failed to create tenant" },
-        { status: 500 },
-      );
+      return createErrorResponse("Failed to create tenant");
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return createApiResponse(data, HTTP_STATUS.CREATED);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return createErrorResponse("Internal server error");
   }
 }
