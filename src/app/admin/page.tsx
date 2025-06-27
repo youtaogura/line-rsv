@@ -87,27 +87,8 @@ function AdminContent() {
           </button>
         </div>
 
-        {/* 統計情報 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">予約数</h3>
-            <p className="text-3xl font-bold text-primary">{reservations.length}</p>
-            <p className="text-sm text-gray-500 mt-1">現在の予約総数</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">登録ユーザー数</h3>
-            <p className="text-3xl font-bold text-success">{users.length}</p>
-            <p className="text-sm text-gray-500 mt-1">会員: {users.filter(u => u.member_type === 'regular').length}人</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">営業時間設定</h3>
-            <p className="text-3xl font-bold text-warning">{businessHours.length}</p>
-            <p className="text-sm text-gray-500 mt-1">設定済み時間帯</p>
-          </div>
-        </div>
-
         {/* 機能メニュー */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link
             href="/admin/reservations"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-primary"
@@ -161,25 +142,6 @@ function AdminContent() {
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">ユーザー管理</h3>
                 <p className="text-sm text-gray-500">会員情報の編集・管理</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/manual-booking"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-red-500"
-          >
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">手動予約登録</h3>
-                <p className="text-sm text-gray-500">管理者による代理予約</p>
               </div>
             </div>
           </Link>

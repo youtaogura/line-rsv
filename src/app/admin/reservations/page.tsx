@@ -2,7 +2,7 @@
 
 import { useState, Suspense, useEffect } from 'react'
 import { signOut } from 'next-auth/react'
-import { useReservations, useAdminSession } from '@/hooks/useAdminData'
+import { useReservations, useAdminSession, useUsers } from '@/hooks/useAdminData'
 import { formatDateTime } from '@/lib/admin-types'
 import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar'
 import { ReservationList } from '@/components/admin/ReservationList'
@@ -11,13 +11,15 @@ import { ReservationExport } from '@/components/admin/ReservationExport'
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession()
   const { reservations, loading, fetchReservations, deleteReservation } = useReservations()
+  const { users, fetchUsers } = useUsers()
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       fetchReservations()
+      fetchUsers()
     }
-  }, [isAuthenticated, session, fetchReservations])
+  }, [isAuthenticated, session, fetchReservations, fetchUsers])
 
   if (isLoading) {
     return (
@@ -53,8 +55,8 @@ function ReservationsContent() {
   }
 
   const handleCreateReservation = (datetime: string) => {
-    // 手動予約登録ページに遷移
-    window.location.href = `/admin/manual-booking?datetime=${encodeURIComponent(datetime)}`
+    // 予約作成後はリストを再取得
+    fetchReservations()
   }
 
   return (
@@ -119,6 +121,7 @@ function ReservationsContent() {
             reservations={reservations}
             onDeleteReservation={deleteReservation}
             onCreateReservation={handleCreateReservation}
+            availableUsers={users}
           />
         )}
 

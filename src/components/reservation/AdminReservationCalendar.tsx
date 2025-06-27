@@ -2,18 +2,20 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { CalendarView } from './Calendar/CalendarView'
+import { ReservationModal } from './ReservationModal'
 import { useMonthlyAvailability } from './hooks/useMonthlyAvailability'
 import { useBusinessHours } from './hooks/useBusinessHours'
 import { useReservationMenu } from './hooks/useReservationMenu'
 import { startOfMonth, endOfMonth, format, addMinutes } from 'date-fns'
 import { calculateMonthlyAvailability, type DayAvailabilityInfo, type TimeSlot } from './utils/availabilityCalculator'
-import type { Reservation } from '@/lib/supabase'
+import type { Reservation, User } from '@/lib/supabase'
 
 interface AdminReservationCalendarProps {
   tenantId: string | null
   reservations: Reservation[]
   onDeleteReservation: (id: string) => void
   onCreateReservation?: (datetime: string) => void
+  availableUsers?: User[]
 }
 
 interface DayReservations {
@@ -89,11 +91,14 @@ export function AdminReservationCalendar({
   tenantId,
   reservations,
   onDeleteReservation,
-  onCreateReservation
+  onCreateReservation,
+  availableUsers = []
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()))
   const [dayReservations, setDayReservations] = useState<DayReservations>({})
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedDateTime, setSelectedDateTime] = useState<string>('')
 
   // 月間空き状況を取得
   const { availabilityData, loading: availabilityLoading } = useMonthlyAvailability(
@@ -237,14 +242,15 @@ export function AdminReservationCalendar({
                               </div>
                               
                               {slot.isAvailable ? (
-                                onCreateReservation && (
-                                  <button
-                                    onClick={() => onCreateReservation(slot.datetime)}
-                                    className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 ml-2"
-                                  >
-                                    予約追加
-                                  </button>
-                                )
+                                <button
+                                  onClick={() => {
+                                    setSelectedDateTime(slot.datetime)
+                                    setIsModalOpen(true)
+                                  }}
+                                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 ml-2"
+                                >
+                                  予約追加
+                                </button>
                               ) : isReserved ? (
                                 <button
                                   onClick={() => onDeleteReservation(slot.reservation!.id)}
@@ -322,6 +328,21 @@ export function AdminReservationCalendar({
           </div>
         </div>
       </div>
+
+      {/* 予約作成モーダル */}
+      <ReservationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        tenantId={tenantId || ''}
+        preselectedDateTime={selectedDateTime}
+        availableUsers={availableUsers}
+        onSuccess={() => {
+          // 予約作成成功時の処理
+          if (onCreateReservation) {
+            onCreateReservation(selectedDateTime)
+          }
+        }}
+      />
     </div>
   )
 }
