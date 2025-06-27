@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import Calendar from 'react-calendar'
 import { CalendarTile } from './CalendarTile'
 import { DayAvailability } from '../types'
@@ -13,19 +13,21 @@ interface CalendarViewProps {
   onActiveStartDateChange: (activeStartDate: Date) => void
   availabilityData: DayAvailability[]
   loading: boolean
+  reservationCount?: { [date: string]: Array<unknown> }
 }
 
-export function CalendarView({
+export const CalendarView = React.memo(function CalendarView({
   selectedDate,
   onDateChange,
   currentMonth,
   onActiveStartDateChange,
   availabilityData,
-  loading
+  loading,
+  reservationCount
 }: CalendarViewProps) {
   const today = startOfDay(new Date())
 
-  const getTileClassName = ({ date, view }: { date: Date; view: string }) => {
+  const getTileClassName = useCallback(({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return ''
     
     const dateStr = format(date, 'yyyy-MM-dd')
@@ -46,10 +48,15 @@ export function CalendarView({
     }
 
     return classes.trim()
-  }
+  }, [availabilityData, selectedDate, today])
 
   const getTileDisabled = ({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return false
+    
+    // 管理者モード（reservationCountが存在する場合）では過去の日付も選択可能
+    if (reservationCount) {
+      return false
+    }
     
     const dateStr = format(date, 'yyyy-MM-dd')
     const dayAvailability = availabilityData.find(item => item.date === dateStr)
@@ -61,16 +68,26 @@ export function CalendarView({
   const getTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return null
     
+    const dateStr = format(date, 'yyyy-MM-dd')
+    const dayReservations = reservationCount?.[dateStr] || []
+    
     return (
       <CalendarTile 
         date={date} 
         availabilityData={availabilityData}
+        reservationCount={dayReservations.length}
       />
     )
   }
 
   const handleDateClick = (value: Date | Date[] | null | [Date | null, Date | null]) => {
     if (value && !Array.isArray(value)) {
+      // 管理者モード（reservationCountが存在する場合）では全ての日付を選択可能
+      if (reservationCount) {
+        onDateChange(value)
+        return
+      }
+      
       const dateStr = format(value, 'yyyy-MM-dd')
       const dayAvailability = availabilityData.find(item => item.date === dateStr)
       const isPastDate = isBefore(startOfDay(value), today)
@@ -106,11 +123,11 @@ export function CalendarView({
         tileDisabled={getTileDisabled}
         tileContent={getTileContent}
         locale="ja-JP"
-        minDate={today}
+        minDate={reservationCount ? undefined : today}
         maxDetail="month"
         minDetail="month"
         className="w-full border-0 bg-white rounded-lg"
       />
     </div>
   )
-}
+})

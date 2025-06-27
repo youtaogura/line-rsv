@@ -9,6 +9,7 @@ import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 import {  buildApiUrl } from '@/lib/tenant-helpers'
 import { ReservationForm } from '@/components/reservation/ReservationForm'
+import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar'
 
 interface AdminSession {
   user: {
@@ -36,6 +37,7 @@ function AdminContent() {
   })
   const [isUpdating, setIsUpdating] = useState(false)
   const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users' | 'manual-booking'>('reservations')
+  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
   
   const [newBusinessHour, setNewBusinessHour] = useState({
     day_of_week: 1,
@@ -456,23 +458,57 @@ function AdminContent() {
 
         {activeTab === 'reservations' && (
           <>
-            <div className="mb-6 flex space-x-4">
-              <button
-                onClick={exportToJson}
-                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover"
-              >
-                JSON出力
-              </button>
-              <button
-                onClick={exportToCsv}
-                className="bg-success text-white px-4 py-2 rounded-md hover:bg-success/90"
-              >
-                CSV出力
-              </button>
+            <div className="mb-6 flex justify-between items-center">
+              <div className="flex space-x-4">
+                <button
+                  onClick={exportToJson}
+                  className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover"
+                >
+                  JSON出力
+                </button>
+                <button
+                  onClick={exportToCsv}
+                  className="bg-success text-white px-4 py-2 rounded-md hover:bg-success/90"
+                >
+                  CSV出力
+                </button>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setViewMode('calendar')}
+                  className={`px-4 py-2 rounded-md ${
+                    viewMode === 'calendar' 
+                      ? 'bg-primary text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  カレンダー表示
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-4 py-2 rounded-md ${
+                    viewMode === 'table' 
+                      ? 'bg-primary text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  テーブル表示
+                </button>
+              </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
+            {viewMode === 'calendar' && (
+              <AdminReservationCalendar
+                tenantId={(session as unknown as AdminSession)?.user?.tenant_id || null}
+                reservations={reservations}
+                onDeleteReservation={deleteReservation}
+              />
+            )}
+
+            {viewMode === 'table' && (
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -539,7 +575,8 @@ function AdminContent() {
                   )}
                 </tbody>
               </table>
-            </div>
+              </div>
+            )}
           </>
         )}
 
