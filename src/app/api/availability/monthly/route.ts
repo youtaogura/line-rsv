@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { addMinutes, isBefore, startOfMonth, endOfMonth, addDays, format } from 'date-fns'
-import { fromZonedTime } from 'date-fns-tz'
+import { startOfMonth, endOfMonth, addDays, format } from 'date-fns'
 import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
+import { calculateMonthlyAvailability } from '@/components/reservation/utils/availabilityCalculator'
+import type { BusinessHour, Reservation, ReservationMenu } from '@/lib/supabase'
 
 interface DayAvailability {
   date: string
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     const monthStart = startOfMonth(new Date(yearNum, monthNum))
     const monthEnd = endOfMonth(new Date(yearNum, monthNum))
 
-    // その月のすべての営業時間を取得
+    // 営業時間を取得
     const { data: businessHours, error: businessError } = await supabase
       .from('business_hours')
       .select('*')
@@ -53,27 +54,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch business hours' }, { status: 500 })
     }
 
-    // 営業時間を曜日別にマップ
-    const businessHoursByDay = new Map<number, Array<{
-      day_of_week: number;
-      start_time: string;
-      end_time: string;
-      is_active: boolean;
-    }>>()
-    businessHours?.forEach(bh => {
-      if (!businessHoursByDay.has(bh.day_of_week)) {
-        businessHoursByDay.set(bh.day_of_week, [])
-      }
-      businessHoursByDay.get(bh.day_of_week)?.push(bh)
-    })
+    // 予約メニューを取得
+    const { data: reservationMenus, error: menuError } = await supabase
+      .from('reservation_menu')
+      .select('*')
+      .eq('tenant_id', tenant.id)
+      .limit(1)
 
-    // 月内のすべての予約を一括取得
+    if (menuError) {
+      console.error('Error fetching reservation menu:', menuError)
+      return NextResponse.json({ error: 'Failed to fetch reservation menu' }, { status: 500 })
+    }
+
+    const reservationMenu = reservationMenus?.[0] as ReservationMenu | undefined
+
+    // 月内のすべての予約を取得
     const monthStartISO = monthStart.toISOString()
     const monthEndISO = monthEnd.toISOString()
 
     const { data: reservations, error: reservationsError } = await supabase
       .from('reservations')
-      .select('datetime')
+      .select('id, datetime, duration_minutes, reservation_menu_id')
       .eq('tenant_id', tenant.id)
       .gte('datetime', monthStartISO)
       .lte('datetime', monthEndISO)
@@ -83,69 +84,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch reservations' }, { status: 500 })
     }
 
-    // 予約済みスロットも取得
-    const { data: bookedSlots, error: slotsError } = await supabase
-      .from('available_slots')
-      .select('datetime')
-      .eq('tenant_id', tenant.id)
-      .eq('is_booked', true)
-      .gte('datetime', monthStartISO)
-      .lte('datetime', monthEndISO)
+    // 新しいロジックで月間空き状況を計算
+    const availabilityMap = calculateMonthlyAvailability(
+      monthStart,
+      monthEnd,
+      businessHours as BusinessHour[],
+      reservations as Reservation[],
+      reservationMenu
+    )
 
-    if (slotsError) {
-      console.error('Error fetching booked slots:', slotsError)
-      return NextResponse.json({ error: 'Failed to fetch booked slots' }, { status: 500 })
-    }
-
-    // 予約済み時間のセット
-    const bookedTimes = new Set([
-      ...(reservations?.map(r => r.datetime) || []),
-      ...(bookedSlots?.map(s => s.datetime) || [])
-    ])
-
-    const japanTimeZone = 'Asia/Tokyo'
+    // 結果を配列形式に変換
     const dayAvailabilities: DayAvailability[] = []
-
-    // 月の各日について空き状況をチェック
     let currentDay = monthStart
+    
     while (currentDay <= monthEnd) {
-      const dayOfWeek = currentDay.getDay()
       const dateStr = format(currentDay, 'yyyy-MM-dd')
+      const dayInfo = availabilityMap.get(dateStr)
       
-      let hasAvailability = false
-
-      // その曜日に営業時間があるかチェック
-      const dayBusinessHours = businessHoursByDay.get(dayOfWeek)
-      
-      if (dayBusinessHours && dayBusinessHours.length > 0) {
-        // その日の営業時間内のスロットを生成
-        for (const businessHour of dayBusinessHours) {
-          const startTimeStr = `${dateStr} ${businessHour.start_time}`
-          const endTimeStr = `${dateStr} ${businessHour.end_time}`
-          
-          const startTime = fromZonedTime(startTimeStr, japanTimeZone)
-          const endTime = fromZonedTime(endTimeStr, japanTimeZone)
-          
-          let current = startTime
-          while (isBefore(current, endTime)) {
-            const slotISO = current.toISOString()
-            
-            // このスロットが予約済みでない場合、空きありとする
-            if (!bookedTimes.has(slotISO)) {
-              hasAvailability = true
-              break
-            }
-            
-            current = addMinutes(current, 30)
-          }
-          
-          if (hasAvailability) break
-        }
-      }
-
       dayAvailabilities.push({
         date: dateStr,
-        hasAvailability
+        hasAvailability: dayInfo ? dayInfo.availableSlots > 0 : false
       })
 
       currentDay = addDays(currentDay, 1)

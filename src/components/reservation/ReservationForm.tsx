@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ReservationCalendar } from './ReservationCalendar'
+import { useReservationMenu } from './hooks/useReservationMenu'
 import { format as formatTz } from 'date-fns-tz'
 import { buildApiUrl } from '@/lib/tenant-helpers'
 import type { User } from '@/lib/supabase'
@@ -46,6 +47,9 @@ export function ReservationForm({
   // 管理者モード用の状態
   const [userMode, setUserMode] = useState<'existing' | 'new'>('existing')
   const [selectedUserId, setSelectedUserId] = useState(initialUser?.user_id || '')
+
+  // 予約メニューを取得
+  const { reservationMenu } = useReservationMenu(tenantId)
 
 
   // 既存ユーザー選択時の処理
@@ -110,7 +114,8 @@ export function ReservationForm({
                      initialUser?.member_type || 'guest',
         phone: userMode === 'new' || !initialUser ? phone.trim() || null : undefined,
         admin_note: isAdminMode ? adminNote.trim() || null : null,
-        is_admin_mode: isAdminMode
+        is_admin_mode: isAdminMode,
+        reservation_menu_id: reservationMenu?.id || null
       }
 
       const response = await fetch(buildApiUrl('/api/reservations', tenantId), {

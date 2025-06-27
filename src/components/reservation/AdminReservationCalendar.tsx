@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { CalendarView } from './Calendar/CalendarView'
 import { useMonthlyAvailability } from './hooks/useMonthlyAvailability'
 import { useBusinessHours } from './hooks/useBusinessHours'
-import { startOfMonth, endOfMonth, format } from 'date-fns'
-import { calculateMonthlyAvailability, type DayAvailabilityInfo } from './utils/availabilityCalculator'
+import { useReservationMenu } from './hooks/useReservationMenu'
+import { startOfMonth, endOfMonth, format, addMinutes } from 'date-fns'
+import { calculateMonthlyAvailability, type DayAvailabilityInfo, type TimeSlot } from './utils/availabilityCalculator'
 import type { Reservation } from '@/lib/supabase'
 
 interface AdminReservationCalendarProps {
@@ -17,6 +18,80 @@ interface AdminReservationCalendarProps {
 
 interface DayReservations {
   [date: string]: Reservation[]
+}
+
+interface ConsolidatedSlot {
+  startTime: string // "14:00"
+  endTime?: string // "15:00" (予約ありの場合のみ)
+  isAvailable: boolean
+  isConflicted: boolean // 予約不可（重複のため）
+  reservation?: Reservation
+  datetime: string
+}
+
+// タイムスロットを統合する関数
+function consolidateTimeSlots(
+  timeSlots: TimeSlot[], 
+  reservations: Reservation[]
+): ConsolidatedSlot[] {
+  const consolidatedSlots: ConsolidatedSlot[] = []
+  const processedSlots = new Set<string>()
+
+  timeSlots.forEach(slot => {
+    if (processedSlots.has(slot.time)) return
+    
+    // このスロットに対応する予約を探す
+    const reservation = reservations.find(r => 
+      format(new Date(r.datetime), 'HH:mm') === slot.time
+    )
+
+    if (reservation) {
+      // 予約ありスロット：実際の予約時間で統合
+      const reservationStart = new Date(reservation.datetime)
+      const reservationDuration = reservation.duration_minutes || 30
+      const reservationEnd = addMinutes(reservationStart, reservationDuration)
+      
+      const startTime = format(reservationStart, 'HH:mm')
+      const endTime = format(reservationEnd, 'HH:mm')
+      
+      consolidatedSlots.push({
+        startTime,
+        endTime,
+        isAvailable: false,
+        isConflicted: false,
+        reservation,
+        datetime: slot.datetime
+      })
+
+      // この予約によってカバーされるスロットをマーク
+      timeSlots.forEach(s => {
+        const sTime = new Date(s.datetime)
+        if (sTime >= reservationStart && sTime < reservationEnd) {
+          processedSlots.add(s.time)
+        }
+      })
+    } else if (!slot.isAvailable) {
+      // 予約不可スロット（重複により）
+      consolidatedSlots.push({
+        startTime: slot.time,
+        isAvailable: false,
+        isConflicted: true,
+        datetime: slot.datetime
+      })
+      processedSlots.add(slot.time)
+    } else {
+      // 空きスロット
+      consolidatedSlots.push({
+        startTime: slot.time,
+        isAvailable: true,
+        isConflicted: false,
+        datetime: slot.datetime
+      })
+      processedSlots.add(slot.time)
+    }
+  })
+
+  return consolidatedSlots.sort((a, b) => a.startTime.localeCompare(b.startTime))
 }
 
 export function AdminReservationCalendar({
@@ -38,6 +113,9 @@ export function AdminReservationCalendar({
 
   // 営業時間を取得
   const { businessHours } = useBusinessHours(tenantId)
+  
+  // 予約メニューを取得
+  const { reservationMenu } = useReservationMenu(tenantId)
 
   // 月間の空きスロット計算
   const monthlyAvailabilityInfo = useMemo(() => {
@@ -46,8 +124,8 @@ export function AdminReservationCalendar({
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
     
-    return calculateMonthlyAvailability(monthStart, monthEnd, businessHours, reservations)
-  }, [currentMonth, businessHours, reservations])
+    return calculateMonthlyAvailability(monthStart, monthEnd, businessHours, reservations, reservationMenu || undefined)
+  }, [currentMonth, businessHours, reservations, reservationMenu])
 
   // 予約データを日付ごとにグループ化
   useEffect(() => {
@@ -73,8 +151,14 @@ export function AdminReservationCalendar({
 
 
   const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
-  const selectedDayReservations = selectedDateString ? dayReservations[selectedDateString] || [] : []
   const selectedDayAvailability = selectedDateString ? monthlyAvailabilityInfo.get(selectedDateString) : null
+
+  // 統合されたタイムスロットを計算
+  const consolidatedSlots = useMemo(() => {
+    if (!selectedDayAvailability?.timeSlots) return []
+    const currentDayReservations = selectedDateString ? dayReservations[selectedDateString] || [] : []
+    return consolidateTimeSlots(selectedDayAvailability.timeSlots, currentDayReservations)
+  }, [selectedDayAvailability, selectedDateString, dayReservations])
 
   return (
     <div className="space-y-6">
@@ -134,53 +218,58 @@ export function AdminReservationCalendar({
                 {/* タイムスロット一覧 */}
                 <div>
                   <h5 className="font-medium text-gray-900 mb-2">タイムスロット一覧</h5>
-                  {selectedDayAvailability && selectedDayAvailability.timeSlots.length > 0 ? (
+                  {consolidatedSlots.length > 0 ? (
                     <div className="space-y-2 max-h-80 overflow-y-auto">
-                      {selectedDayAvailability.timeSlots.map((slot) => {
-                        const reservation = selectedDayReservations.find(r => 
-                          format(new Date(r.datetime), 'HH:mm') === slot.time
-                        )
+                      {consolidatedSlots.map((slot, index) => {
+                        const displayTime = slot.endTime ? `${slot.startTime}-${slot.endTime}` : slot.startTime
+                        const isReserved = slot.reservation
+                        const isConflicted = slot.isConflicted
                         
                         return (
                           <div
-                            key={slot.time}
+                            key={`${slot.startTime}-${index}`}
                             className={`border rounded-lg p-3 ${
                               slot.isAvailable 
                                 ? 'border-green-200 bg-green-50' 
+                                : isConflicted
+                                ? 'border-orange-200 bg-orange-50'
                                 : 'border-red-200 bg-red-50'
                             }`}
                           >
                             <div className="flex justify-between items-center">
                               <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="font-medium text-gray-900">{slot.time}</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-medium text-gray-900">{displayTime}</span>
                                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                     slot.isAvailable 
                                       ? 'bg-green-100 text-green-800' 
+                                      : isConflicted
+                                      ? 'bg-orange-100 text-orange-800'
                                       : 'bg-red-100 text-red-800'
                                   }`}>
-                                    {slot.isAvailable ? '空き' : '予約済み'}
+                                    {slot.isAvailable ? '空き' : isConflicted ? '予約不可' : '予約済み'}
                                   </span>
-                                </div>
-                                
-                                {reservation && (
-                                  <div>
-                                    <div className="flex items-center space-x-2 mb-1">
-                                      <span className="text-sm font-medium text-gray-700">{reservation.name}</span>
+                                  
+                                  {isReserved && (
+                                    <>
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {slot.reservation!.name}
+                                      </span>
                                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                        reservation.member_type === 'regular' 
+                                        slot.reservation!.member_type === 'regular' 
                                           ? 'bg-blue-100 text-blue-800' 
                                           : 'bg-yellow-100 text-yellow-800'
                                       }`}>
-                                        {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
+                                        {slot.reservation!.member_type === 'regular' ? '会員' : 'ゲスト'}
                                       </span>
-                                    </div>
-                                    {reservation.note && (
-                                      <p className="text-sm text-gray-600">
-                                        備考: {reservation.note}
-                                      </p>
-                                    )}
-                                  </div>
+                                    </>
+                                  )}
+                                </div>
+                                
+                                {isReserved && slot.reservation!.note && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    備考: {slot.reservation!.note}
+                                  </p>
                                 )}
                               </div>
                               
@@ -193,16 +282,14 @@ export function AdminReservationCalendar({
                                     予約追加
                                   </button>
                                 )
-                              ) : (
-                                reservation && (
-                                  <button
-                                    onClick={() => onDeleteReservation(reservation.id)}
-                                    className="text-red-600 hover:text-red-900 text-sm ml-2"
-                                  >
-                                    削除
-                                  </button>
-                                )
-                              )}
+                              ) : isReserved ? (
+                                <button
+                                  onClick={() => onDeleteReservation(slot.reservation!.id)}
+                                  className="text-red-600 hover:text-red-900 text-sm ml-2"
+                                >
+                                  削除
+                                </button>
+                              ) : null}
                             </div>
                           </div>
                         )

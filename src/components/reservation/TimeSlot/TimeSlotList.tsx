@@ -1,6 +1,7 @@
 import { TimeSlotItem } from './TimeSlotItem'
 import { TimeSlotContainer } from './TimeSlotContainer'
 import { TimeSlot } from '../types'
+import type { ReservationMenu } from '@/lib/supabase'
 import { format } from 'date-fns'
 
 interface TimeSlotListProps {
@@ -9,6 +10,7 @@ interface TimeSlotListProps {
   selectedDateTime: string | null
   onTimeSelect: (datetime: string) => void
   loading: boolean
+  reservationMenu: ReservationMenu | null
 }
 
 export function TimeSlotList({
@@ -16,7 +18,8 @@ export function TimeSlotList({
   availableSlots,
   selectedDateTime,
   onTimeSelect,
-  loading
+  loading,
+  reservationMenu
 }: TimeSlotListProps) {
   if (!selectedDate) {
     return null
@@ -56,6 +59,7 @@ export function TimeSlotList({
           datetime={slot.datetime}
           isSelected={selectedDateTime === slot.datetime}
           onClick={() => onTimeSelect(slot.datetime)}
+          reservationMenu={reservationMenu}
         />
       ))}
     </TimeSlotContainer>

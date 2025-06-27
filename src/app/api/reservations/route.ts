@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     
     const { data: reservations, error } = await supabase
       .from('reservations')
-      .select('id, user_id, name, datetime, note, member_type, created_at')
+      .select('id, user_id, name, datetime, note, member_type, reservation_menu_id, duration_minutes, created_at')
       .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .gt('datetime', now)
@@ -61,13 +61,48 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { user_id, name, datetime, note, member_type, phone, admin_note, is_admin_mode } = body
+    const { user_id, name, datetime, note, member_type, phone, admin_note, is_admin_mode, reservation_menu_id } = body
 
     // 必須フィールドのバリデーション
     if (!user_id || !name || !datetime || !member_type) {
       return NextResponse.json({ 
         error: 'Missing required fields: user_id, name, datetime, member_type' 
       }, { status: 400 })
+    }
+
+    // 予約メニューを取得
+    let reservationMenu = null
+    let durationMinutes = 30 // デフォルト値
+
+    if (reservation_menu_id) {
+      const { data: menuData, error: menuError } = await supabase
+        .from('reservation_menu')
+        .select('*')
+        .eq('id', reservation_menu_id)
+        .eq('tenant_id', tenant.id)
+        .single()
+
+      if (menuError) {
+        return NextResponse.json({ 
+          error: 'Invalid reservation menu' 
+        }, { status: 400 })
+      }
+
+      reservationMenu = menuData
+      durationMinutes = menuData.duration_minutes
+    } else {
+      // メニューが指定されていない場合は、デフォルトメニューを取得
+      const { data: menuData } = await supabase
+        .from('reservation_menu')
+        .select('*')
+        .eq('tenant_id', tenant.id)
+        .limit(1)
+        .single()
+
+      if (menuData) {
+        reservationMenu = menuData
+        durationMinutes = menuData.duration_minutes
+      }
     }
 
     // 予約の重複チェック（テナント内で）
@@ -124,7 +159,9 @@ export async function POST(request: NextRequest) {
         datetime,
         note,
         member_type,
-        admin_note
+        admin_note,
+        reservation_menu_id: reservationMenu?.id || null,
+        duration_minutes: durationMinutes
       })
       .select()
       .single()

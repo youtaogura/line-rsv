@@ -1,5 +1,6 @@
-import { format, addMinutes, isSameDay, isBefore } from 'date-fns'
-import type { BusinessHour, Reservation } from '@/lib/supabase'
+import { format, addMinutes, isSameDay, isBefore, isAfter } from 'date-fns'
+import { fromZonedTime } from 'date-fns-tz'
+import type { BusinessHour, Reservation, ReservationMenu } from '@/lib/supabase'
 
 export interface TimeSlot {
   time: string
@@ -16,9 +17,9 @@ export interface DayAvailabilityInfo {
 }
 
 /**
- * 指定した日の営業時間から30分間隔のタイムスロットを生成
+ * 指定した日の営業時間と予約メニューからタイムスロットを生成
  */
-export function generateTimeSlots(date: Date, businessHours: BusinessHour[]): TimeSlot[] {
+export function generateTimeSlots(date: Date, businessHours: BusinessHour[], reservationMenu?: ReservationMenu): TimeSlot[] {
   const dayOfWeek = date.getDay()
   
   // その日の営業時間を取得
@@ -28,6 +29,10 @@ export function generateTimeSlots(date: Date, businessHours: BusinessHour[]): Ti
     return []
   }
 
+  // 予約メニューがない場合は従来の30分間隔を使用
+  const startMinutesOptions = reservationMenu?.start_minutes_options || [0, 30]
+  const menuDuration = reservationMenu?.duration_minutes || 30
+
   const timeSlots: TimeSlot[] = []
 
   // 各営業時間枠でタイムスロットを生成
@@ -35,25 +40,36 @@ export function generateTimeSlots(date: Date, businessHours: BusinessHour[]): Ti
     const [startHour, startMinute] = businessHour.start_time.split(':').map(Number)
     const [endHour, endMinute] = businessHour.end_time.split(':').map(Number)
     
-    const startTime = new Date(date)
-    startTime.setHours(startHour, startMinute, 0, 0)
+    const businessStartTime = new Date(date)
+    businessStartTime.setHours(startHour, startMinute, 0, 0)
     
-    const endTime = new Date(date)
-    endTime.setHours(endHour, endMinute, 0, 0)
+    const businessEndTime = new Date(date)
+    businessEndTime.setHours(endHour, endMinute, 0, 0)
     
-    let currentTime = startTime
-    
-    while (isBefore(currentTime, endTime)) {
-      const timeStr = format(currentTime, 'HH:mm')
-      const datetimeStr = format(currentTime, "yyyy-MM-dd'T'HH:mm:ss")
-      
-      timeSlots.push({
-        time: timeStr,
-        datetime: datetimeStr,
-        isAvailable: true // 初期値、後で予約状況を反映
+    // 営業時間内の各時間帯について、許可された開始分をチェック
+    let currentHour = startHour
+    while (currentHour < endHour || (currentHour === endHour && 0 < endMinute)) {
+      startMinutesOptions.forEach(startMinute => {
+        const slotStartTime = new Date(date)
+        slotStartTime.setHours(currentHour, startMinute, 0, 0)
+        
+        const slotEndTime = addMinutes(slotStartTime, menuDuration)
+        
+        // スロットが営業時間内に収まる場合のみ追加
+        if (!isBefore(slotStartTime, businessStartTime) && !isAfter(slotEndTime, businessEndTime)) {
+          const timeStr = format(slotStartTime, 'HH:mm')
+          // 日本時間からUTCに変換してからISO文字列に変換
+          const utcDateTime = fromZonedTime(slotStartTime, 'Asia/Tokyo')
+          const datetimeStr = utcDateTime.toISOString()
+          
+          timeSlots.push({
+            time: timeStr,
+            datetime: datetimeStr,
+            isAvailable: true // 初期値、後で予約状況を反映
+          })
+        }
       })
-      
-      currentTime = addMinutes(currentTime, 30)
+      currentHour++
     }
   })
 
@@ -61,13 +77,35 @@ export function generateTimeSlots(date: Date, businessHours: BusinessHour[]): Ti
 }
 
 /**
- * 予約情報を考慮してタイムスロットの空き状況を更新
+ * 予約情報を考慮してタイムスロットの空き状況を更新（duration_minutes対応）
  */
-export function updateSlotsWithReservations(timeSlots: TimeSlot[], reservations: Reservation[]): TimeSlot[] {
+export function updateSlotsWithReservations(timeSlots: TimeSlot[], reservations: Reservation[], reservationMenu?: ReservationMenu): TimeSlot[] {
+  const menuDuration = reservationMenu?.duration_minutes || 30
+
   return timeSlots.map(slot => {
+    const slotStartTime = new Date(slot.datetime)
+    const slotEndTime = addMinutes(slotStartTime, menuDuration)
+    
     const isReserved = reservations.some(reservation => {
-      const reservationTime = format(new Date(reservation.datetime), 'HH:mm')
-      return reservationTime === slot.time
+      const reservationStartTime = new Date(reservation.datetime)
+      const reservationDuration = reservation.duration_minutes || 30
+      const reservationEndTime = addMinutes(reservationStartTime, reservationDuration)
+      
+      const overlaps = slotStartTime < reservationEndTime && slotEndTime > reservationStartTime
+      
+      // デバッグ: 15:00スロットの場合のみログ出力
+      if (slot.time === '15:00') {
+        console.log(`=== 15:00スロットのチェック ===`)
+        console.log(`スロット: ${slot.time} (${slotStartTime.toISOString()} - ${slotEndTime.toISOString()})`)
+        console.log(`予約: ${format(reservationStartTime, 'HH:mm')} (${reservationStartTime.toISOString()} - ${reservationEndTime.toISOString()}) 時間:${reservationDuration}分`)
+        console.log(`slotStartTime < reservationEndTime: ${slotStartTime.toISOString()} < ${reservationEndTime.toISOString()} = ${slotStartTime < reservationEndTime}`)
+        console.log(`slotEndTime > reservationStartTime: ${slotEndTime.toISOString()} > ${reservationStartTime.toISOString()} = ${slotEndTime > reservationStartTime}`)
+        console.log(`重複判定: ${overlaps}`)
+      }
+      
+      // 時間重複をチェック（より厳密な重複判定）
+      // 2つの時間帯が重複する条件: スロット開始 < 予約終了 AND スロット終了 > 予約開始
+      return overlaps
     })
     
     return {
@@ -83,7 +121,8 @@ export function updateSlotsWithReservations(timeSlots: TimeSlot[], reservations:
 export function calculateDayAvailability(
   date: Date, 
   businessHours: BusinessHour[], 
-  reservations: Reservation[]
+  reservations: Reservation[],
+  reservationMenu?: ReservationMenu
 ): DayAvailabilityInfo {
   const dateStr = format(date, 'yyyy-MM-dd')
   
@@ -93,10 +132,10 @@ export function calculateDayAvailability(
   )
   
   // タイムスロットを生成
-  let timeSlots = generateTimeSlots(date, businessHours)
+  let timeSlots = generateTimeSlots(date, businessHours, reservationMenu)
   
   // 予約状況を反映
-  timeSlots = updateSlotsWithReservations(timeSlots, dayReservations)
+  timeSlots = updateSlotsWithReservations(timeSlots, dayReservations, reservationMenu)
   
   const totalSlots = timeSlots.length
   const availableSlots = timeSlots.filter(slot => slot.isAvailable).length
@@ -118,14 +157,15 @@ export function calculateMonthlyAvailability(
   startDate: Date,
   endDate: Date,
   businessHours: BusinessHour[],
-  reservations: Reservation[]
+  reservations: Reservation[],
+  reservationMenu?: ReservationMenu
 ): Map<string, DayAvailabilityInfo> {
   const availabilityMap = new Map<string, DayAvailabilityInfo>()
   
   let currentDate = new Date(startDate)
   
   while (isBefore(currentDate, endDate) || isSameDay(currentDate, endDate)) {
-    const dayInfo = calculateDayAvailability(currentDate, businessHours, reservations)
+    const dayInfo = calculateDayAvailability(currentDate, businessHours, reservations, reservationMenu)
     availabilityMap.set(dayInfo.date, dayInfo)
     
     currentDate = new Date(currentDate)

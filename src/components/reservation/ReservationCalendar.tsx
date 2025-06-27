@@ -3,6 +3,7 @@ import { CalendarView } from './Calendar/CalendarView'
 import { TimeSlotList } from './TimeSlot/TimeSlotList'
 import { useMonthlyAvailability } from './hooks/useMonthlyAvailability'
 import { useTimeSlots } from './hooks/useTimeSlots'
+import { useReservationMenu } from './hooks/useReservationMenu'
 import { startOfMonth } from 'date-fns'
 
 interface ReservationCalendarProps {
@@ -18,6 +19,9 @@ export function ReservationCalendar({
 }: ReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()))
+
+  // 予約メニューを取得
+  const { reservationMenu, loading: menuLoading } = useReservationMenu(tenantId)
 
   // 月間空き状況を取得
   const { availabilityData, loading: availabilityLoading } = useMonthlyAvailability(
@@ -59,6 +63,25 @@ export function ReservationCalendar({
 
   return (
     <div className="space-y-6">
+      {/* メニュー情報表示 */}
+      {reservationMenu && !menuLoading && (
+        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">{reservationMenu.name}</h3>
+          <div className="text-sm text-blue-700 space-y-1">
+            <p>所要時間: {reservationMenu.duration_minutes}分</p>
+            <p>
+              開始可能時間: 毎時
+              {reservationMenu.start_minutes_options.map((min, index) => (
+                <span key={min}>
+                  {index > 0 && '、'}
+                  {min.toString().padStart(2, '0')}分
+                </span>
+              ))}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* カレンダー表示 */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">予約日を選択</h2>
@@ -81,6 +104,7 @@ export function ReservationCalendar({
             selectedDateTime={selectedDateTime}
             onTimeSelect={handleTimeSelect}
             loading={slotsLoading}
+            reservationMenu={reservationMenu}
           />
         </div>
       )}

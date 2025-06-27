@@ -22,6 +22,16 @@ export type User = {
   created_at: string
 }
 
+export type ReservationMenu = {
+  id: string
+  tenant_id: string
+  name: string
+  duration_minutes: number
+  start_minutes_options: number[]
+  created_at: string
+  updated_at: string
+}
+
 export type Reservation = {
   id: string
   tenant_id: string
@@ -31,6 +41,8 @@ export type Reservation = {
   note?: string
   admin_note?: string
   member_type: 'regular' | 'guest'
+  reservation_menu_id?: string
+  duration_minutes?: number
   created_at: string
 }
 

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { parseISO, addMinutes, isBefore } from 'date-fns'
-import { fromZonedTime } from 'date-fns-tz'
+import { parseISO } from 'date-fns'
 import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
+import { generateTimeSlots, updateSlotsWithReservations } from '@/components/reservation/utils/availabilityCalculator'
+import type { BusinessHour, Reservation, ReservationMenu } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,13 +26,12 @@ export async function GET(request: NextRequest) {
     }
 
     const targetDate = parseISO(date)
-    const dayOfWeek = targetDate.getDay()
 
+    // 営業時間を取得
     const { data: businessHours, error: businessError } = await supabase
       .from('business_hours')
       .select('*')
       .eq('tenant_id', tenant.id)
-      .eq('day_of_week', dayOfWeek)
       .eq('is_active', true)
 
     if (businessError) {
@@ -43,73 +43,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([])
     }
 
-    const slots: string[] = []
-    const japanTimeZone = 'Asia/Tokyo'
-
-    console.log('Business hours:', businessHours)
-    
-    for (const businessHour of businessHours) {
-      // 日本時間で日付と時刻を組み合わせ
-      const startTimeStr = `${date} ${businessHour.start_time}`
-      const endTimeStr = `${date} ${businessHour.end_time}`
-      
-      // 日本時間からUTCに変換
-      const startTime = fromZonedTime(startTimeStr, japanTimeZone)
-      const endTime = fromZonedTime(endTimeStr, japanTimeZone)
-      
-      let current = startTime
-      console.log('Start time (UTC):', startTime.toISOString())
-      console.log('End time (UTC):', endTime.toISOString())
-      
-      while (isBefore(current, endTime)) {
-        slots.push(current.toISOString())
-        current = addMinutes(current, 30)
-      }
-    }
-
-    // 既存の予約済みスロットを取得（テナント内で）
-    const { data: bookedSlots, error: slotsError } = await supabase
-      .from('available_slots')
-      .select('datetime')
+    // 予約メニューを取得（1テナント1メニューの想定）
+    const { data: reservationMenus, error: menuError } = await supabase
+      .from('reservation_menu')
+      .select('*')
       .eq('tenant_id', tenant.id)
-      .eq('is_booked', true)
-      .in('datetime', slots)
+      .limit(1)
 
-    if (slotsError) {
-      console.error('Error fetching booked slots:', slotsError)
-      return NextResponse.json({ error: 'Failed to fetch booked slots' }, { status: 500 })
+    if (menuError) {
+      console.error('Error fetching reservation menu:', menuError)
+      return NextResponse.json({ error: 'Failed to fetch reservation menu' }, { status: 500 })
     }
 
-    // 予約済み時間を取得（テナント内で）
+    const reservationMenu = reservationMenus?.[0] as ReservationMenu | undefined
+
+    // その日の予約を取得
     const { data: reservations, error: reservationsError } = await supabase
       .from('reservations')
-      .select('datetime')
+      .select('id, datetime, duration_minutes, reservation_menu_id')
       .eq('tenant_id', tenant.id)
-      .in('datetime', slots)
+      .gte('datetime', `${date}T00:00:00`)
+      .lt('datetime', `${date}T23:59:59`)
 
     if (reservationsError) {
       console.error('Error fetching reservations:', reservationsError)
       return NextResponse.json({ error: 'Failed to fetch reservations' }, { status: 500 })
     }
 
-    // 予約済みの時間を正規化してセットに変換
-    const normalizeDateTime = (dateTimeStr: string) => {
-      return parseISO(dateTimeStr).toISOString()
-    }
+    // 新しいロジックでタイムスロットを生成
+    let timeSlots = generateTimeSlots(targetDate, businessHours as BusinessHour[], reservationMenu)
+    
+    // 予約状況を反映
+    timeSlots = updateSlotsWithReservations(timeSlots, reservations as Reservation[], reservationMenu)
 
-    const bookedTimes = new Set([
-      ...(bookedSlots?.map(slot => normalizeDateTime(slot.datetime)) || []),
-      ...(reservations?.map(reservation => normalizeDateTime(reservation.datetime)) || [])
-    ])
-
-    console.log('All slots:', slots)
-    console.log('Booked times:', bookedTimes)
-
-    // 利用可能な時間のみを返す（時刻を正規化して比較）
-    const availableSlots = slots
-      .filter(slot => !bookedTimes.has(normalizeDateTime(slot)))
+    // 利用可能なスロットのみを返す
+    const availableSlots = timeSlots
+      .filter(slot => slot.isAvailable)
       .map(slot => ({
-        datetime: slot,
+        datetime: slot.datetime,
         is_booked: false
       }))
 
