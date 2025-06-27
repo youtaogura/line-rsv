@@ -14,6 +14,7 @@ interface CalendarViewProps {
   availabilityData: DayAvailability[]
   loading: boolean
   reservationCount?: { [date: string]: Array<unknown> }
+  availabilityInfo?: Map<string, { availableSlots: number }>
 }
 
 export const CalendarView = React.memo(function CalendarView({
@@ -23,7 +24,8 @@ export const CalendarView = React.memo(function CalendarView({
   onActiveStartDateChange,
   availabilityData,
   loading,
-  reservationCount
+  reservationCount,
+  availabilityInfo
 }: CalendarViewProps) {
   const today = startOfDay(new Date())
 
@@ -70,12 +72,14 @@ export const CalendarView = React.memo(function CalendarView({
     
     const dateStr = format(date, 'yyyy-MM-dd')
     const dayReservations = reservationCount?.[dateStr] || []
+    const dayAvailability = availabilityInfo?.get(dateStr)
     
     return (
       <CalendarTile 
         date={date} 
         availabilityData={availabilityData}
         reservationCount={dayReservations.length}
+        availableSlots={dayAvailability?.availableSlots}
       />
     )
   }

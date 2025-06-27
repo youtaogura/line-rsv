@@ -17,6 +17,8 @@ interface ReservationFormProps {
     phone?: string
     member_type?: 'regular' | 'guest'
   }
+  // 事前選択された日時
+  preselectedDateTime?: string
   // 管理者モード時の既存ユーザー一覧
   availableUsers?: User[]
   // 成功時のコールバック
@@ -29,11 +31,12 @@ export function ReservationForm({
   tenantId,
   isAdminMode = false,
   initialUser,
+  preselectedDateTime,
   availableUsers = [],
   onSuccess,
   tenantName
 }: ReservationFormProps) {
-  const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null)
+  const [selectedDateTime, setSelectedDateTime] = useState<string | null>(preselectedDateTime || null)
   const [name, setName] = useState(initialUser?.name || '')
   const [phone, setPhone] = useState(initialUser?.phone || '')
   const [note, setNote] = useState('')
@@ -43,6 +46,7 @@ export function ReservationForm({
   // 管理者モード用の状態
   const [userMode, setUserMode] = useState<'existing' | 'new'>('existing')
   const [selectedUserId, setSelectedUserId] = useState(initialUser?.user_id || '')
+
 
   // 既存ユーザー選択時の処理
   const handleExistingUserSelect = (userId: string) => {

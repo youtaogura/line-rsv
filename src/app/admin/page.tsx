@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense, useEffect, useCallback } from 'react'
+import { useState, Suspense, useEffect, useCallback, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -38,6 +38,8 @@ function AdminContent() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users' | 'manual-booking'>('reservations')
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
+  const [preselectedDateTime, setPreselectedDateTime] = useState<string | null>(null)
+  const manualBookingRef = useRef<HTMLDivElement>(null)
   
   const [newBusinessHour, setNewBusinessHour] = useState({
     day_of_week: 1,
@@ -304,6 +306,27 @@ function AdminContent() {
     }
   }
 
+  const handleCreateReservation = (datetime: string) => {
+    setPreselectedDateTime(datetime)
+    setActiveTab('manual-booking')
+    
+    // タブ切り替え後にスクロールする
+    setTimeout(() => {
+      if (manualBookingRef.current) {
+        manualBookingRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }
+    }, 100)
+  }
+
+  const handleReservationSuccess = () => {
+    fetchReservations()
+    setPreselectedDateTime(null)
+    setActiveTab('reservations')
+  }
+
   const generateTimeOptions = () => {
     const options = []
     for (let hour = 9; hour <= 18; hour++) {
@@ -503,6 +526,7 @@ function AdminContent() {
                 tenantId={(session as unknown as AdminSession)?.user?.tenant_id || null}
                 reservations={reservations}
                 onDeleteReservation={deleteReservation}
+                onCreateReservation={handleCreateReservation}
               />
             )}
 
@@ -666,9 +690,6 @@ function AdminContent() {
                       終了時間
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      30分刻みスロット数
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       操作
                     </th>
                   </tr>
@@ -676,17 +697,12 @@ function AdminContent() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {businessHours.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
                         営業時間が設定されていません
                       </td>
                     </tr>
                   ) : (
                     businessHours.map((businessHour) => {
-                      const startTime = new Date(`2000-01-01T${businessHour.start_time}`)
-                      const endTime = new Date(`2000-01-01T${businessHour.end_time}`)
-                      const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60)
-                      const slotCount = Math.floor(durationMinutes / 30)
-                      
                       return (
                         <tr key={businessHour.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -697,9 +713,6 @@ function AdminContent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {businessHour.end_time}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {slotCount}個
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <button
@@ -720,14 +733,15 @@ function AdminContent() {
         )}
 
         {activeTab === 'manual-booking' && (
-          <div className="bg-white shadow rounded-lg p-6">
+          <div ref={manualBookingRef} className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">手動予約登録</h2>
             <p className="text-sm text-gray-600 mb-6">管理者として代理で予約を登録することができます</p>
             <ReservationForm
               tenantId={(session as unknown as AdminSession)?.user?.tenant_id || ''}
               isAdminMode={true}
+              preselectedDateTime={preselectedDateTime || undefined}
               availableUsers={users}
-              onSuccess={fetchReservations}
+              onSuccess={handleReservationSuccess}
               tenantName={tenant?.name}
             />
           </div>

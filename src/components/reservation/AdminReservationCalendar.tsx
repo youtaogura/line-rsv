@@ -1,15 +1,18 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { CalendarView } from './Calendar/CalendarView'
 import { useMonthlyAvailability } from './hooks/useMonthlyAvailability'
-import { startOfMonth, format } from 'date-fns'
+import { useBusinessHours } from './hooks/useBusinessHours'
+import { startOfMonth, endOfMonth, format } from 'date-fns'
+import { calculateMonthlyAvailability, type DayAvailabilityInfo } from './utils/availabilityCalculator'
 import type { Reservation } from '@/lib/supabase'
 
 interface AdminReservationCalendarProps {
   tenantId: string | null
   reservations: Reservation[]
   onDeleteReservation: (id: string) => void
+  onCreateReservation?: (datetime: string) => void
 }
 
 interface DayReservations {
@@ -19,7 +22,8 @@ interface DayReservations {
 export function AdminReservationCalendar({
   tenantId,
   reservations,
-  onDeleteReservation
+  onDeleteReservation,
+  onCreateReservation
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()))
@@ -31,6 +35,19 @@ export function AdminReservationCalendar({
     currentMonth.getMonth() + 1,
     tenantId
   )
+
+  // 営業時間を取得
+  const { businessHours } = useBusinessHours(tenantId)
+
+  // 月間の空きスロット計算
+  const monthlyAvailabilityInfo = useMemo(() => {
+    if (!businessHours.length) return new Map<string, DayAvailabilityInfo>()
+    
+    const monthStart = startOfMonth(currentMonth)
+    const monthEnd = endOfMonth(currentMonth)
+    
+    return calculateMonthlyAvailability(monthStart, monthEnd, businessHours, reservations)
+  }, [currentMonth, businessHours, reservations])
 
   // 予約データを日付ごとにグループ化
   useEffect(() => {
@@ -57,6 +74,7 @@ export function AdminReservationCalendar({
 
   const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
   const selectedDayReservations = selectedDateString ? dayReservations[selectedDateString] || [] : []
+  const selectedDayAvailability = selectedDateString ? monthlyAvailabilityInfo.get(selectedDateString) : null
 
   return (
     <div className="space-y-6">
@@ -74,6 +92,7 @@ export function AdminReservationCalendar({
               availabilityData={availabilityData}
               loading={availabilityLoading}
               reservationCount={dayReservations}
+              availabilityInfo={monthlyAvailabilityInfo}
             />
           </div>
 
@@ -84,46 +103,115 @@ export function AdminReservationCalendar({
             </h4>
             
             {selectedDate ? (
-              <div className="space-y-3">
-                {selectedDayReservations.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">この日の予約はありません</p>
-                ) : (
-                  selectedDayReservations.map((reservation) => (
-                    <div
-                      key={reservation.id}
-                      className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h5 className="font-medium text-gray-900">{reservation.name}</h5>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              reservation.member_type === 'regular' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            時間: {format(new Date(reservation.datetime), 'HH:mm')}
-                          </p>
-                          {reservation.note && (
-                            <p className="text-sm text-gray-600">
-                              備考: {reservation.note}
-                            </p>
-                          )}
+              <div className="space-y-4">
+                {/* 空き状況サマリー */}
+                {selectedDayAvailability && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h5 className="font-medium text-blue-900 mb-2">空き状況</h5>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-600">
+                          {selectedDayAvailability.availableSlots}
                         </div>
-                        <button
-                          onClick={() => onDeleteReservation(reservation.id)}
-                          className="text-red-600 hover:text-red-900 text-sm ml-2"
-                        >
-                          削除
-                        </button>
+                        <div className="text-blue-800">空き</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-red-600">
+                          {selectedDayAvailability.reservedSlots}
+                        </div>
+                        <div className="text-red-800">予約済み</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-gray-600">
+                          {selectedDayAvailability.totalSlots}
+                        </div>
+                        <div className="text-gray-800">合計</div>
                       </div>
                     </div>
-                  ))
+                  </div>
                 )}
+
+                {/* タイムスロット一覧 */}
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-2">タイムスロット一覧</h5>
+                  {selectedDayAvailability && selectedDayAvailability.timeSlots.length > 0 ? (
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                      {selectedDayAvailability.timeSlots.map((slot) => {
+                        const reservation = selectedDayReservations.find(r => 
+                          format(new Date(r.datetime), 'HH:mm') === slot.time
+                        )
+                        
+                        return (
+                          <div
+                            key={slot.time}
+                            className={`border rounded-lg p-3 ${
+                              slot.isAvailable 
+                                ? 'border-green-200 bg-green-50' 
+                                : 'border-red-200 bg-red-50'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-medium text-gray-900">{slot.time}</span>
+                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    slot.isAvailable 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {slot.isAvailable ? '空き' : '予約済み'}
+                                  </span>
+                                </div>
+                                
+                                {reservation && (
+                                  <div>
+                                    <div className="flex items-center space-x-2 mb-1">
+                                      <span className="text-sm font-medium text-gray-700">{reservation.name}</span>
+                                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                        reservation.member_type === 'regular' 
+                                          ? 'bg-blue-100 text-blue-800' 
+                                          : 'bg-yellow-100 text-yellow-800'
+                                      }`}>
+                                        {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
+                                      </span>
+                                    </div>
+                                    {reservation.note && (
+                                      <p className="text-sm text-gray-600">
+                                        備考: {reservation.note}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {slot.isAvailable ? (
+                                onCreateReservation && (
+                                  <button
+                                    onClick={() => onCreateReservation(slot.datetime)}
+                                    className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 ml-2"
+                                  >
+                                    予約追加
+                                  </button>
+                                )
+                              ) : (
+                                reservation && (
+                                  <button
+                                    onClick={() => onDeleteReservation(reservation.id)}
+                                    className="text-red-600 hover:text-red-900 text-sm ml-2"
+                                  >
+                                    削除
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">この日は営業時間外です</p>
+                  )}
+                </div>
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
