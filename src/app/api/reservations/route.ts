@@ -162,6 +162,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ゲストユーザーの場合、usersテーブルに先に追加
+    if (member_type === "guest") {
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("user_id")
+        .eq("tenant_id", tenant.id)
+        .eq("user_id", user_id)
+        .single();
+
+      if (!existingUser) {
+        const { error: userError } = await supabase.from("users").insert({
+          tenant_id: tenant.id,
+          user_id,
+          name,
+          phone,
+          member_type: "guest",
+        });
+
+        if (userError) {
+          console.error("User creation error:", userError);
+          return createErrorResponse("Failed to create user");
+        }
+      }
+    }
+
     // 予約データを挿入
     const { data: reservation, error: reservationError } = await supabase
       .from("reservations")
@@ -193,30 +218,6 @@ export async function POST(request: NextRequest) {
 
     if (slotError) {
       console.error("Slot update error:", slotError);
-    }
-
-    // ゲストユーザーの場合、usersテーブルに追加
-    if (member_type === "guest") {
-      const { data: existingUser } = await supabase
-        .from("users")
-        .select("user_id")
-        .eq("tenant_id", tenant.id)
-        .eq("user_id", user_id)
-        .single();
-
-      if (!existingUser) {
-        const { error: userError } = await supabase.from("users").insert({
-          tenant_id: tenant.id,
-          user_id,
-          name,
-          phone,
-          member_type: "guest",
-        });
-
-        if (userError) {
-          console.error("User creation error:", userError);
-        }
-      }
     }
 
     return createApiResponse(reservation, HTTP_STATUS.CREATED);

@@ -173,22 +173,21 @@ function ReserveContent() {
         )}
 
         {/* ReservationFormコンポーネントを使用 */}
-        <ReservationForm
-          tenantId={urlTenantId || ""}
-          isAdminMode={false}
-          initialUser={
-            user
-              ? {
-                  user_id: user.user_id,
-                  name: dbUser?.name || user.displayName,
-                  phone: dbUser?.phone,
-                  member_type: dbUser?.member_type || "guest",
-                }
-              : undefined
-          }
-          onSuccess={handleReservationSuccess}
-          tenantName={tenant?.name}
-        />
+        {
+          user && (
+            <ReservationForm
+              tenantId={urlTenantId || ""}
+              initialUser={{
+                user_id: user.user_id,
+                name: dbUser?.name || user.displayName,
+                phone: dbUser?.phone,
+                member_type: dbUser?.member_type || "guest",
+              }}
+              onSuccess={handleReservationSuccess}
+              tenantName={tenant?.name}
+            />
+          )
+        }
       </div>
     </PageLayout>
   );
