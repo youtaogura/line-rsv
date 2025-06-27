@@ -1,386 +1,34 @@
 'use client'
 
-import { useState, Suspense, useEffect, useCallback, useRef } from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import type { Reservation, BusinessHour, User } from '@/lib/supabase'
-import { format } from 'date-fns'
-import { format as formatTz } from 'date-fns-tz'
-import {  buildApiUrl } from '@/lib/tenant-helpers'
-import { ReservationForm } from '@/components/reservation/ReservationForm'
-import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar'
-
-interface AdminSession {
-  user: {
-    id: string
-    name?: string | null
-    username: string
-    tenant_id: string
-  }
-}
+import { useState, Suspense, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
+import { useAdminSession, useReservations, useBusinessHours, useUsers, useTenant } from '@/hooks/useAdminData'
+import Link from 'next/link'
 
 function AdminContent() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [reservations, setReservations] = useState<Reservation[]>([])
-  const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [tenant, setTenant] = useState<{ id: string; name: string } | null>(null)
+  const { session, isLoading, isAuthenticated } = useAdminSession()
+  const { reservations, fetchReservations } = useReservations()
+  const { businessHours, fetchBusinessHours } = useBusinessHours()
+  const { users, fetchUsers } = useUsers()
+  const { tenant, fetchTenant } = useTenant()
   const [loading, setLoading] = useState(true)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editFormData, setEditFormData] = useState({
-    name: '',
-    phone: '',
-    member_type: 'guest' as 'regular' | 'guest'
-  })
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users' | 'manual-booking'>('reservations')
-  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
-  const [preselectedDateTime, setPreselectedDateTime] = useState<string | null>(null)
-  const manualBookingRef = useRef<HTMLDivElement>(null)
-  
-  const [newBusinessHour, setNewBusinessHour] = useState({
-    day_of_week: 1,
-    start_time: '09:00',
-    end_time: '18:00'
-  })
-
-  const fetchReservations = useCallback(async () => {
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        console.error('No tenant ID found in session')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('reservations')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('datetime', { ascending: true })
-
-      if (error) {
-        console.error('Error fetching reservations:', error)
-      } else {
-        setReservations(data || [])
-      }
-    } catch (error) {
-      console.error('Fetch error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [session])
-
-  const fetchBusinessHours = useCallback(async () => {
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        console.error('No tenant ID found in session')
-        return
-      }
-
-      const response = await fetch(buildApiUrl('/api/business-hours', tenantId))
-      const data = await response.json()
-      
-      if (response.ok) {
-        setBusinessHours(data)
-      } else {
-        console.error('Error fetching business hours:', data.error)
-      }
-    } catch (error) {
-      console.error('Fetch business hours error:', error)
-    }
-  }, [session])
-
-  const fetchUsers = useCallback(async () => {
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        console.error('No tenant ID found in session')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Error fetching users:', error)
-      } else {
-        setUsers(data || [])
-      }
-    } catch (error) {
-      console.error('Fetch users error:', error)
-    }
-  }, [session])
-
-  const fetchTenant = useCallback(async () => {
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        console.error('No tenant ID found in session')
-        return
-      }
-
-      const response = await fetch(buildApiUrl(`/api/tenants/${tenantId}`, tenantId))
-      if (response.ok) {
-        const tenantData = await response.json()
-        setTenant(tenantData)
-      } else {
-        console.error('Error fetching tenant data')
-      }
-    } catch (error) {
-      console.error('Fetch tenant error:', error)
-    }
-  }, [session])
-
-  // fetchData関数をuseCallbackでメモ化
-  const fetchData = useCallback(async () => {
-    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers(), fetchTenant()])
-  }, [fetchReservations, fetchBusinessHours, fetchUsers, fetchTenant])
 
   useEffect(() => {
-    if (status === 'loading') return // セッション確認中
-
-    if (status === 'unauthenticated') {
-      router.push('/admin/login')
-      return
-    }
-
-    if (session?.user) {
+    if (isAuthenticated && session?.user) {
+      const fetchData = async () => {
+        await Promise.all([
+          fetchReservations(),
+          fetchBusinessHours(),
+          fetchUsers(),
+          fetchTenant()
+        ])
+        setLoading(false)
+      }
       fetchData()
     }
-  }, [session, status, router, fetchData])
+  }, [isAuthenticated, session, fetchReservations, fetchBusinessHours, fetchUsers, fetchTenant])
 
-  const createBusinessHour = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        alert('セッション情報が正しくありません')
-        return
-      }
-
-      const response = await fetch(buildApiUrl('/api/business-hours', tenantId), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newBusinessHour),
-      })
-      
-      const data = await response.json()
-      
-      if (response.ok) {
-        setBusinessHours([...businessHours, data])
-        setNewBusinessHour({
-          day_of_week: 1,
-          start_time: '09:00',
-          end_time: '18:00'
-        })
-        alert('営業時間を追加しました')
-      } else {
-        alert(data.error || '営業時間の追加に失敗しました')
-      }
-    } catch (error) {
-      console.error('Create business hour error:', error)
-      alert('営業時間の追加に失敗しました')
-    }
-  }
-
-  const deleteBusinessHour = async (id: string) => {
-    if (!confirm('この営業時間を削除しますか？')) return
-    
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        alert('セッション情報が正しくありません')
-        return
-      }
-
-      const response = await fetch(buildApiUrl(`/api/business-hours?id=${id}`, tenantId), {
-        method: 'DELETE',
-      })
-      
-      if (response.ok) {
-        setBusinessHours(businessHours.filter(bh => bh.id !== id))
-        alert('営業時間を削除しました')
-      } else {
-        const data = await response.json()
-        alert(data.error || '営業時間の削除に失敗しました')
-      }
-    } catch (error) {
-      console.error('Delete business hour error:', error)
-      alert('営業時間の削除に失敗しました')
-    }
-  }
-
-  const openEditModal = (user: User) => {
-    setEditingUser(user)
-    setEditFormData({
-      name: user.name,
-      phone: user.phone || '',
-      member_type: user.member_type
-    })
-    setIsEditModalOpen(true)
-  }
-
-  const closeEditModal = () => {
-    setEditingUser(null)
-    setIsEditModalOpen(false)
-    setEditFormData({
-      name: '',
-      phone: '',
-      member_type: 'guest'
-    })
-  }
-
-  const handleUpdateUser = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingUser) return
-
-    setIsUpdating(true)
-    
-    try {
-      const response = await fetch(`/api/users/${editingUser.user_id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editFormData),
-      })
-      
-      if (response.ok) {
-        const updatedUser = await response.json()
-        setUsers(users.map(user => 
-          user.user_id === editingUser.user_id ? updatedUser : user
-        ))
-        closeEditModal()
-        alert('ユーザー情報を更新しました')
-      } else {
-        const errorData = await response.json()
-        alert(errorData.error || 'ユーザー情報の更新に失敗しました')
-      }
-    } catch (error) {
-      console.error('Error updating user:', error)
-      alert('ユーザー情報の更新に失敗しました')
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const getDayName = (day_of_week: number) => {
-    const days = ['日', '月', '火', '水', '木', '金', '土']
-    return days[day_of_week]
-  }
-
-  const deleteReservation = async (reservationId: string) => {
-    if (!confirm('この予約を削除しますか？')) return
-    
-    try {
-      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
-      if (!tenantId) {
-        alert('セッション情報が正しくありません')
-        return
-      }
-
-      const response = await fetch(buildApiUrl(`/api/reservations?id=${reservationId}`, tenantId), {
-        method: 'DELETE',
-      })
-      
-      if (response.ok) {
-        setReservations(reservations.filter(r => r.id !== reservationId))
-        alert('予約を削除しました')
-      } else {
-        const data = await response.json()
-        alert(data.error || '予約の削除に失敗しました')
-      }
-    } catch (error) {
-      console.error('Delete reservation error:', error)
-      alert('予約の削除に失敗しました')
-    }
-  }
-
-  const handleCreateReservation = (datetime: string) => {
-    setPreselectedDateTime(datetime)
-    setActiveTab('manual-booking')
-    
-    // タブ切り替え後にスクロールする
-    setTimeout(() => {
-      if (manualBookingRef.current) {
-        manualBookingRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        })
-      }
-    }, 100)
-  }
-
-  const handleReservationSuccess = () => {
-    fetchReservations()
-    setPreselectedDateTime(null)
-    setActiveTab('reservations')
-  }
-
-  const generateTimeOptions = () => {
-    const options = []
-    for (let hour = 9; hour <= 18; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        options.push(timeString)
-      }
-    }
-    return options
-  }
-
-  const exportToJson = () => {
-    const dataStr = JSON.stringify(reservations, null, 2)
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
-    
-    const exportFileDefaultName = `reservations_${format(new Date(), 'yyyy-MM-dd')}.json`
-    
-    const linkElement = document.createElement('a')
-    linkElement.setAttribute('href', dataUri)
-    linkElement.setAttribute('download', exportFileDefaultName)
-    linkElement.click()
-  }
-
-  const exportToCsv = () => {
-    const headers = ['名前', '会員種別', '予約日時', '備考', '作成日時']
-    const csvContent = [
-      headers.join(','),
-      ...reservations.map(r => [
-        r.name,
-        r.member_type === 'regular' ? '会員' : 'ゲスト',
-        formatTz(new Date(r.datetime), 'yyyy/M/d HH:mm', { timeZone: 'Asia/Tokyo' }),
-        r.note || '',
-        formatTz(new Date(r.created_at), 'yyyy/M/d HH:mm', { timeZone: 'Asia/Tokyo' })
-      ].map(field => `"${field}"`).join(','))
-    ].join('\n')
-
-    const dataUri = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csvContent)
-    const exportFileDefaultName = `reservations_${format(new Date(), 'yyyy-MM-dd')}.csv`
-    
-    const linkElement = document.createElement('a')
-    linkElement.setAttribute('href', dataUri)
-    linkElement.setAttribute('download', exportFileDefaultName)
-    linkElement.click()
-  }
-
-  const formatDateTime = (datetime: string) => {
-    return formatTz(
-      new Date(datetime),
-      'yyyy/M/d HH:mm',
-      { timeZone: 'Asia/Tokyo' }
-    )
-  }
-
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">認証確認中...</div>
@@ -388,7 +36,7 @@ function AdminContent() {
     )
   }
 
-  if (status === 'unauthenticated') {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full space-y-8">
@@ -418,11 +66,16 @@ function AdminContent() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">予約管理画面</h1>
-            <p className="mt-2 text-gray-600">予約の確認と営業時間の管理ができます</p>
+            <h1 className="text-3xl font-bold text-gray-900">管理画面ダッシュボード</h1>
+            <p className="mt-2 text-gray-600">システムの各機能にアクセスできます</p>
             {session?.user && (
               <p className="text-sm text-gray-500 mt-1">
-                ログイン中: {(session as unknown as AdminSession).user.name} ({(session as unknown as AdminSession).user.username})
+                ログイン中: {session.user.name} ({session.user.username})
+              </p>
+            )}
+            {tenant && (
+              <p className="text-sm text-gray-500">
+                テナント: {tenant.name}
               </p>
             )}
           </div>
@@ -434,463 +87,146 @@ function AdminContent() {
           </button>
         </div>
 
-        <div className="mb-6">
-          <nav className="flex space-x-4">
-            <button
-              onClick={() => setActiveTab('reservations')}
-              className={`px-4 py-2 rounded-md font-medium ${
-                activeTab === 'reservations'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              予約一覧
-            </button>
-            <button
-              onClick={() => setActiveTab('business-hours')}
-              className={`px-4 py-2 rounded-md font-medium ${
-                activeTab === 'business-hours'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              営業時間管理
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 rounded-md font-medium ${
-                activeTab === 'users'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              ユーザー管理
-            </button>
-            <button
-              onClick={() => setActiveTab('manual-booking')}
-              className={`px-4 py-2 rounded-md font-medium ${
-                activeTab === 'manual-booking'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              手動予約登録
-            </button>
-          </nav>
+        {/* 統計情報 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">予約数</h3>
+            <p className="text-3xl font-bold text-primary">{reservations.length}</p>
+            <p className="text-sm text-gray-500 mt-1">現在の予約総数</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">登録ユーザー数</h3>
+            <p className="text-3xl font-bold text-success">{users.length}</p>
+            <p className="text-sm text-gray-500 mt-1">会員: {users.filter(u => u.member_type === 'regular').length}人</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">営業時間設定</h3>
+            <p className="text-3xl font-bold text-warning">{businessHours.length}</p>
+            <p className="text-sm text-gray-500 mt-1">設定済み時間帯</p>
+          </div>
         </div>
 
-        {activeTab === 'reservations' && (
-          <>
-            <div className="mb-6 flex justify-between items-center">
-              <div className="flex space-x-4">
-                <button
-                  onClick={exportToJson}
-                  className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover"
-                >
-                  JSON出力
-                </button>
-                <button
-                  onClick={exportToCsv}
-                  className="bg-success text-white px-4 py-2 rounded-md hover:bg-success/90"
-                >
-                  CSV出力
-                </button>
+        {/* 機能メニュー */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Link
+            href="/admin/reservations"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-primary"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
               </div>
-              
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setViewMode('calendar')}
-                  className={`px-4 py-2 rounded-md ${
-                    viewMode === 'calendar' 
-                      ? 'bg-primary text-white' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  カレンダー表示
-                </button>
-                <button
-                  onClick={() => setViewMode('table')}
-                  className={`px-4 py-2 rounded-md ${
-                    viewMode === 'table' 
-                      ? 'bg-primary text-white' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  テーブル表示
-                </button>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">予約管理</h3>
+                <p className="text-sm text-gray-500">予約の確認・削除・エクスポート</p>
               </div>
             </div>
+          </Link>
 
-            {viewMode === 'calendar' && (
-              <AdminReservationCalendar
-                tenantId={(session as unknown as AdminSession)?.user?.tenant_id || null}
-                reservations={reservations}
-                onDeleteReservation={deleteReservation}
-                onCreateReservation={handleCreateReservation}
-              />
-            )}
-
-            {viewMode === 'table' && (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      名前
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      会員種別
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      予約日時
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      備考
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      予約作成日時
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reservations.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                        予約がありません
-                      </td>
-                    </tr>
-                  ) : (
-                    reservations.map((reservation) => (
-                      <tr key={reservation.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {reservation.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            reservation.member_type === 'regular' 
-                              ? 'bg-success/10 text-success' 
-                              : 'bg-warning/10 text-warning'
-                          }`}>
-                            {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDateTime(reservation.datetime)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {reservation.note || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDateTime(reservation.created_at)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <button
-                            onClick={() => deleteReservation(reservation.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            削除
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          <Link
+            href="/admin/business-hours"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-success"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-success rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
               </div>
-            )}
-          </>
-        )}
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">営業時間管理</h3>
+                <p className="text-sm text-gray-500">営業時間の設定・変更</p>
+              </div>
+            </div>
+          </Link>
 
-        {activeTab === 'business-hours' && (
-          <>
-            <div className="mb-6">
-              <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">新しい営業時間を追加</h2>
-                <form onSubmit={createBusinessHour} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Link
+            href="/admin/users"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-warning"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-warning rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">ユーザー管理</h3>
+                <p className="text-sm text-gray-500">会員情報の編集・管理</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/manual-booking"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 border-red-500"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">手動予約登録</h3>
+                <p className="text-sm text-gray-500">管理者による代理予約</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* 最近の予約 */}
+        <div className="mt-8 bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">最近の予約</h2>
+          </div>
+          <div className="px-6 py-4">
+            {reservations.length === 0 ? (
+              <p className="text-gray-500">予約がありません</p>
+            ) : (
+              <div className="space-y-2">
+                {reservations.slice(0, 5).map((reservation) => (
+                  <div key={reservation.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                     <div>
-                      <label htmlFor="dayOfWeek" className="block text-sm font-medium text-gray-700">
-                        曜日
-                      </label>
-                      <select
-                        id="dayOfWeek"
-                        value={newBusinessHour.day_of_week}
-                        onChange={(e) => setNewBusinessHour({...newBusinessHour, day_of_week: parseInt(e.target.value)})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      >
-                        <option value={1}>月曜日</option>
-                        <option value={2}>火曜日</option>
-                        <option value={3}>水曜日</option>
-                        <option value={4}>木曜日</option>
-                        <option value={5}>金曜日</option>
-                        <option value={6}>土曜日</option>
-                        <option value={0}>日曜日</option>
-                      </select>
+                      <span className="font-medium">{reservation.name}</span>
+                      <span className="text-sm text-gray-500 ml-2">
+                        ({reservation.member_type === 'regular' ? '会員' : 'ゲスト'})
+                      </span>
                     </div>
-                    <div>
-                      <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                        開始時間
-                      </label>
-                      <select
-                        id="startTime"
-                        value={newBusinessHour.start_time}
-                        onChange={(e) => setNewBusinessHour({...newBusinessHour, start_time: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      >
-                        {generateTimeOptions().map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-                        終了時間
-                      </label>
-                      <select
-                        id="endTime"
-                        value={newBusinessHour.end_time}
-                        onChange={(e) => setNewBusinessHour({...newBusinessHour, end_time: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      >
-                        {generateTimeOptions().map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex items-end">
-                      <button
-                        type="submit"
-                        className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                      >
-                        追加
-                      </button>
+                    <div className="text-sm text-gray-500">
+                      {new Date(reservation.datetime).toLocaleDateString('ja-JP', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </div>
                   </div>
-                </form>
-              </div>
-            </div>
-
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">現在の営業時間</h2>
-              </div>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      曜日
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      開始時間
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      終了時間
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {businessHours.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                        営業時間が設定されていません
-                      </td>
-                    </tr>
-                  ) : (
-                    businessHours.map((businessHour) => {
-                      return (
-                        <tr key={businessHour.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {getDayName(businessHour.day_of_week)}曜日
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {businessHour.start_time}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {businessHour.end_time}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button
-                              onClick={() => deleteBusinessHour(businessHour.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              削除
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'manual-booking' && (
-          <div ref={manualBookingRef} className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">手動予約登録</h2>
-            <p className="text-sm text-gray-600 mb-6">管理者として代理で予約を登録することができます</p>
-            <ReservationForm
-              tenantId={(session as unknown as AdminSession)?.user?.tenant_id || ''}
-              isAdminMode={true}
-              preselectedDateTime={preselectedDateTime || undefined}
-              availableUsers={users}
-              onSuccess={handleReservationSuccess}
-              tenantName={tenant?.name}
-            />
-          </div>
-        )}
-
-        {activeTab === 'users' && (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">ユーザー管理</h2>
-              <p className="text-sm text-gray-600 mt-1">登録ユーザーの会員種別を管理できます</p>
-            </div>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ユーザーID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    名前
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    電話番号
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    会員種別
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    登録日時
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                      登録ユーザーがいません
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((user) => (
-                    <tr key={user.user_id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                        {user.user_id.substring(0, 8)}...
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.phone || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.member_type === 'regular' 
-                            ? 'bg-success/10 text-success' 
-                            : 'bg-warning/10 text-warning'
-                        }`}>
-                          {user.member_type === 'regular' ? '会員' : 'ゲスト'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDateTime(user.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={() => openEditModal(user)}
-                          className="text-primary hover:text-primary-hover font-medium"
-                        >
-                          編集
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                ))}
+                {reservations.length > 5 && (
+                  <div className="pt-2">
+                    <Link
+                      href="/admin/reservations"
+                      className="text-primary hover:text-primary-hover text-sm"
+                    >
+                      すべての予約を見る →
+                    </Link>
+                  </div>
                 )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Edit User Modal */}
-        {isEditModalOpen && editingUser && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">ユーザー情報編集</h3>
-                <form onSubmit={handleUpdateUser} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      名前 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editFormData.name}
-                      onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      電話番号
-                    </label>
-                    <input
-                      type="tel"
-                      value={editFormData.phone}
-                      onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      会員種別 <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={editFormData.member_type}
-                      onChange={(e) => setEditFormData({...editFormData, member_type: e.target.value as 'regular' | 'guest'})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-400 transition-colors"
-                    >
-                      <option value="guest">ゲスト</option>
-                      <option value="regular">会員</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-end space-x-3 mt-6">
-                    <button
-                      type="button"
-                      onClick={closeEditModal}
-                      disabled={isUpdating}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isUpdating || !editFormData.name.trim()}
-                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {isUpdating ? '更新中...' : '更新'}
-                    </button>
-                  </div>
-                </form>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
