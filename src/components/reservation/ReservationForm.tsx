@@ -5,7 +5,6 @@ import { ReservationCalendar } from "./ReservationCalendar";
 import { useReservationMenu } from "./hooks/useReservationMenu";
 import { format as formatTz } from "date-fns-tz";
 import { buildApiUrl } from "@/lib/tenant-helpers";
-import type { User } from "@/lib/supabase";
 
 interface ReservationFormProps {
   tenantId: string;

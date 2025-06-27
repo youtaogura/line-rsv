@@ -25,7 +25,7 @@ export const CalendarView = React.memo(function CalendarView({
   availabilityData,
   loading,
   reservationCount,
-  availabilityInfo,
+  availabilityInfo: _availabilityInfo,
 }: CalendarViewProps) {
   const today = startOfDay(new Date());
 
