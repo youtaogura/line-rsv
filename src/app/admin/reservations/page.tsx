@@ -6,7 +6,6 @@ import { useReservations, useAdminSession, useUsers } from '@/hooks/useAdminData
 import { formatDateTime } from '@/lib/admin-types'
 import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar'
 import { ReservationList } from '@/components/admin/ReservationList'
-import { ReservationExport } from '@/components/admin/ReservationExport'
 
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession()
@@ -54,7 +53,7 @@ function ReservationsContent() {
     )
   }
 
-  const handleCreateReservation = (datetime: string) => {
+  const handleCreateReservation = () => {
     // 予約作成後はリストを再取得
     fetchReservations()
   }
@@ -89,8 +88,6 @@ function ReservationsContent() {
         </div>
 
         <div className="mb-6 flex justify-between items-center">
-          <ReservationExport reservations={reservations} />
-          
           <div className="flex space-x-2">
             <button
               onClick={() => setViewMode('calendar')}

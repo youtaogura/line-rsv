@@ -35,7 +35,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-lg font-medium text-gray-900 mb-4">新しい営業時間を追加</h2>
+      <h2 className="text-lg font-medium text-gray-900 mb-4">営業時間を追加</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -46,7 +46,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
               id="dayOfWeek"
               value={newBusinessHour.day_of_week}
               onChange={(e) => setNewBusinessHour({...newBusinessHour, day_of_week: parseInt(e.target.value)})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               <option value={1}>月曜日</option>
               <option value={2}>火曜日</option>
@@ -65,7 +65,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
               id="startTime"
               value={newBusinessHour.start_time}
               onChange={(e) => setNewBusinessHour({...newBusinessHour, start_time: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               {timeOptions.map(time => (
                 <option key={time} value={time}>{time}</option>
@@ -80,7 +80,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
               id="endTime"
               value={newBusinessHour.end_time}
               onChange={(e) => setNewBusinessHour({...newBusinessHour, end_time: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               {timeOptions.map(time => (
                 <option key={time} value={time}>{time}</option>

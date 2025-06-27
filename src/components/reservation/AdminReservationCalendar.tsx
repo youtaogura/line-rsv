@@ -278,57 +278,6 @@ export function AdminReservationCalendar({
         </div>
       </div>
 
-      {/* 月間統計 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {format(currentMonth, 'yyyy年M月')}の統計
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
-              {reservations.filter(r => {
-                const reservationDate = new Date(r.datetime)
-                return reservationDate.getFullYear() === currentMonth.getFullYear() &&
-                       reservationDate.getMonth() === currentMonth.getMonth()
-              }).length}
-            </div>
-            <div className="text-sm text-gray-500">総予約数</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-success">
-              {reservations.filter(r => {
-                const reservationDate = new Date(r.datetime)
-                return reservationDate.getFullYear() === currentMonth.getFullYear() &&
-                       reservationDate.getMonth() === currentMonth.getMonth() &&
-                       r.member_type === 'regular'
-              }).length}
-            </div>
-            <div className="text-sm text-gray-500">会員予約</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-warning">
-              {reservations.filter(r => {
-                const reservationDate = new Date(r.datetime)
-                return reservationDate.getFullYear() === currentMonth.getFullYear() &&
-                       reservationDate.getMonth() === currentMonth.getMonth() &&
-                       r.member_type === 'guest'
-              }).length}
-            </div>
-            <div className="text-sm text-gray-500">ゲスト予約</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">
-              {Object.keys(dayReservations).filter(date => {
-                const d = new Date(date)
-                return d.getFullYear() === currentMonth.getFullYear() &&
-                       d.getMonth() === currentMonth.getMonth()
-              }).length}
-            </div>
-            <div className="text-sm text-gray-500">予約日数</div>
-          </div>
-        </div>
-      </div>
-
       {/* 予約作成モーダル */}
       <ReservationModal
         isOpen={isModalOpen}
