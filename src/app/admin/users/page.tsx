@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { useState, Suspense, useEffect } from 'react'
-import { signOut } from 'next-auth/react'
-import { useAdminSession, useUsers } from '@/hooks/useAdminData'
-import { UserList } from '@/components/admin/UserList'
-import { UserEditModal } from '@/components/admin/UserEditModal'
-import type { User } from '@/lib/supabase'
-import { formatDateTime } from '@/lib/admin-types'
+import { useState, Suspense, useEffect } from "react";
+import { signOut } from "next-auth/react";
+import { useAdminSession, useUsers } from "@/hooks/useAdminData";
+import { UserList } from "@/components/admin/UserList";
+import { UserEditModal } from "@/components/admin/UserEditModal";
+import type { User } from "@/lib/supabase";
+import { formatDateTime } from "@/lib/admin-types";
 
 function UsersContent() {
-  const { session, isLoading, isAuthenticated } = useAdminSession()
-  const { users, fetchUsers, updateUser } = useUsers()
-  const [loading, setLoading] = useState(true)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { session, isLoading, isAuthenticated } = useAdminSession();
+  const { users, fetchUsers, updateUser } = useUsers();
+  const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const fetchData = async () => {
-        await fetchUsers()
-        setLoading(false)
-      }
-      fetchData()
+        await fetchUsers();
+        setLoading(false);
+      };
+      fetchData();
     }
-  }, [isAuthenticated, session, fetchUsers])
+  }, [isAuthenticated, session, fetchUsers]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">認証確認中...</div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -47,7 +47,7 @@ function UsersContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -55,32 +55,32 @@ function UsersContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">読み込み中...</div>
       </div>
-    )
+    );
   }
 
   const handleEditUser = (user: User) => {
-    setEditingUser(user)
-    setIsEditModalOpen(true)
-  }
+    setEditingUser(user);
+    setIsEditModalOpen(true);
+  };
 
   const handleCloseModal = () => {
-    setEditingUser(null)
-    setIsEditModalOpen(false)
-  }
+    setEditingUser(null);
+    setIsEditModalOpen(false);
+  };
 
   const handleUpdateUser = async (updateData: {
-    name: string
-    phone: string
-    member_type: 'regular' | 'guest'
+    name: string;
+    phone: string;
+    member_type: "regular" | "guest";
   }) => {
-    if (!editingUser) return false
+    if (!editingUser) return false;
 
-    const success = await updateUser(editingUser.user_id, updateData)
+    const success = await updateUser(editingUser.user_id, updateData);
     if (success) {
-      handleCloseModal()
+      handleCloseModal();
     }
-    return success
-  }
+    return success;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -97,13 +97,13 @@ function UsersContent() {
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => (window.location.href = "/admin")}
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               管理画面に戻る
             </button>
             <button
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={() => signOut({ callbackUrl: "/admin/login" })}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               ログアウト
@@ -125,17 +125,19 @@ function UsersContent() {
         />
       </div>
     </div>
-  )
+  );
 }
 
 export default function UsersPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-xl">読み込み中...</div>
+        </div>
+      }
+    >
       <UsersContent />
     </Suspense>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import React from 'react'
-import type { Reservation } from '@/lib/supabase'
+import React from "react";
+import type { Reservation } from "@/lib/supabase";
 
 interface ReservationListProps {
-  reservations: Reservation[]
-  onDeleteReservation: (id: string) => Promise<void>
-  formatDateTime: (datetime: string) => string
+  reservations: Reservation[];
+  onDeleteReservation: (id: string) => Promise<void>;
+  formatDateTime: (datetime: string) => string;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
   reservations,
   onDeleteReservation,
-  formatDateTime
+  formatDateTime,
 }) => {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -51,19 +51,21 @@ export const ReservationList: React.FC<ReservationListProps> = ({
                   {reservation.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    reservation.member_type === 'regular' 
-                      ? 'bg-success/10 text-success' 
-                      : 'bg-warning/10 text-warning'
-                  }`}>
-                    {reservation.member_type === 'regular' ? '会員' : 'ゲスト'}
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      reservation.member_type === "regular"
+                        ? "bg-success/10 text-success"
+                        : "bg-warning/10 text-warning"
+                    }`}
+                  >
+                    {reservation.member_type === "regular" ? "会員" : "ゲスト"}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatDateTime(reservation.datetime)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  {reservation.note || '-'}
+                  {reservation.note || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatDateTime(reservation.created_at)}
@@ -82,5 +84,5 @@ export const ReservationList: React.FC<ReservationListProps> = ({
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};

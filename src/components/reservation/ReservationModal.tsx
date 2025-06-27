@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 // import { X } from 'lucide-react'
-import { useReservationMenu } from './hooks/useReservationMenu'
-import { format as formatTz } from 'date-fns-tz'
-import { buildApiUrl } from '@/lib/tenant-helpers'
-import type { User } from '@/lib/supabase'
+import { useReservationMenu } from "./hooks/useReservationMenu";
+import { format as formatTz } from "date-fns-tz";
+import { buildApiUrl } from "@/lib/tenant-helpers";
+import type { User } from "@/lib/supabase";
 
 interface ReservationModalProps {
-  isOpen: boolean
-  onClose: () => void
-  tenantId: string
-  preselectedDateTime: string
-  availableUsers: User[]
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  tenantId: string;
+  preselectedDateTime: string;
+  availableUsers: User[];
+  onSuccess: () => void;
 }
 
 export function ReservationModal({
@@ -22,84 +22,84 @@ export function ReservationModal({
   tenantId,
   preselectedDateTime,
   availableUsers,
-  onSuccess
+  onSuccess,
 }: ReservationModalProps) {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [note, setNote] = useState('')
-  const [adminNote, setAdminNote] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [userMode, setUserMode] = useState<'existing' | 'new'>('existing')
-  const [selectedUserId, setSelectedUserId] = useState('')
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [adminNote, setAdminNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [userMode, setUserMode] = useState<"existing" | "new">("existing");
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   // 予約メニューを取得
-  const { reservationMenu } = useReservationMenu(tenantId)
+  const { reservationMenu } = useReservationMenu(tenantId);
 
   // モーダルが開いたときの初期化
   useEffect(() => {
     if (isOpen) {
       if (availableUsers.length > 0) {
-        const firstUser = availableUsers[0]
-        setSelectedUserId(firstUser.user_id)
-        setName(firstUser.name)
-        setPhone(firstUser.phone || '')
+        const firstUser = availableUsers[0];
+        setSelectedUserId(firstUser.user_id);
+        setName(firstUser.name);
+        setPhone(firstUser.phone || "");
       }
     } else {
       // モーダルが閉じたときのリセット
-      setName('')
-      setPhone('')
-      setNote('')
-      setAdminNote('')
-      setUserMode('existing')
-      setSelectedUserId('')
+      setName("");
+      setPhone("");
+      setNote("");
+      setAdminNote("");
+      setUserMode("existing");
+      setSelectedUserId("");
     }
-  }, [isOpen, availableUsers])
+  }, [isOpen, availableUsers]);
 
   const handleExistingUserSelect = (userId: string) => {
-    setSelectedUserId(userId)
-    const user = availableUsers.find(u => u.user_id === userId)
+    setSelectedUserId(userId);
+    const user = availableUsers.find((u) => u.user_id === userId);
     if (user) {
-      setName(user.name)
-      setPhone(user.phone || '')
+      setName(user.name);
+      setPhone(user.phone || "");
     }
-  }
+  };
 
-  const handleUserModeChange = (mode: 'existing' | 'new') => {
-    setUserMode(mode)
-    if (mode === 'new') {
-      setSelectedUserId('')
-      setName('')
-      setPhone('')
+  const handleUserModeChange = (mode: "existing" | "new") => {
+    setUserMode(mode);
+    if (mode === "new") {
+      setSelectedUserId("");
+      setName("");
+      setPhone("");
     } else if (availableUsers.length > 0) {
-      handleExistingUserSelect(availableUsers[0].user_id)
+      handleExistingUserSelect(availableUsers[0].user_id);
     }
-  }
+  };
 
   const generateUserId = () => {
-    return `admin_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-  }
+    return `admin_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!name.trim()) {
-      alert('お客様の名前を入力してください。')
-      return
+      alert("お客様の名前を入力してください。");
+      return;
     }
 
-    let finalUserId = ''
-    if (userMode === 'existing') {
-      finalUserId = selectedUserId
+    let finalUserId = "";
+    if (userMode === "existing") {
+      finalUserId = selectedUserId;
     } else {
-      finalUserId = generateUserId()
+      finalUserId = generateUserId();
     }
 
     if (!finalUserId) {
-      alert('ユーザー情報が不正です。')
-      return
+      alert("ユーザー情報が不正です。");
+      return;
     }
 
-    setSubmitting(true)
+    setSubmitting(true);
 
     try {
       const reservationData = {
@@ -107,46 +107,50 @@ export function ReservationModal({
         name: name.trim(),
         datetime: preselectedDateTime,
         note: note.trim() || null,
-        member_type: userMode === 'new' ? 'guest' : 'regular',
-        phone: userMode === 'new' ? phone.trim() || null : undefined,
+        member_type: userMode === "new" ? "guest" : "regular",
+        phone: userMode === "new" ? phone.trim() || null : undefined,
         admin_note: adminNote.trim() || null,
         is_admin_mode: true,
-        reservation_menu_id: reservationMenu?.id || null
-      }
+        reservation_menu_id: reservationMenu?.id || null,
+      };
 
-      const response = await fetch(buildApiUrl('/api/reservations', tenantId), {
-        method: 'POST',
+      const response = await fetch(buildApiUrl("/api/reservations", tenantId), {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(reservationData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        console.error('Reservation error:', result)
-        alert(result.error || '予約に失敗しました。時間をおいて再度お試しください。')
-        return
+        console.error("Reservation error:", result);
+        alert(
+          result.error ||
+            "予約に失敗しました。時間をおいて再度お試しください。",
+        );
+        return;
       }
 
-      alert('予約を登録しました！')
-      onSuccess()
-      onClose()
-
+      alert("予約を登録しました！");
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Reservation error:', error)
-      alert('予約処理でエラーが発生しました。')
+      console.error("Reservation error:", error);
+      alert("予約処理でエラーが発生しました。");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const formattedDateTime = preselectedDateTime ? 
-    formatTz(new Date(preselectedDateTime), 'yyyy年M月d日 HH:mm', { timeZone: 'Asia/Tokyo' }) : 
-    ''
+  const formattedDateTime = preselectedDateTime
+    ? formatTz(new Date(preselectedDateTime), "yyyy年M月d日 HH:mm", {
+        timeZone: "Asia/Tokyo",
+      })
+    : "";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -182,8 +186,10 @@ export function ReservationModal({
                   <input
                     type="radio"
                     value="existing"
-                    checked={userMode === 'existing'}
-                    onChange={(e) => handleUserModeChange(e.target.value as 'existing')}
+                    checked={userMode === "existing"}
+                    onChange={(e) =>
+                      handleUserModeChange(e.target.value as "existing")
+                    }
                     className="mr-2"
                     disabled={submitting}
                   />
@@ -193,8 +199,10 @@ export function ReservationModal({
                   <input
                     type="radio"
                     value="new"
-                    checked={userMode === 'new'}
-                    onChange={(e) => handleUserModeChange(e.target.value as 'new')}
+                    checked={userMode === "new"}
+                    onChange={(e) =>
+                      handleUserModeChange(e.target.value as "new")
+                    }
                     className="mr-2"
                     disabled={submitting}
                   />
@@ -204,7 +212,7 @@ export function ReservationModal({
             </div>
 
             {/* 既存ユーザー選択 */}
-            {userMode === 'existing' && (
+            {userMode === "existing" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   お客様を選択
@@ -219,7 +227,8 @@ export function ReservationModal({
                   <option value="">選択してください</option>
                   {availableUsers.map((user) => (
                     <option key={user.user_id} value={user.user_id}>
-                      {user.name} ({user.member_type === 'regular' ? '会員' : 'ゲスト'})
+                      {user.name} (
+                      {user.member_type === "regular" ? "会員" : "ゲスト"})
                     </option>
                   ))}
                 </select>
@@ -236,13 +245,13 @@ export function ReservationModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={submitting || userMode === 'existing'}
+                disabled={submitting || userMode === "existing"}
                 required
               />
             </div>
 
             {/* 電話番号入力 */}
-            {userMode === 'new' && (
+            {userMode === "new" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   電話番号
@@ -300,12 +309,12 @@ export function ReservationModal({
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 disabled={submitting}
               >
-                {submitting ? '登録中...' : '予約登録'}
+                {submitting ? "登録中..." : "予約登録"}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

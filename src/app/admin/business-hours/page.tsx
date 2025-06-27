@@ -1,32 +1,37 @@
-'use client'
+"use client";
 
-import { useState, Suspense, useEffect } from 'react'
-import { signOut } from 'next-auth/react'
-import { useAdminSession, useBusinessHours } from '@/hooks/useAdminData'
-import { BusinessHourForm } from '@/components/admin/BusinessHourForm'
-import { BusinessHourList } from '@/components/admin/BusinessHourList'
+import { useState, Suspense, useEffect } from "react";
+import { signOut } from "next-auth/react";
+import { useAdminSession, useBusinessHours } from "@/hooks/useAdminData";
+import { BusinessHourForm } from "@/components/admin/BusinessHourForm";
+import { BusinessHourList } from "@/components/admin/BusinessHourList";
 
 function BusinessHoursContent() {
-  const { session, isLoading, isAuthenticated } = useAdminSession()
-  const { businessHours, fetchBusinessHours, createBusinessHour, deleteBusinessHour } = useBusinessHours()
-  const [loading, setLoading] = useState(true)
+  const { session, isLoading, isAuthenticated } = useAdminSession();
+  const {
+    businessHours,
+    fetchBusinessHours,
+    createBusinessHour,
+    deleteBusinessHour,
+  } = useBusinessHours();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const fetchData = async () => {
-        await fetchBusinessHours()
-        setLoading(false)
-      }
-      fetchData()
+        await fetchBusinessHours();
+        setLoading(false);
+      };
+      fetchData();
     }
-  }, [isAuthenticated, session, fetchBusinessHours])
+  }, [isAuthenticated, session, fetchBusinessHours]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">認証確認中...</div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -43,7 +48,7 @@ function BusinessHoursContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -51,7 +56,7 @@ function BusinessHoursContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">読み込み中...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -69,13 +74,13 @@ function BusinessHoursContent() {
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => (window.location.href = "/admin")}
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               管理画面に戻る
             </button>
             <button
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={() => signOut({ callbackUrl: "/admin/login" })}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               ログアウト
@@ -88,24 +93,26 @@ function BusinessHoursContent() {
           <BusinessHourForm onCreateBusinessHour={createBusinessHour} />
 
           {/* 現在の営業時間一覧 */}
-          <BusinessHourList 
+          <BusinessHourList
             businessHours={businessHours}
             onDeleteBusinessHour={deleteBusinessHour}
           />
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function BusinessHoursPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-xl">読み込み中...</div>
+        </div>
+      }
+    >
       <BusinessHoursContent />
     </Suspense>
-  )
+  );
 }

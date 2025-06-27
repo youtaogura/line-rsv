@@ -1,22 +1,22 @@
-import React from 'react'
-import type { BusinessHour } from '@/lib/supabase'
-import { getDayName } from '@/lib/admin-types'
+import React from "react";
+import type { BusinessHour } from "@/lib/supabase";
+import { getDayName } from "@/lib/admin-types";
 
 interface BusinessHourListProps {
-  businessHours: BusinessHour[]
-  onDeleteBusinessHour: (id: string) => Promise<void>
+  businessHours: BusinessHour[];
+  onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
 export const BusinessHourList: React.FC<BusinessHourListProps> = ({
   businessHours,
-  onDeleteBusinessHour
+  onDeleteBusinessHour,
 }) => {
   return (
     <div className="bg-white shadow rounded-lg overflow-auto">
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-medium text-gray-900">現在の営業時間</h2>
       </div>
-      <div className='min-w-200'>
+      <div className="min-w-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -71,5 +71,5 @@ export const BusinessHourList: React.FC<BusinessHourListProps> = ({
         </table>
       </div>
     </div>
-  )
-}
+  );
+};

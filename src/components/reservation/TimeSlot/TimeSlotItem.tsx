@@ -1,34 +1,40 @@
-import { format as formatTz } from 'date-fns-tz'
-import { addMinutes } from 'date-fns'
-import type { ReservationMenu } from '@/lib/supabase'
+import { format as formatTz } from "date-fns-tz";
+import { addMinutes } from "date-fns";
+import type { ReservationMenu } from "@/lib/supabase";
 
 interface TimeSlotItemProps {
-  datetime: string
-  isSelected: boolean
-  onClick: () => void
-  reservationMenu?: ReservationMenu | null
+  datetime: string;
+  isSelected: boolean;
+  onClick: () => void;
+  reservationMenu?: ReservationMenu | null;
 }
 
-export function TimeSlotItem({ datetime, isSelected, onClick, reservationMenu }: TimeSlotItemProps) {
+export function TimeSlotItem({
+  datetime,
+  isSelected,
+  onClick,
+  reservationMenu,
+}: TimeSlotItemProps) {
   const formatTimeRange = (datetime: string) => {
-    const startTime = new Date(datetime)
-    const duration = reservationMenu?.duration_minutes || 30
-    const endTime = addMinutes(startTime, duration)
-    
-    const startStr = formatTz(startTime, 'HH:mm', { timeZone: 'Asia/Tokyo' })
-    const endStr = formatTz(endTime, 'HH:mm', { timeZone: 'Asia/Tokyo' })
-    
-    return `${startStr} - ${endStr}`
-  }
+    const startTime = new Date(datetime);
+    const duration = reservationMenu?.duration_minutes || 30;
+    const endTime = addMinutes(startTime, duration);
+
+    const startStr = formatTz(startTime, "HH:mm", { timeZone: "Asia/Tokyo" });
+    const endStr = formatTz(endTime, "HH:mm", { timeZone: "Asia/Tokyo" });
+
+    return `${startStr} - ${endStr}`;
+  };
 
   return (
     <button
       onClick={onClick}
       className={`
         w-full px-4 py-3 text-left rounded-md border transition-colors
-        ${isSelected 
-          ? 'bg-blue-500 text-white border-blue-500 shadow-md' 
-          : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300'
+        ${
+          isSelected
+            ? "bg-blue-500 text-white border-blue-500 shadow-md"
+            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300"
         }
       `}
     >
@@ -41,5 +47,5 @@ export function TimeSlotItem({ datetime, isSelected, onClick, reservationMenu }:
         )}
       </div>
     </button>
-  )
+  );
 }

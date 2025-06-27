@@ -1,31 +1,36 @@
-'use client'
+"use client";
 
-import { useState, Suspense, useEffect } from 'react'
-import { signOut } from 'next-auth/react'
-import { useReservations, useAdminSession, useUsers } from '@/hooks/useAdminData'
-import { formatDateTime } from '@/lib/admin-types'
-import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar'
-import { ReservationList } from '@/components/admin/ReservationList'
+import { useState, Suspense, useEffect } from "react";
+import { signOut } from "next-auth/react";
+import {
+  useReservations,
+  useAdminSession,
+  useUsers,
+} from "@/hooks/useAdminData";
+import { formatDateTime } from "@/lib/admin-types";
+import { AdminReservationCalendar } from "@/components/reservation/AdminReservationCalendar";
+import { ReservationList } from "@/components/admin/ReservationList";
 
 function ReservationsContent() {
-  const { session, isLoading, isAuthenticated } = useAdminSession()
-  const { reservations, loading, fetchReservations, deleteReservation } = useReservations()
-  const { users, fetchUsers } = useUsers()
-  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
+  const { session, isLoading, isAuthenticated } = useAdminSession();
+  const { reservations, loading, fetchReservations, deleteReservation } =
+    useReservations();
+  const { users, fetchUsers } = useUsers();
+  const [viewMode, setViewMode] = useState<"calendar" | "table">("calendar");
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
-      fetchReservations()
-      fetchUsers()
+      fetchReservations();
+      fetchUsers();
     }
-  }, [isAuthenticated, session, fetchReservations, fetchUsers])
+  }, [isAuthenticated, session, fetchReservations, fetchUsers]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">認証確認中...</div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -42,7 +47,7 @@ function ReservationsContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -50,13 +55,13 @@ function ReservationsContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">読み込み中...</div>
       </div>
-    )
+    );
   }
 
   const handleCreateReservation = () => {
     // 予約作成後はリストを再取得
-    fetchReservations()
-  }
+    fetchReservations();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -73,13 +78,13 @@ function ReservationsContent() {
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => (window.location.href = "/admin")}
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               管理画面に戻る
             </button>
             <button
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={() => signOut({ callbackUrl: "/admin/login" })}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               ログアウト
@@ -90,21 +95,21 @@ function ReservationsContent() {
         <div className="mb-6 flex justify-between items-center">
           <div className="flex space-x-2">
             <button
-              onClick={() => setViewMode('calendar')}
+              onClick={() => setViewMode("calendar")}
               className={`px-4 py-2 rounded-md ${
-                viewMode === 'calendar' 
-                  ? 'bg-primary text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                viewMode === "calendar"
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
               カレンダー表示
             </button>
             <button
-              onClick={() => setViewMode('table')}
+              onClick={() => setViewMode("table")}
               className={`px-4 py-2 rounded-md ${
-                viewMode === 'table' 
-                  ? 'bg-primary text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                viewMode === "table"
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
               テーブル表示
@@ -112,7 +117,7 @@ function ReservationsContent() {
           </div>
         </div>
 
-        {viewMode === 'calendar' && (
+        {viewMode === "calendar" && (
           <AdminReservationCalendar
             tenantId={session?.user?.tenant_id || null}
             reservations={reservations}
@@ -122,7 +127,7 @@ function ReservationsContent() {
           />
         )}
 
-        {viewMode === 'table' && (
+        {viewMode === "table" && (
           <ReservationList
             reservations={reservations}
             onDeleteReservation={deleteReservation}
@@ -131,17 +136,19 @@ function ReservationsContent() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default function ReservationsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-xl">読み込み中...</div>
+        </div>
+      }
+    >
       <ReservationsContent />
     </Suspense>
-  )
+  );
 }

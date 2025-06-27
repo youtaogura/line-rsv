@@ -87,6 +87,7 @@ supabase-schema.sql             # データベーススキーマ
 ## データベース構造
 
 ### users テーブル
+
 - userId (LINE UID、主キー)
 - name (名前)
 - phone (電話番号、任意)
@@ -94,6 +95,7 @@ supabase-schema.sql             # データベーススキーマ
 - createdAt (作成日時)
 
 ### reservations テーブル
+
 - id (UUID、主キー)
 - userId (LINE UID)
 - name (名前)
@@ -103,6 +105,7 @@ supabase-schema.sql             # データベーススキーマ
 - createdAt (作成日時)
 
 ### available_slots テーブル
+
 - datetime (予約可能日時、主キー)
 - isBooked (予約済みフラグ)
 

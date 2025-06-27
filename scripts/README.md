@@ -31,12 +31,14 @@ node scripts/create-admin.mjs <tenant_id> <username> <password> <name>
 新しい管理者ユーザーを作成します。
 
 **パラメータ:**
+
 - `tenant_id`: テナントのUUID（tenantsテーブルに存在する必要があります）
 - `username`: ログイン用のユーザー名（3-50文字、一意である必要があります）
 - `password`: ログイン用のパスワード（6文字以上）
 - `name`: 管理者の表示名
 
 **例:**
+
 ```bash
 npm run admin:create "550e8400-e29b-41d4-a716-446655440000" "admin" "securePassword123" "システム管理者"
 # または
@@ -54,9 +56,11 @@ CONFIRM_DELETE=yes node scripts/delete-admin.mjs <username>
 指定したユーザー名の管理者を削除します。
 
 **パラメータ:**
+
 - `username`: 削除する管理者のユーザー名
 
 **例:**
+
 ```bash
 CONFIRM_DELETE=yes npm run admin:delete admin
 # または
@@ -68,20 +72,24 @@ CONFIRM_DELETE=yes node scripts/delete-admin.mjs admin
 ## 使用例
 
 ### 1. 既存の管理者を確認
+
 ```bash
 npm run admin:list
 ```
 
 ### 2. 新しい管理者を作成
+
 ```bash
 # 管理者を作成
 npm run admin:create "your-tenant-id" "admin" "password123" "管理者"
 ```
 
 ### 3. 管理者でログイン
+
 ブラウザで `/admin/login` にアクセスし、作成したユーザー名とパスワードでログインします。
 
 ### 4. 不要な管理者を削除
+
 ```bash
 CONFIRM_DELETE=yes npm run admin:delete old-admin
 ```
@@ -91,21 +99,27 @@ CONFIRM_DELETE=yes npm run admin:delete old-admin
 ### よくあるエラー
 
 **環境変数エラー**
+
 ```
 ❌ Error: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are required
 ```
+
 → `.env.local`ファイルを確認してください
 
 **テナントが見つからない**
+
 ```
 ❌ Error: Tenant not found. Please check the tenant_id.
 ```
+
 → 正しいテナントIDを使用しているか確認してください
 
 **ユーザー名が重複**
+
 ```
 ❌ Error: Username 'admin' already exists
 ```
+
 → 異なるユーザー名を使用してください
 
 ### デバッグ

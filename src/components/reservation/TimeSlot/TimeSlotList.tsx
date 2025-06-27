@@ -1,16 +1,16 @@
-import { TimeSlotItem } from './TimeSlotItem'
-import { TimeSlotContainer } from './TimeSlotContainer'
-import { TimeSlot } from '../types'
-import type { ReservationMenu } from '@/lib/supabase'
-import { format } from 'date-fns'
+import { TimeSlotItem } from "./TimeSlotItem";
+import { TimeSlotContainer } from "./TimeSlotContainer";
+import { TimeSlot } from "../types";
+import type { ReservationMenu } from "@/lib/supabase";
+import { format } from "date-fns";
 
 interface TimeSlotListProps {
-  selectedDate: Date | null
-  availableSlots: TimeSlot[]
-  selectedDateTime: string | null
-  onTimeSelect: (datetime: string) => void
-  loading: boolean
-  reservationMenu: ReservationMenu | null
+  selectedDate: Date | null;
+  availableSlots: TimeSlot[];
+  selectedDateTime: string | null;
+  onTimeSelect: (datetime: string) => void;
+  loading: boolean;
+  reservationMenu: ReservationMenu | null;
 }
 
 export function TimeSlotList({
@@ -19,17 +19,17 @@ export function TimeSlotList({
   selectedDateTime,
   onTimeSelect,
   loading,
-  reservationMenu
+  reservationMenu,
 }: TimeSlotListProps) {
   if (!selectedDate) {
-    return null
+    return null;
   }
 
   const formatSelectedDate = (date: Date) => {
-    return format(date, 'yyyy年M月d日')
-  }
+    return format(date, "yyyy年M月d日");
+  };
 
-  const title = `${formatSelectedDate(selectedDate)}の予約可能時間`
+  const title = `${formatSelectedDate(selectedDate)}の予約可能時間`;
 
   if (loading) {
     return (
@@ -38,17 +38,19 @@ export function TimeSlotList({
           <div className="text-gray-500">時間を読み込み中...</div>
         </div>
       </TimeSlotContainer>
-    )
+    );
   }
 
   if (availableSlots.length === 0) {
     return (
       <TimeSlotContainer title={title}>
         <div className="flex items-center justify-center py-8">
-          <div className="text-gray-500">この日は予約可能な時間がありません</div>
+          <div className="text-gray-500">
+            この日は予約可能な時間がありません
+          </div>
         </div>
       </TimeSlotContainer>
-    )
+    );
   }
 
   return (
@@ -63,5 +65,5 @@ export function TimeSlotList({
         />
       ))}
     </TimeSlotContainer>
-  )
+  );
 }
