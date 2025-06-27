@@ -5,20 +5,7 @@ import type {
   Reservation,
   ReservationMenu,
 } from "@/lib/supabase";
-
-export interface TimeSlot {
-  time: string;
-  datetime: string;
-  isAvailable: boolean;
-}
-
-export interface DayAvailabilityInfo {
-  date: string;
-  totalSlots: number;
-  availableSlots: number;
-  reservedSlots: number;
-  timeSlots: TimeSlot[];
-}
+import type { DayAvailabilityInfo, TimeSlot } from "../types";
 
 /**
  * 指定した日の営業時間と予約メニューからタイムスロットを生成

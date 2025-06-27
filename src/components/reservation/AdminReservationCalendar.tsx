@@ -7,11 +7,8 @@ import { useMonthlyAvailability } from "./hooks/useMonthlyAvailability";
 import { useBusinessHours } from "./hooks/useBusinessHours";
 import { useReservationMenu } from "./hooks/useReservationMenu";
 import { startOfMonth, endOfMonth, format, addMinutes } from "date-fns";
-import {
-  calculateMonthlyAvailability,
-  type DayAvailabilityInfo,
-  type TimeSlot,
-} from "./utils/availabilityCalculator";
+import { calculateMonthlyAvailability } from "./utils/availabilityCalculator";
+import type { DayAvailabilityInfo, TimeSlot } from "./types";
 import type { Reservation, User } from "@/lib/supabase";
 
 interface AdminReservationCalendarProps {

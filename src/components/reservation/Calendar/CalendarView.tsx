@@ -79,15 +79,15 @@ export const CalendarView = React.memo(function CalendarView({
     if (view !== "month") return null;
 
     const dateStr = format(date, "yyyy-MM-dd");
-    const dayReservations = reservationCount?.[dateStr] || [];
-    const dayAvailability = availabilityInfo?.get(dateStr);
+    const dayAvailability = availabilityData.find(
+      (item) => item.date === dateStr,
+    );
+    const isPastDate = isBefore(startOfDay(date), today);
 
     return (
       <CalendarTile
-        date={date}
-        availabilityData={availabilityData}
-        reservationCount={dayReservations.length}
-        availableSlots={dayAvailability?.availableSlots}
+        isPast={isPastDate}
+        isAvailable={dayAvailability?.hasAvailability ?? false}
       />
     );
   };

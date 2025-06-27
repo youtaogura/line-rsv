@@ -3,9 +3,18 @@ export interface DayAvailability {
   hasAvailability: boolean;
 }
 
+export interface DayAvailabilityInfo {
+  date: string;
+  totalSlots: number;
+  availableSlots: number;
+  reservedSlots: number;
+  timeSlots: TimeSlot[];
+}
+
 export interface TimeSlot {
+  time: string;
   datetime: string;
-  is_booked: boolean;
+  isAvailable: boolean;
 }
 
 export interface CalendarState {
