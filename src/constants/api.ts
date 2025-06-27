@@ -10,7 +10,6 @@ export const API_ENDPOINTS = {
   USERS: '/api/users',
   USER: '/api/user',
   TENANTS: '/api/tenants',
-  AVAILABLE_SLOTS: '/api/available-slots',
   AVAILABILITY: {
     MONTHLY: '/api/availability/monthly',
   },

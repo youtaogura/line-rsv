@@ -209,16 +209,6 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Failed to create reservation");
     }
 
-    // available_slotsテーブルを更新
-    const { error: slotError } = await supabase.from("available_slots").upsert({
-      tenant_id: tenant.id,
-      datetime,
-      is_booked: true,
-    });
-
-    if (slotError) {
-      console.error("Slot update error:", slotError);
-    }
 
     return createApiResponse(reservation, HTTP_STATUS.CREATED);
   } catch (error) {
@@ -271,16 +261,6 @@ export async function DELETE(request: NextRequest) {
       return createErrorResponse("Failed to delete reservation");
     }
 
-    // available_slotsテーブルを更新（予約を解除）
-    const { error: slotError } = await supabase.from("available_slots").upsert({
-      tenant_id: tenant.id,
-      datetime: existingReservation.datetime,
-      is_booked: false,
-    });
-
-    if (slotError) {
-      console.error("Slot update error:", slotError);
-    }
 
     return createApiResponse({ message: "Reservation deleted successfully" });
   } catch (error) {

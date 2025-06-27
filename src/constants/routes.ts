@@ -20,7 +20,6 @@ export const ROUTES = {
     BUSINESS_HOURS: '/api/business-hours',
     USERS: '/api/users',
     TENANTS: '/api/tenants',
-    AVAILABLE_SLOTS: '/api/available-slots',
     USER: '/api/user',
   },
 } as const;

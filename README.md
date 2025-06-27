@@ -104,11 +104,6 @@ supabase-schema.sql             # データベーススキーマ
 - memberType ('regular'/'guest')
 - createdAt (作成日時)
 
-### available_slots テーブル
-
-- datetime (予約可能日時、主キー)
-- isBooked (予約済みフラグ)
-
 ## 管理画面
 
 - URL: `/admin`
