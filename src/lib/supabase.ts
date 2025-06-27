@@ -29,6 +29,7 @@ export type Reservation = {
   name: string
   datetime: string
   note?: string
+  admin_note?: string
   member_type: 'regular' | 'guest'
   created_at: string
 }

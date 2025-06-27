@@ -8,6 +8,7 @@ import type { Reservation, BusinessHour, User } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
 import {  buildApiUrl } from '@/lib/tenant-helpers'
+import { ReservationForm } from '@/components/reservation/ReservationForm'
 
 interface AdminSession {
   user: {
@@ -24,6 +25,7 @@ function AdminContent() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [tenant, setTenant] = useState<{ id: string; name: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -33,7 +35,7 @@ function AdminContent() {
     member_type: 'guest' as 'regular' | 'guest'
   })
   const [isUpdating, setIsUpdating] = useState(false)
-  const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users'>('reservations')
+  const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users' | 'manual-booking'>('reservations')
   
   const [newBusinessHour, setNewBusinessHour] = useState({
     day_of_week: 1,
@@ -112,10 +114,30 @@ function AdminContent() {
     }
   }, [session])
 
+  const fetchTenant = useCallback(async () => {
+    try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        console.error('No tenant ID found in session')
+        return
+      }
+
+      const response = await fetch(buildApiUrl(`/api/tenants/${tenantId}`, tenantId))
+      if (response.ok) {
+        const tenantData = await response.json()
+        setTenant(tenantData)
+      } else {
+        console.error('Error fetching tenant data')
+      }
+    } catch (error) {
+      console.error('Fetch tenant error:', error)
+    }
+  }, [session])
+
   // fetchData関数をuseCallbackでメモ化
   const fetchData = useCallback(async () => {
-    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers()])
-  }, [fetchReservations, fetchBusinessHours, fetchUsers])
+    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers(), fetchTenant()])
+  }, [fetchReservations, fetchBusinessHours, fetchUsers, fetchTenant])
 
   useEffect(() => {
     if (status === 'loading') return // セッション確認中
@@ -251,6 +273,33 @@ function AdminContent() {
   const getDayName = (day_of_week: number) => {
     const days = ['日', '月', '火', '水', '木', '金', '土']
     return days[day_of_week]
+  }
+
+  const deleteReservation = async (reservationId: string) => {
+    if (!confirm('この予約を削除しますか？')) return
+    
+    try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        alert('セッション情報が正しくありません')
+        return
+      }
+
+      const response = await fetch(buildApiUrl(`/api/reservations?id=${reservationId}`, tenantId), {
+        method: 'DELETE',
+      })
+      
+      if (response.ok) {
+        setReservations(reservations.filter(r => r.id !== reservationId))
+        alert('予約を削除しました')
+      } else {
+        const data = await response.json()
+        alert(data.error || '予約の削除に失敗しました')
+      }
+    } catch (error) {
+      console.error('Delete reservation error:', error)
+      alert('予約の削除に失敗しました')
+    }
   }
 
   const generateTimeOptions = () => {
@@ -392,6 +441,16 @@ function AdminContent() {
             >
               ユーザー管理
             </button>
+            <button
+              onClick={() => setActiveTab('manual-booking')}
+              className={`px-4 py-2 rounded-md font-medium ${
+                activeTab === 'manual-booking'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              手動予約登録
+            </button>
           </nav>
         </div>
 
@@ -431,12 +490,15 @@ function AdminContent() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       予約作成日時
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {reservations.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                         予約がありません
                       </td>
                     </tr>
@@ -463,6 +525,14 @@ function AdminContent() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDateTime(reservation.created_at)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <button
+                            onClick={() => deleteReservation(reservation.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            削除
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -610,6 +680,20 @@ function AdminContent() {
               </table>
             </div>
           </>
+        )}
+
+        {activeTab === 'manual-booking' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">手動予約登録</h2>
+            <p className="text-sm text-gray-600 mb-6">管理者として代理で予約を登録することができます</p>
+            <ReservationForm
+              tenantId={(session as unknown as AdminSession)?.user?.tenant_id || ''}
+              isAdminMode={true}
+              availableUsers={users}
+              onSuccess={fetchReservations}
+              tenantName={tenant?.name}
+            />
+          </div>
         )}
 
         {activeTab === 'users' && (

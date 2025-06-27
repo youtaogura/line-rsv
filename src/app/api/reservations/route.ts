@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { user_id, name, datetime, note, member_type, phone } = body
+    const { user_id, name, datetime, note, member_type, phone, admin_note, is_admin_mode } = body
 
     // 必須フィールドのバリデーション
     if (!user_id || !name || !datetime || !member_type) {
@@ -85,6 +85,35 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
+    // 管理者モードで新規ユーザーの場合、まずusersテーブルに追加
+    if (is_admin_mode && user_id.startsWith('admin_')) {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('user_id')
+        .eq('tenant_id', tenant.id)
+        .eq('user_id', user_id)
+        .single()
+
+      if (!existingUser) {
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            tenant_id: tenant.id,
+            user_id,
+            name,
+            phone: phone || null,
+            member_type
+          })
+        
+        if (userError) {
+          console.error('User creation error:', userError)
+          return NextResponse.json({ 
+            error: 'Failed to create user' 
+          }, { status: 500 })
+        }
+      }
+    }
+
     // 予約データを挿入
     const { data: reservation, error: reservationError } = await supabase
       .from('reservations')
@@ -94,7 +123,8 @@ export async function POST(request: NextRequest) {
         name,
         datetime,
         note,
-        member_type
+        member_type,
+        admin_note
       })
       .select()
       .single()
@@ -146,6 +176,76 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(reservation, { status: 201 })
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // テナント検証
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
+    const { searchParams } = new URL(request.url)
+    const reservationId = searchParams.get('id')
+
+    if (!reservationId) {
+      return NextResponse.json({ 
+        error: 'Reservation ID is required' 
+      }, { status: 400 })
+    }
+
+    // 予約が存在し、テナントに属していることを確認
+    const { data: existingReservation } = await supabase
+      .from('reservations')
+      .select('id, datetime, tenant_id')
+      .eq('id', reservationId)
+      .eq('tenant_id', tenant.id)
+      .single()
+
+    if (!existingReservation) {
+      return NextResponse.json({ 
+        error: 'Reservation not found' 
+      }, { status: 404 })
+    }
+
+    // 予約を削除
+    const { error: deleteError } = await supabase
+      .from('reservations')
+      .delete()
+      .eq('id', reservationId)
+      .eq('tenant_id', tenant.id)
+
+    if (deleteError) {
+      console.error('Reservation deletion error:', deleteError)
+      return NextResponse.json({ 
+        error: 'Failed to delete reservation' 
+      }, { status: 500 })
+    }
+
+    // available_slotsテーブルを更新（予約を解除）
+    const { error: slotError } = await supabase
+      .from('available_slots')
+      .upsert({ 
+        tenant_id: tenant.id,
+        datetime: existingReservation.datetime,
+        is_booked: false 
+      })
+
+    if (slotError) {
+      console.error('Slot update error:', slotError)
+    }
+
+    return NextResponse.json({ message: 'Reservation deleted successfully' })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
