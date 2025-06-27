@@ -6,3 +6,5 @@ export { ViewModeToggle } from './ViewModeToggle';
 export { PageLayout } from './PageLayout';
 export { ActionButton } from './ActionButton';
 export { ErrorIcon } from './ErrorIcon';
+export { MemberTypeBadge } from './MemberTypeBadge';
+export { DateTimeDisplay } from './DateTimeDisplay';

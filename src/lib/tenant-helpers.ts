@@ -64,15 +64,6 @@ export function buildUrlWithTenantId(
   return url.pathname + url.search;
 }
 
-export function getTenantIdFromUrl(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("tenantId");
-}
-
 export function redirectToError(
   errorType: "missing_tenant" | "invalid_tenant",
 ) {

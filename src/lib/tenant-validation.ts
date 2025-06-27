@@ -25,19 +25,9 @@ export async function validateTenant(tenantId: string): Promise<Tenant | null> {
   }
 }
 
-export function getTenantIdFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.searchParams.get("tenantId");
-  } catch (error) {
-    console.error("Error parsing URL:", error);
-    return null;
-  }
-}
-
-export function getTenantIdFromRequest(request: Request): string | null {
-  return getTenantIdFromUrl(request.url);
-}
+// Import and re-export from utils for backward compatibility
+import { getTenantIdFromUrl, getTenantIdFromRequest } from "@/lib/utils/tenant";
+export { getTenantIdFromUrl, getTenantIdFromRequest };
 
 export class TenantValidationError extends Error {
   constructor(
@@ -49,7 +39,7 @@ export class TenantValidationError extends Error {
   }
 }
 
-export async function requireValidTenant(request: Request): Promise<Tenant> {
+export async function requireValidTenant(request: Request | { url: string }): Promise<Tenant> {
   const tenantId = getTenantIdFromRequest(request);
 
   if (!tenantId) {

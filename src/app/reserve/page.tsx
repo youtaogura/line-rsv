@@ -15,7 +15,6 @@ function ReserveContent() {
   useEffect(() => {
     const storedParams = sessionStorage.getItem("reserveParams");
     if (storedParams) {
-      console.log("Stored params:", storedParams);
       const params = JSON.parse(storedParams);
       setUrlUserId(params.userId);
       setUrlDisplayName(params.displayName);

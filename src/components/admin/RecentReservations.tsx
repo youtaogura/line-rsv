@@ -2,7 +2,7 @@ import Link from 'next/link';
 import React from 'react';
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
-import { MEMBER_TYPES } from '@/constants/business';
+import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
 
 interface Reservation {
   id: string;
@@ -23,18 +23,6 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
   const displayedReservations = reservations.slice(0, maxDisplay);
   const hasMoreReservations = reservations.length > maxDisplay;
 
-  const formatMemberType = (memberType: string) => {
-    return memberType === MEMBER_TYPES.REGULAR ? UI_TEXT.MEMBER : UI_TEXT.GUEST;
-  };
-
-  const formatDateTime = (datetime: string) => {
-    return new Date(datetime).toLocaleDateString("ja-JP", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   return (
     <div className="mt-8 bg-white rounded-lg shadow">
@@ -55,12 +43,12 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
               >
                 <div>
                   <span className="font-medium">{reservation.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({formatMemberType(reservation.member_type)})
+                  <span className="ml-2">
+                    <MemberTypeBadge memberType={reservation.member_type} />
                   </span>
                 </div>
                 <div className="text-sm text-gray-500">
-                  {formatDateTime(reservation.datetime)}
+                  <DateTimeDisplay datetime={reservation.datetime} format="short" />
                 </div>
               </div>
             ))}

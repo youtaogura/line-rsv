@@ -1,5 +1,7 @@
 import React from "react";
 import type { User } from "@/lib/supabase";
+import { MemberTypeBadge } from "@/components/common";
+import { UI_TEXT } from "@/constants/ui";
 
 interface UserListProps {
   users: User[];
@@ -10,7 +12,7 @@ export const UserList: React.FC<UserListProps> = ({ users, onEditUser }) => {
   return (
     <div className="bg-white shadow rounded-lg overflow-x-auto">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900">ユーザー管理</h2>
+        <h2 className="text-lg font-medium text-gray-900">{UI_TEXT.USER_MANAGEMENT}</h2>
         <p className="text-sm text-gray-600 mt-1">
           登録ユーザーの会員種別を管理できます
         </p>
@@ -37,7 +39,7 @@ export const UserList: React.FC<UserListProps> = ({ users, onEditUser }) => {
             {users.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                  登録ユーザーがいません
+                  {UI_TEXT.NO_USERS}
                 </td>
               </tr>
             ) : (
@@ -50,22 +52,14 @@ export const UserList: React.FC<UserListProps> = ({ users, onEditUser }) => {
                     {user.phone || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.member_type === "regular"
-                          ? "bg-success/10 text-success"
-                          : "bg-warning/10 text-warning"
-                      }`}
-                    >
-                      {user.member_type === "regular" ? "会員" : "ゲスト"}
-                    </span>
+                    <MemberTypeBadge memberType={user.member_type} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button
                       onClick={() => onEditUser(user)}
                       className="text-primary hover:text-primary-hover font-medium"
                     >
-                      編集
+                      {UI_TEXT.EDIT}
                     </button>
                   </td>
                 </tr>

@@ -6,7 +6,6 @@ import {
   useAdminSession,
   useUsers,
 } from "@/hooks/useAdminData";
-import { formatDateTime } from "@/lib/admin-types";
 import { AdminReservationCalendar } from "@/components/reservation/AdminReservationCalendar";
 import { ReservationList } from "@/components/admin/ReservationList";
 import { AuthGuard, AdminLayout, LoadingSpinner, ViewModeToggle } from '@/components/common';
@@ -73,7 +72,6 @@ function ReservationsContent() {
           <ReservationList
             reservations={reservations}
             onDeleteReservation={deleteReservation}
-            formatDateTime={formatDateTime}
           />
         )}
       </AdminLayout>

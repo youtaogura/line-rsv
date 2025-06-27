@@ -1,16 +1,16 @@
 import React from "react";
 import type { Reservation } from "@/lib/supabase";
+import { MemberTypeBadge, DateTimeDisplay } from "@/components/common";
+import { UI_TEXT } from "@/constants/ui";
 
 interface ReservationListProps {
   reservations: Reservation[];
   onDeleteReservation: (id: string) => Promise<void>;
-  formatDateTime: (datetime: string) => string;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
   reservations,
   onDeleteReservation,
-  formatDateTime,
 }) => {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -51,31 +51,23 @@ export const ReservationList: React.FC<ReservationListProps> = ({
                   {reservation.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      reservation.member_type === "regular"
-                        ? "bg-success/10 text-success"
-                        : "bg-warning/10 text-warning"
-                    }`}
-                  >
-                    {reservation.member_type === "regular" ? "会員" : "ゲスト"}
-                  </span>
+                  <MemberTypeBadge memberType={reservation.member_type} />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatDateTime(reservation.datetime)}
+                  <DateTimeDisplay datetime={reservation.datetime} format="full" />
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {reservation.note || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDateTime(reservation.created_at)}
+                  <DateTimeDisplay datetime={reservation.created_at} format="short" />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <button
                     onClick={() => onDeleteReservation(reservation.id)}
                     className="text-red-600 hover:text-red-900"
                   >
-                    削除
+                    {UI_TEXT.DELETE}
                   </button>
                 </td>
               </tr>
