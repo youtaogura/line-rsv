@@ -36,7 +36,7 @@ function ReserveContent() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [userReservations, setUserReservations] = useState<Reservation[]>([])
-  const [reservationsLoading, setReservationsLoading] = useState(false)
+  const [_reservationsLoading, setReservationsLoading] = useState(false)
 
   useEffect(() => {
     if (!urlTenantId || !urlUserId) {

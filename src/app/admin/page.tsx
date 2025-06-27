@@ -1,14 +1,26 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect, useCallback } from 'react'
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Reservation, BusinessHour, User } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { format as formatTz } from 'date-fns-tz'
-import {  buildApiUrl, useTenantId } from '@/lib/tenant-helpers'
+import {  buildApiUrl } from '@/lib/tenant-helpers'
+
+interface AdminSession {
+  user: {
+    id: string
+    name?: string | null
+    username: string
+    tenant_id: string
+  }
+}
 
 function AdminContent() {
-  const tenantId = useTenantId()
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -21,8 +33,6 @@ function AdminContent() {
     member_type: 'guest' as 'regular' | 'guest'
   })
   const [isUpdating, setIsUpdating] = useState(false)
-  const [authenticated, setAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
   const [activeTab, setActiveTab] = useState<'reservations' | 'business-hours' | 'users'>('reservations')
   
   const [newBusinessHour, setNewBusinessHour] = useState({
@@ -31,25 +41,18 @@ function AdminContent() {
     end_time: '18:00'
   })
 
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (password === 'admin123') {
-      setAuthenticated(true)
-      fetchData()
-    } else {
-      alert('パスワードが間違っています')
-    }
-  }
-
-  const fetchData = async () => {
-    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers()])
-  }
-
-  const fetchReservations = async () => {
+  const fetchReservations = useCallback(async () => {
     try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        console.error('No tenant ID found in session')
+        return
+      }
+
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
+        .eq('tenant_id', tenantId)
         .order('datetime', { ascending: true })
 
       if (error) {
@@ -62,10 +65,16 @@ function AdminContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session])
 
-  const fetchBusinessHours = async () => {
+  const fetchBusinessHours = useCallback(async () => {
     try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        console.error('No tenant ID found in session')
+        return
+      }
+
       const response = await fetch(buildApiUrl('/api/business-hours', tenantId))
       const data = await response.json()
       
@@ -77,13 +86,20 @@ function AdminContent() {
     } catch (error) {
       console.error('Fetch business hours error:', error)
     }
-  }
+  }, [session])
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        console.error('No tenant ID found in session')
+        return
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -94,12 +110,36 @@ function AdminContent() {
     } catch (error) {
       console.error('Fetch users error:', error)
     }
-  }
+  }, [session])
+
+  // fetchData関数をuseCallbackでメモ化
+  const fetchData = useCallback(async () => {
+    await Promise.all([fetchReservations(), fetchBusinessHours(), fetchUsers()])
+  }, [fetchReservations, fetchBusinessHours, fetchUsers])
+
+  useEffect(() => {
+    if (status === 'loading') return // セッション確認中
+
+    if (status === 'unauthenticated') {
+      router.push('/admin/login')
+      return
+    }
+
+    if (session?.user) {
+      fetchData()
+    }
+  }, [session, status, router, fetchData])
 
   const createBusinessHour = async (e: React.FormEvent) => {
     e.preventDefault()
     
     try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        alert('セッション情報が正しくありません')
+        return
+      }
+
       const response = await fetch(buildApiUrl('/api/business-hours', tenantId), {
         method: 'POST',
         headers: {
@@ -131,6 +171,12 @@ function AdminContent() {
     if (!confirm('この営業時間を削除しますか？')) return
     
     try {
+      const tenantId = (session as unknown as AdminSession)?.user?.tenant_id
+      if (!tenantId) {
+        alert('セッション情報が正しくありません')
+        return
+      }
+
       const response = await fetch(buildApiUrl(`/api/business-hours?id=${id}`, tenantId), {
         method: 'DELETE',
       })
@@ -260,40 +306,26 @@ function AdminContent() {
     )
   }
 
-  if (!authenticated) {
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">認証確認中...</div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full space-y-8">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              管理画面
+              認証が必要です
             </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              管理者としてログインしてください
+            </p>
           </div>
-          <form onSubmit={handleAuth} className="mt-8 space-y-6">
-            <div>
-              <label htmlFor="password" className="sr-only">
-                パスワード
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                placeholder="パスワード"
-              />
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                ログイン
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     )
@@ -310,9 +342,22 @@ function AdminContent() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">予約管理画面</h1>
-          <p className="mt-2 text-gray-600">予約の確認と営業時間の管理ができます</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">予約管理画面</h1>
+            <p className="mt-2 text-gray-600">予約の確認と営業時間の管理ができます</p>
+            {session?.user && (
+              <p className="text-sm text-gray-500 mt-1">
+                ログイン中: {(session as unknown as AdminSession).user.name} ({(session as unknown as AdminSession).user.username})
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            ログアウト
+          </button>
         </div>
 
         <div className="mb-6">

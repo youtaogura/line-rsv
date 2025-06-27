@@ -48,3 +48,13 @@ export type BusinessHour = {
   is_active: boolean
   created_at: string
 }
+
+export type Admin = {
+  id: string
+  tenant_id: string
+  username: string
+  password_hash: string
+  name: string
+  created_at: string
+  updated_at: string
+}
