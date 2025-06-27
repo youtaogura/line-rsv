@@ -6,7 +6,6 @@ import { useAdminSession, useUsers } from "@/hooks/useAdminData";
 import { UserList } from "@/components/admin/UserList";
 import { UserEditModal } from "@/components/admin/UserEditModal";
 import type { User } from "@/lib/supabase";
-import { formatDateTime } from "@/lib/admin-types";
 
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
@@ -114,7 +113,6 @@ function UsersContent() {
         <UserList
           users={users}
           onEditUser={handleEditUser}
-          formatDateTime={formatDateTime}
         />
 
         <UserEditModal

@@ -14,8 +14,8 @@ import Link from "next/link";
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { reservations, fetchReservations } = useReservations();
-  const { businessHours, fetchBusinessHours } = useBusinessHours();
-  const { users, fetchUsers } = useUsers();
+  const { businessHours: _businessHours, fetchBusinessHours } = useBusinessHours();
+  const { users: _users, fetchUsers } = useUsers();
   const { tenant, fetchTenant } = useTenant();
   const [loading, setLoading] = useState(true);
 
