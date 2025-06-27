@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import type { User } from '@/lib/supabase'
+import type { User, Reservation } from '@/lib/supabase'
 import {  buildApiUrl } from '@/lib/tenant-helpers'
 import { ReservationCalendar } from '@/components/reservation/ReservationCalendar'
 import { format as formatTz } from 'date-fns-tz'
@@ -35,6 +35,8 @@ function ReserveContent() {
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [userReservations, setUserReservations] = useState<Reservation[]>([])
+  const [reservationsLoading, setReservationsLoading] = useState(false)
 
   useEffect(() => {
     if (!urlTenantId || !urlUserId) {
@@ -79,7 +81,24 @@ function ReserveContent() {
       }
     }
 
-    Promise.all([initializeUser(), initializeTenant()])
+    const fetchUserReservations = async () => {
+      setReservationsLoading(true)
+      try {
+        const response = await fetch(buildApiUrl(`/api/reservations?user_id=${urlUserId}`, urlTenantId))
+        if (response.ok) {
+          const reservations = await response.json()
+          setUserReservations(reservations)
+        } else {
+          console.error('Failed to fetch user reservations')
+        }
+      } catch (error) {
+        console.error('Error fetching user reservations:', error)
+      } finally {
+        setReservationsLoading(false)
+      }
+    }
+
+    Promise.all([initializeUser(), initializeTenant(), fetchUserReservations()])
       .finally(() => {
         setLoading(false)
       })
@@ -209,6 +228,39 @@ function ReserveContent() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">{tenant?.name} レッスン予約</h1>
+
+        {/* 既存予約一覧 */}
+        {userReservations.length > 0 && (
+          <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">あなたの予約一覧</h2>
+            <div className="space-y-3">
+              {userReservations.map((reservation) => (
+                <div 
+                  key={reservation.id} 
+                  className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-blue-900">
+                      {formatTz(
+                        new Date(reservation.datetime),
+                        'yyyy年M月d日 HH:mm',
+                        { timeZone: 'Asia/Tokyo' }
+                      )}
+                    </div>
+                    {reservation.note && (
+                      <div className="text-sm text-blue-700 mt-1">
+                        メモ: {reservation.note}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+                    予約済み
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 新しいカレンダーUI */}
         <ReservationCalendar

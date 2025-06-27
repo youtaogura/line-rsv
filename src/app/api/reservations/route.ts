@@ -2,6 +2,51 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireValidTenant, TenantValidationError } from '@/lib/tenant-validation'
 
+export async function GET(request: NextRequest) {
+  try {
+    let tenant
+    try {
+      tenant = await requireValidTenant(request)
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+      throw error
+    }
+
+    const { searchParams } = new URL(request.url)
+    const user_id = searchParams.get('user_id')
+
+    if (!user_id) {
+      return NextResponse.json({ 
+        error: 'user_id parameter is required' 
+      }, { status: 400 })
+    }
+
+    const now = new Date().toISOString()
+    
+    const { data: reservations, error } = await supabase
+      .from('reservations')
+      .select('id, user_id, name, datetime, note, member_type, created_at')
+      .eq('tenant_id', tenant.id)
+      .eq('user_id', user_id)
+      .gt('datetime', now)
+      .order('datetime', { ascending: true })
+
+    if (error) {
+      console.error('Reservation fetch error:', error)
+      return NextResponse.json({ 
+        error: 'Failed to fetch reservations' 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json(reservations)
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // テナント検証
