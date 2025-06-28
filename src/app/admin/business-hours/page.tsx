@@ -40,7 +40,7 @@ function BusinessHoursContent() {
         title={UI_TEXT.BUSINESS_HOURS_MANAGEMENT}
         description="営業時間の設定と管理ができます"
         user={session?.user}
-        showBackToAdmin={true}
+        showBackButton={true}
       >
         <div className="space-y-8">
           <BusinessHourForm onCreateBusinessHour={createBusinessHour} />

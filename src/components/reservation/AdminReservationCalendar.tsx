@@ -212,7 +212,7 @@ export function AdminReservationCalendar({
       selectedDayTimeSlots,
       currentDayReservations,
     );
-  }, [selectedDayTimeSlots, selectedDateString, dayReservations, selectedStaffId, reservationsOnlySelected]);
+  }, [selectedDayTimeSlots, selectedDateString, dayReservations, showReservationsOnly]);
 
   return (
     <div className="space-y-6">

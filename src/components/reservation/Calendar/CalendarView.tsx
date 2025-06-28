@@ -58,7 +58,7 @@ export const CalendarView = React.memo(function CalendarView({
       }
       return !isPastDate(date) && isBusinessDay;
     },
-    [timeSlots, today, showReservationsOnly, isPastDate, hasEmptySlot]
+    [showReservationsOnly, isPastDate, businessDaysSet]
   );
 
   const getTileClassName = useCallback(
@@ -82,7 +82,7 @@ export const CalendarView = React.memo(function CalendarView({
 
       return classes.trim();
     },
-    [timeSlots, selectedDate, today],
+    [selectedDate, isTileAvailable],
   );
 
   const getTileDisabled = ({ date, view }: { date: Date; view: string }) => {

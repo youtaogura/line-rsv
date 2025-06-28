@@ -4,7 +4,6 @@ import { MemberTypeBadge, DateTimeDisplay } from "@/components/common";
 import { MonthNavigation } from "@/components/admin/MonthNavigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { UI_TEXT } from "@/constants/ui";
 

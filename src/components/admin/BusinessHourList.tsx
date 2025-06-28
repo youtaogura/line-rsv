@@ -3,7 +3,6 @@ import type { BusinessHour } from "@/lib/supabase";
 import { getDayName } from "@/lib/admin-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Clock, Trash2 } from "lucide-react";
 
 interface BusinessHourListProps {

@@ -277,7 +277,7 @@ export default function ReservePage() {
   );
 }
 
-export const fetchInitialData = async (tenantId: string, userId: string) => {
+const fetchInitialData = async (tenantId: string, userId: string) => {
   const [
     userResult,
     tenantResult,

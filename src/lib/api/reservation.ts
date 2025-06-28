@@ -12,11 +12,25 @@ interface CreateReservationData {
   staff_member_id?: string;
 }
 
+interface ReservationResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string;
+  member_type: "regular" | "guest";
+  phone?: string;
+  reservation_menu_id?: string;
+  staff_member_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const reservationApi = {
   async createReservation(
     reservationData: CreateReservationData,
     tenantId: string
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<ReservationResponse>> {
     const url = buildTenantApiUrl("/api/reservations", tenantId);
     
     return fetchApi(url, {

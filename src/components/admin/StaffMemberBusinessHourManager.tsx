@@ -12,12 +12,12 @@ import { DAYS_OF_WEEK } from "@/constants/time";
 
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourManagerProps> = ({
   staffMember,
-  onClose,
+  onClose: _onClose,
 }) => {
   const {
     businessHours,

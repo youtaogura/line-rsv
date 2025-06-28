@@ -7,7 +7,6 @@ import { signOut } from 'next-auth/react';
 import { 
   Menu, 
   ArrowLeft, 
-  User, 
   Calendar, 
   Clock, 
   Users, 

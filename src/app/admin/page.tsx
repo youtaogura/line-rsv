@@ -15,7 +15,7 @@ import { ROUTES } from '@/constants/routes';
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { tenant, fetchTenant } = useTenant();
-  const { recentReservations, loading: recentLoading, fetchRecentReservations } = useRecentReservations();
+  const { recentReservations, fetchRecentReservations } = useRecentReservations();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
