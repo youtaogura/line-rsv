@@ -96,85 +96,8 @@ export const UserList: React.FC<UserListProps> = ({
       </CardHeader>
       
       <CardContent>
-        {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  名前
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  電話番号
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  会員種別
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-muted-foreground">
-                    {UI_TEXT.NO_USERS}
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user.user_id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {user.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {user.phone ? (
-                        <a 
-                          href={`tel:${user.phone}`}
-                          className="flex items-center space-x-1 text-primary hover:text-primary/80 transition-colors"
-                        >
-                          <Phone className="h-3 w-3" />
-                          <span>{user.phone}</span>
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <MemberTypeBadge memberType={user.member_type} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEditUser(user)}
-                          className="text-primary hover:text-primary/80"
-                        >
-                          {UI_TEXT.EDIT}
-                        </Button>
-                        {user.member_type === 'guest' && onMergeUser && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onMergeUser(user)}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            統合
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="lg:hidden space-y-4">
+        {/* Card View */}
+        <div className="space-y-4">
           {users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {UI_TEXT.NO_USERS}

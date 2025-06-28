@@ -28,64 +28,8 @@ export const BusinessHourList: React.FC<BusinessHourListProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  曜日
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  開始時間
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  終了時間
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {businessHours.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-muted-foreground">
-                    営業時間が設定されていません
-                  </td>
-                </tr>
-              ) : (
-                sortedBusinessHours.map((businessHour) => (
-                  <tr key={businessHour.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {getDayName(businessHour.day_of_week)}曜日
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {businessHour.start_time}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {businessHour.end_time}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDeleteBusinessHour(businessHour.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        削除
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="lg:hidden space-y-4">
+        {/* Card View */}
+        <div className="space-y-4">
           {businessHours.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               営業時間が設定されていません

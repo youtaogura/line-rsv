@@ -37,67 +37,8 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
           <CardTitle>スタッフ一覧</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    名前
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    作成日時
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {staffMembers.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-4 text-center text-muted-foreground">
-                      スタッフが登録されていません
-                    </td>
-                  </tr>
-                ) : (
-                  staffMembers.map((staff) => (
-                    <tr key={staff.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {staff.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        <DateTimeDisplay datetime={staff.created_at} format="short" />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditClick(staff)}
-                            className="text-primary hover:text-primary/80"
-                          >
-                            設定
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDeleteStaffMember(staff.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            {UI_TEXT.DELETE}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="lg:hidden space-y-4">
+          {/* Card View */}
+          <div className="space-y-4">
             {staffMembers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 スタッフが登録されていません
