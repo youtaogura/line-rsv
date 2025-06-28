@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense, useMemo } from "react";
 import type { User, Reservation, StaffMember, ReservationMenu, BusinessHour } from "@/lib/supabase";
 import type { TimeSlot } from "@/components/reservation/types";
-import { buildApiUrl } from "@/lib/tenant-helpers";
 import type { CreateReservationParams } from "@/components/reservation/ReservationInputForm";
 import { StaffSelection } from "@/components/reservation/StaffSelection";
 import { ReservationCalendar } from "@/components/reservation/ReservationCalendar";
@@ -13,6 +12,7 @@ import { startOfMonth, endOfMonth } from "date-fns";
 import { LoadingSpinner, PageLayout } from '@/components/common';
 import { calculateMonthlyAvailability } from "@/components/reservation/utils/availabilityCalculator";
 import type { DayAvailabilityInfo } from "@/components/reservation/types";
+import { userApi, timeSlotsApi, reservationApi, businessHoursApi, reservationMenuApi, staffApi, tenantApi } from "@/lib/api";
 
 function ReserveContent() {
   const [urlUserId, setUrlUserId] = useState<string | null>(null);
@@ -61,157 +61,69 @@ function ReserveContent() {
       return;
     }
 
-    const initializeUser = async () => {
+    const initializeData = async () => {
+      // ユーザー情報を設定
       const userData = {
         user_id: urlUserId,
         displayName: urlDisplayName ?? "",
       };
       setUser(userData);
 
-      // ユーザー情報をAPIから取得
-      try {
-        const userResponse = await fetch(
-          buildApiUrl(`/api/users/${urlUserId}`, urlTenantId),
-        );
-        if (userResponse.ok) {
-          const existingUser = await userResponse.json();
-          setDbUser(existingUser);
-          return existingUser
-        }
-        throw new Error("User not found");
-      } catch (error) {
-        console.error("Error fetching user from API:", error);
+      // 初期データを一括取得
+      const result = await fetchInitialData(urlTenantId, urlUserId);
+      
+      if (!result.success) {
+        alert("データの取得に失敗しました");
+        window.location.href = "/error?error=invalid_tenant";
+        return;
+      }
+
+      const { user: dbUserData, tenant, staffMembers, reservationMenu, businessHours } = result.data!;
+      
+      // 状態を更新
+      if (dbUserData) setDbUser(dbUserData);
+      if (tenant) setTenant(tenant);
+      setStaffMembers(staffMembers);
+      setReservationMenu(reservationMenu ?? null);
+      setBusinessHours(businessHours);
+
+      // ユーザー予約を取得
+      const reservationsResult = await userApi.getUserReservations(urlUserId, urlTenantId);
+      if (reservationsResult.success && reservationsResult.data) {
+        setUserReservations(reservationsResult.data);
+      } else {
+        console.error("Error fetching user reservations:", reservationsResult.error);
       }
     };
 
-    const initializeTenant = async () => {
-      try {
-        const tenantResponse = await fetch(
-          buildApiUrl(`/api/tenants/${urlTenantId}`, urlTenantId),
-        );
-        if (tenantResponse.ok) {
-          const existingTenant = await tenantResponse.json();
-          setTenant(existingTenant);
-        } else {
-          throw new Error("Tenant not found");
-        }
-      } catch (error) {
-        alert("テナント情報の取得に失敗しました");
-        window.location.href = "/error?error=invalid_tenant"; // テナントが見つからない場合はホームにリダイレクト
-      }
-    };
-
-    const fetchUserReservations = async (userId: string) => {
-      if (!userId) return;
-      try {
-        const response = await fetch(
-          buildApiUrl(`/api/reservations?user_id=${userId}`, urlTenantId),
-        );
-        if (response.ok) {
-          const reservations = await response.json();
-          setUserReservations(reservations);
-        } else {
-          throw new Error("Failed to fetch user reservations");
-        }
-      } catch (error) {
-        alert("ユーザー予約の取得に失敗しました");
-        window.location.href = "/error?error=server_error";
-      }
-    };
-
-    const fetchStaffMembers = async () => {
-      try {
-        const response = await fetch(buildApiUrl("/api/staff-members", urlTenantId));
-        if (response.ok) {
-          const data = await response.json();
-          setStaffMembers(data);
-        }
-      } catch (error) {
-        console.error("Error fetching staff members:", error);
-      }
-    };
-
-    const fetchReservationMenu = async () => {
-      try {
-        const response = await fetch(
-          buildApiUrl("/api/reservation-menu", urlTenantId),
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setReservationMenu(data);
-        } else if (response.status === 404) {
-          setReservationMenu(null);
-        }
-      } catch (error) {
-        console.error("Error fetching reservation menu:", error);
-        setReservationMenu(null);
-      }
-    };
-
-    const fetchBusinessHours = async () => {
-      try {
-        const response = await fetch(buildApiUrl("/api/business-hours", urlTenantId));
-        if (response.ok) {
-          const data = await response.json();
-          setBusinessHours(data);
-        }
-      } catch (error) {
-        console.error("Error fetching business hours:", error);
-      }
-    };
-
-    Promise.all([
-      initializeUser(),
-      initializeTenant(),
-      fetchStaffMembers(),
-      fetchReservationMenu(),
-      fetchBusinessHours(),
-    ]).then(([user]) => {
-      fetchUserReservations(user.user_id)
-    }).finally(() => {
+    initializeData().finally(() => {
       setLoading(false);
     });
   }, [urlTenantId, urlUserId, urlDisplayName]);
 
   const handleReservationSubmit = async (reservationData: CreateReservationParams) => {
-    try {
-      const response = await fetch(buildApiUrl("/api/reservations", urlTenantId), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...reservationData,
-          admin_note: null,
-          is_admin_mode: false,
-        }),
-      });
+    if (!urlTenantId) {
+      return { success: false, error: "テナント情報が不正です" };
+    }
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error("Reservation error:", result);
-        throw new Error(result.error || "予約に失敗しました。時間をおいて再度お試しください。");
-      }
-
-      alert("予約が完了しました！");
-      
-      // 予約一覧を再取得
-      const reservationsResponse = await fetch(
-        buildApiUrl(`/api/reservations?user_id=${urlUserId}`, urlTenantId),
-      );
-      if (reservationsResponse.ok) {
-        const reservations = await reservationsResponse.json();
-        setUserReservations(reservations);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error("Reservation error:", error);
-      const errorMessage = error instanceof Error ? error.message : "予約処理でエラーが発生しました。";
+    const result = await reservationApi.createReservation(reservationData, urlTenantId);
+    
+    if (!result.success) {
+      console.error("Reservation error:", result.error);
+      const errorMessage = result.error || "予約に失敗しました。時間をおいて再度お試しください。";
       alert(errorMessage);
       return { success: false, error: errorMessage };
     }
+
+    alert("予約が完了しました！");
+    
+    // 予約一覧を再取得
+    const reservationsResult = await userApi.getUserReservations(urlUserId!, urlTenantId);
+    if (reservationsResult.success && reservationsResult.data) {
+      setUserReservations(reservationsResult.data);
+    }
+    
+    return { success: true };
   };
 
   // 月間の空きスロット計算
@@ -235,23 +147,16 @@ function ReserveContent() {
     if (!urlTenantId) return;
     
     setSlotsLoading(true);
-    try {
-      const dateStr = date.toISOString().split('T')[0];
-      let url = buildApiUrl(`/api/available-slots?date=${dateStr}`, urlTenantId);
-      if (staffId) {
-        url += `&staff_member_id=${staffId}`;
-      }
-      
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableSlots(data);
-      }
-    } catch (error) {
-      console.error("Error fetching time slots:", error);
-    } finally {
-      setSlotsLoading(false);
+    const result = await timeSlotsApi.getAvailableSlots(date, urlTenantId, staffId);
+    
+    if (result.success && result.data) {
+      setAvailableSlots(result.data);
+    } else {
+      console.error("Error fetching time slots:", result.error);
+      setAvailableSlots([]);
     }
+    
+    setSlotsLoading(false);
   };
 
   // 日付選択ハンドラー
@@ -405,4 +310,42 @@ export default function ReservePage() {
       <ReserveContent />
     </Suspense>
   );
+}
+
+export const fetchInitialData = async (tenantId: string, userId: string) => {
+  const [
+    userResult,
+    tenantResult,
+    staffResult,
+    menuResult,
+    businessHoursResult,
+  ] = await Promise.all([
+    userApi.getUser(userId, tenantId),
+    tenantApi.getTenant(tenantId),
+    staffApi.getStaffMembers(tenantId),
+    reservationMenuApi.getReservationMenu(tenantId),
+    businessHoursApi.getBusinessHours(tenantId),
+  ]);
+
+  // Check if any critical API calls failed
+  const criticalErrors = [];
+  if (!tenantResult.success) criticalErrors.push(`Tenant: ${tenantResult.error}`);
+  
+  if (criticalErrors.length > 0) {
+    return {
+      success: false,
+      error: criticalErrors.join(", "),
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      user: userResult.data,
+      tenant: tenantResult.data,
+      staffMembers: staffResult.data || [],
+      reservationMenu: menuResult.data,
+      businessHours: businessHoursResult.data || [],
+    },
+  };
 }
