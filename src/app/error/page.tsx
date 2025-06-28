@@ -25,6 +25,12 @@ function ErrorContent() {
             "指定されたテナントIDは無効であるか、アクティブではありません。",
           detail: "テナントIDを確認して再度お試しください。",
         };
+      case "server_error":
+        return {
+          title: "サーバーエラー",
+          message: "予約システムで問題が発生しました。",
+          detail: "しばらくしてから再度お試しください。",
+        };
       default:
         return {
           title: UI_TEXT.ERROR_OCCURRED,

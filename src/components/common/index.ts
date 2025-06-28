@@ -8,3 +8,4 @@ export { ActionButton } from './ActionButton';
 export { ErrorIcon } from './ErrorIcon';
 export { MemberTypeBadge } from './MemberTypeBadge';
 export { DateTimeDisplay } from './DateTimeDisplay';
+export { Modal } from '../admin/Modal';

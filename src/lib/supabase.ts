@@ -43,6 +43,7 @@ export type Reservation = {
   member_type: "regular" | "guest";
   reservation_menu_id?: string;
   duration_minutes?: number;
+  staff_member_id?: string;
   created_at: string;
 };
 
@@ -59,7 +60,27 @@ export type BusinessHour = {
   start_time: string;
   end_time: string;
   is_active: boolean;
+  staff_member_id?: string;
   created_at: string;
+};
+
+export type StaffMember = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StaffMemberBusinessHour = {
+  id: string;
+  staff_member_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Admin = {

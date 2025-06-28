@@ -11,10 +11,8 @@ interface CalendarViewProps {
   onDateChange: (date: Date) => void;
   currentMonth: Date;
   onActiveStartDateChange: (activeStartDate: Date) => void;
-  availabilityData: DayAvailability[];
-  loading: boolean;
   reservationCount?: { [date: string]: Array<unknown> };
-  availabilityInfo?: Map<string, { availableSlots: number }>;
+  availabilityInfo: Map<string, { availableSlots: number }>;
 }
 
 export const CalendarView = React.memo(function CalendarView({
@@ -22,10 +20,8 @@ export const CalendarView = React.memo(function CalendarView({
   onDateChange,
   currentMonth,
   onActiveStartDateChange,
-  availabilityData,
-  loading,
   reservationCount,
-  availabilityInfo: _availabilityInfo,
+  availabilityInfo,
 }: CalendarViewProps) {
   const today = startOfDay(new Date());
 
@@ -34,28 +30,26 @@ export const CalendarView = React.memo(function CalendarView({
       if (view !== "month") return "";
 
       const dateStr = format(date, "yyyy-MM-dd");
-      const dayAvailability = availabilityData.find(
-        (item) => item.date === dateStr,
-      );
+      const dayAvailability = availabilityInfo.get(dateStr);
       const isPastDate = isBefore(startOfDay(date), today);
       const isSelected =
         selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr;
 
       let classes = "relative ";
 
-      if (isPastDate || !dayAvailability?.hasAvailability) {
+      if (isPastDate || !dayAvailability?.availableSlots) {
         classes += "bg-gray-200 text-gray-400 cursor-not-allowed ";
       } else {
         classes += "bg-white hover:bg-blue-50 cursor-pointer ";
       }
 
-      if (isSelected && !isPastDate && dayAvailability?.hasAvailability) {
+      if (isSelected && !isPastDate && dayAvailability?.availableSlots) {
         classes += "bg-blue-500 text-white hover:bg-blue-600 ";
       }
 
       return classes.trim();
     },
-    [availabilityData, selectedDate, today],
+    [availabilityInfo, selectedDate, today],
   );
 
   const getTileDisabled = ({ date, view }: { date: Date; view: string }) => {
@@ -67,27 +61,23 @@ export const CalendarView = React.memo(function CalendarView({
     }
 
     const dateStr = format(date, "yyyy-MM-dd");
-    const dayAvailability = availabilityData.find(
-      (item) => item.date === dateStr,
-    );
+    const dayAvailability = availabilityInfo.get(dateStr);
     const isPastDate = isBefore(startOfDay(date), today);
 
-    return isPastDate || !dayAvailability?.hasAvailability;
+    return isPastDate || !dayAvailability?.availableSlots;
   };
 
   const getTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== "month") return null;
 
     const dateStr = format(date, "yyyy-MM-dd");
-    const dayAvailability = availabilityData.find(
-      (item) => item.date === dateStr,
-    );
+    const availableSlots = availabilityInfo.get(dateStr)?.availableSlots || 0;  ;
     const isPastDate = isBefore(startOfDay(date), today);
 
     return (
       <CalendarTile
         isPast={isPastDate}
-        isAvailable={dayAvailability?.hasAvailability ?? false}
+        isAvailable={availableSlots > 0}
       />
     );
   };
@@ -103,12 +93,10 @@ export const CalendarView = React.memo(function CalendarView({
       }
 
       const dateStr = format(value, "yyyy-MM-dd");
-      const dayAvailability = availabilityData.find(
-        (item) => item.date === dateStr,
-      );
+      const availableSlots = availabilityInfo.get(dateStr)?.availableSlots || 0;
       const isPastDate = isBefore(startOfDay(value), today);
 
-      if (!isPastDate && dayAvailability?.hasAvailability) {
+      if (!isPastDate && availableSlots > 0) {
         onDateChange(value);
       }
     }
@@ -123,14 +111,6 @@ export const CalendarView = React.memo(function CalendarView({
       onActiveStartDateChange(activeStartDate);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg">
-        <div className="text-gray-500">カレンダーを読み込み中...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">

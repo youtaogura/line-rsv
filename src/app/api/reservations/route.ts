@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       admin_note,
       is_admin_mode,
       reservation_menu_id,
+      staff_member_id,
     } = body;
 
     // 必須フィールドのバリデーション
@@ -86,6 +87,20 @@ export async function POST(request: NextRequest) {
       return createValidationErrorResponse({
         fields: "Missing required fields: user_id, name, datetime, member_type"
       });
+    }
+
+    // スタッフメンバーが指定されている場合、有効性をチェック
+    if (staff_member_id) {
+      const { data: staffMember, error: staffError } = await supabase
+        .from("staff_members")
+        .select("id")
+        .eq("id", staff_member_id)
+        .eq("tenant_id", tenant.id)
+        .single();
+
+      if (staffError || !staffMember) {
+        return createValidationErrorResponse({ staff_member_id: "Invalid staff member" });
+      }
     }
 
     // 予約メニューを取得
@@ -200,6 +215,7 @@ export async function POST(request: NextRequest) {
         admin_note,
         reservation_menu_id: reservationMenu?.id || null,
         duration_minutes: durationMinutes,
+        staff_member_id: staff_member_id || null,
       })
       .select()
       .single();

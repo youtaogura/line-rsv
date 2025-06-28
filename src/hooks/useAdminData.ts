@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import type { Reservation, BusinessHour, User } from "@/lib/supabase";
+import type { Reservation, BusinessHour, User, StaffMember, StaffMemberBusinessHour } from "@/lib/supabase";
 import { buildApiUrl } from "@/lib/tenant-helpers";
 import type { AdminSession } from "@/lib/admin-types";
 
@@ -30,39 +30,59 @@ export const useAdminSession = () => {
 export const useReservations = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
-
-  const fetchReservations = useCallback(async () => {
+  
+  const fetchReservations = useCallback(async (tenantId: string, staffMemberId?: string, startDate?: string, endDate?: string) => {
     try {
-      const tenantId = session?.user?.tenant_id;
       if (!tenantId) {
         console.error("No tenant ID found in session");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .order("datetime", { ascending: true });
+      // 管理者画面でのフィルタリング機能を使用
+      const queryParams = new URLSearchParams();
+      if (staffMemberId && staffMemberId !== "all") {
+        queryParams.set("staff_member_id", staffMemberId);
+      }
+      if (startDate) {
+        queryParams.set("start_date", startDate);
+      }
+      if (endDate) {
+        queryParams.set("end_date", endDate);
+      }
 
-      if (error) {
-        console.error("Error fetching reservations:", error);
-      } else {
+      const response = await fetch(
+        buildApiUrl(`/api/admin/reservations?${queryParams.toString()}`, tenantId),
+      );
+
+      if (response.ok) {
+        const data = await response.json();
         setReservations(data || []);
+      } else {
+        console.error("Error fetching reservations:", response.statusText);
+        // フォールバック: 直接Supabaseから取得
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .order("datetime", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching reservations:", error);
+        } else {
+          setReservations(data || []);
+        }
       }
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, []);
 
-  const deleteReservation = async (reservationId: string) => {
+  const deleteReservation = async (tenantId: string, reservationId: string) => {
     if (!confirm("この予約を削除しますか？")) return;
 
     try {
-      const tenantId = session?.user?.tenant_id;
       if (!tenantId) {
         alert("セッション情報が正しくありません");
         return;
@@ -269,6 +289,258 @@ export const useUsers = () => {
     users,
     fetchUsers,
     updateUser,
+  };
+};
+
+export const useStaffMembers = () => {
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { session } = useAdminSession();
+
+  const fetchStaffMembers = useCallback(async () => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        console.error("No tenant ID found in session");
+        return;
+      }
+
+      const response = await fetch(
+        buildApiUrl("/api/staff-members", tenantId),
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setStaffMembers(data);
+      } else {
+        console.error("Error fetching staff members:", data.error);
+      }
+    } catch (error) {
+      console.error("Fetch staff members error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  const createStaffMember = async (name: string) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return false;
+      }
+
+      const response = await fetch(
+        buildApiUrl("/api/staff-members", tenantId),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStaffMembers([...staffMembers, data]);
+        alert("スタッフを追加しました");
+        return true;
+      } else {
+        alert(data.error || "スタッフの追加に失敗しました");
+        return false;
+      }
+    } catch (error) {
+      console.error("Create staff member error:", error);
+      alert("スタッフの追加に失敗しました");
+      return false;
+    }
+  };
+
+  const updateStaffMember = async (id: string, name: string) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return false;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/staff-members?id=${id}`, tenantId),
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStaffMembers(staffMembers.map(sm => sm.id === id ? data : sm));
+        alert("スタッフ情報を更新しました");
+        return true;
+      } else {
+        alert(data.error || "スタッフ情報の更新に失敗しました");
+        return false;
+      }
+    } catch (error) {
+      console.error("Update staff member error:", error);
+      alert("スタッフ情報の更新に失敗しました");
+      return false;
+    }
+  };
+
+  const deleteStaffMember = async (id: string) => {
+    if (!confirm("このスタッフを削除しますか？")) return;
+
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/staff-members?id=${id}`, tenantId),
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (response.ok) {
+        setStaffMembers(staffMembers.filter(sm => sm.id !== id));
+        alert("スタッフを削除しました");
+      } else {
+        const data = await response.json();
+        alert(data.error || "スタッフの削除に失敗しました");
+      }
+    } catch (error) {
+      console.error("Delete staff member error:", error);
+      alert("スタッフの削除に失敗しました");
+    }
+  };
+
+  return {
+    staffMembers,
+    loading,
+    fetchStaffMembers,
+    createStaffMember,
+    updateStaffMember,
+    deleteStaffMember,
+  };
+};
+
+export const useStaffMemberBusinessHours = () => {
+  const [businessHours, setBusinessHours] = useState<StaffMemberBusinessHour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { session } = useAdminSession();
+
+  const fetchStaffMemberBusinessHours = useCallback(async (staffMemberId: string) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        console.error("No tenant ID found in session");
+        return;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/staff-member-business-hours?staff_member_id=${staffMemberId}`, tenantId),
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setBusinessHours(data);
+      } else {
+        console.error("Error fetching staff member business hours:", data.error);
+      }
+    } catch (error) {
+      console.error("Fetch staff member business hours error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  const createStaffMemberBusinessHour = async (businessHour: {
+    staff_member_id: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+  }) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return false;
+      }
+
+      const response = await fetch(
+        buildApiUrl("/api/staff-member-business-hours", tenantId),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(businessHour),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setBusinessHours([...businessHours, data]);
+        alert("営業時間を追加しました");
+        return true;
+      } else {
+        alert(data.error || "営業時間の追加に失敗しました");
+        return false;
+      }
+    } catch (error) {
+      console.error("Create staff member business hour error:", error);
+      alert("営業時間の追加に失敗しました");
+      return false;
+    }
+  };
+
+  const deleteStaffMemberBusinessHour = async (id: string) => {
+    if (!confirm("この営業時間を削除しますか？")) return;
+
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/staff-member-business-hours?id=${id}`, tenantId),
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (response.ok) {
+        setBusinessHours(businessHours.filter(bh => bh.id !== id));
+        alert("営業時間を削除しました");
+      } else {
+        const data = await response.json();
+        alert(data.error || "営業時間の削除に失敗しました");
+      }
+    } catch (error) {
+      console.error("Delete staff member business hour error:", error);
+      alert("営業時間の削除に失敗しました");
+    }
+  };
+
+  return {
+    businessHours,
+    loading,
+    fetchStaffMemberBusinessHours,
+    createStaffMemberBusinessHour,
+    deleteStaffMemberBusinessHour,
   };
 };
 

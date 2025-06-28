@@ -25,4 +25,6 @@ export const DAY_NAMES_SHORT_JP = [
   '土',
 ] as const;
 
+export const DAYS_OF_WEEK = DAY_NAMES_JP;
+
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;

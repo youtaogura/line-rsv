@@ -13,6 +13,7 @@ interface UseTimeSlotsReturn {
 export function useTimeSlots(
   selectedDate: Date | null,
   tenantId: string | null,
+  selectedStaffId?: string,
 ): UseTimeSlotsReturn {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,8 +30,12 @@ export function useTimeSlots(
 
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const queryParams = new URLSearchParams({ date: dateStr });
+      if (selectedStaffId) {
+        queryParams.set("staff_member_id", selectedStaffId);
+      }
       const response = await fetch(
-        buildApiUrl(`/api/available-slots?date=${dateStr}`, tenantId),
+        buildApiUrl(`/api/available-slots?${queryParams.toString()}`, tenantId),
       );
 
       if (!response.ok) {
@@ -47,7 +52,7 @@ export function useTimeSlots(
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, tenantId]);
+  }, [selectedDate, tenantId, selectedStaffId]);
 
   const refetch = useCallback(() => {
     fetchTimeSlots();

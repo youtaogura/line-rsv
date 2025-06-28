@@ -43,7 +43,7 @@ export async function GET(
     if (error) {
       if (error.code === "PGRST116") {
         // No rows found
-        return createNotFoundResponse("User");
+        return createApiResponse(null);
       }
       console.error("Error fetching user:", error);
       return createErrorResponse("Failed to fetch user");

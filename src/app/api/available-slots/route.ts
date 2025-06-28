@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
+    const staffMemberId = searchParams.get("staff_member_id");
 
     if (!date) {
       return createValidationErrorResponse({ date: "Date parameter is required" });
@@ -42,16 +43,59 @@ export async function GET(request: NextRequest) {
 
     const targetDate = parseISO(date);
 
-    // 営業時間を取得
-    const { data: businessHours, error: businessError } = await supabase
-      .from("business_hours")
-      .select("*")
-      .eq("tenant_id", tenant.id)
-      .eq("is_active", true);
+    // 営業時間を取得（スタッフ指定の場合はスタッフの営業時間も含む）
+    let businessHours = [];
+    
+    if (staffMemberId) {
+      // 特定のスタッフが指定されている場合、そのスタッフの営業時間のみを取得
+      const { data: staffBusinessHours, error: staffError } = await supabase
+        .from("staff_member_business_hours")
+        .select("*")
+        .eq("staff_member_id", staffMemberId)
+        .eq("is_active", true);
 
-    if (businessError) {
-      console.error("Error fetching business hours:", businessError);
-      return createErrorResponse("Failed to fetch business hours");
+      if (staffError) {
+        console.error("Error fetching staff business hours:", staffError);
+        return createErrorResponse("Failed to fetch staff business hours");
+      }
+
+      businessHours = staffBusinessHours || [];
+    } else {
+      // スタッフが指定されていない場合、全スタッフの営業時間の和集合を取得
+      // まず一般的な営業時間を取得
+      const { data: generalBusinessHours, error: generalError } = await supabase
+        .from("business_hours")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("is_active", true);
+
+      if (generalError) {
+        console.error("Error fetching general business hours:", generalError);
+        return createErrorResponse("Failed to fetch business hours");
+      }
+
+      // 全スタッフの営業時間も取得
+      const { data: allStaffBusinessHours, error: allStaffError } = await supabase
+        .from("staff_member_business_hours")
+        .select(`
+          *,
+          staff_members!inner (
+            tenant_id
+          )
+        `)
+        .eq("staff_members.tenant_id", tenant.id)
+        .eq("is_active", true);
+
+      if (allStaffError) {
+        console.error("Error fetching all staff business hours:", allStaffError);
+        return createErrorResponse("Failed to fetch staff business hours");
+      }
+
+      // 一般営業時間とスタッフ営業時間を統合
+      businessHours = [
+        ...(generalBusinessHours || []),
+        ...(allStaffBusinessHours || []),
+      ];
     }
 
     if (!businessHours || businessHours.length === 0) {
@@ -74,13 +118,19 @@ export async function GET(request: NextRequest) {
       | ReservationMenu
       | undefined;
 
-    // その日の予約を取得
-    const { data: reservations, error: reservationsError } = await supabase
+    // その日の予約を取得（スタッフフィルタリング含む）
+    let reservationsQuery = supabase
       .from("reservations")
-      .select("id, datetime, duration_minutes, reservation_menu_id")
+      .select("id, datetime, duration_minutes, reservation_menu_id, staff_member_id")
       .eq("tenant_id", tenant.id)
       .gte("datetime", `${date}T00:00:00`)
       .lt("datetime", `${date}T23:59:59`);
+
+    if (staffMemberId) {
+      reservationsQuery = reservationsQuery.eq("staff_member_id", staffMemberId);
+    }
+
+    const { data: reservations, error: reservationsError } = await reservationsQuery;
 
     if (reservationsError) {
       console.error("Error fetching reservations:", reservationsError);

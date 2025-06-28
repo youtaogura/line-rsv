@@ -14,7 +14,7 @@ import type { Reservation, User } from "@/lib/supabase";
 interface AdminReservationCalendarProps {
   tenantId: string | null;
   reservations: Reservation[];
-  onDeleteReservation: (id: string) => void;
+  onDeleteReservation: (tenantId:string, id: string) => void;
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
 }
@@ -105,14 +105,6 @@ export function AdminReservationCalendar({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
 
-  // 月間空き状況を取得
-  const { availabilityData, loading: availabilityLoading } =
-    useMonthlyAvailability(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      tenantId,
-    );
-
   // 営業時間を取得
   const { businessHours } = useBusinessHours(tenantId);
 
@@ -191,8 +183,6 @@ export function AdminReservationCalendar({
               onDateChange={handleDateChange}
               currentMonth={currentMonth}
               onActiveStartDateChange={handleMonthChange}
-              availabilityData={availabilityData}
-              loading={availabilityLoading}
               reservationCount={dayReservations}
               availabilityInfo={monthlyAvailabilityInfo}
             />
@@ -293,9 +283,10 @@ export function AdminReservationCalendar({
                                 </button>
                               ) : isReserved ? (
                                 <button
-                                  onClick={() =>
-                                    onDeleteReservation(slot.reservation!.id)
-                                  }
+                                  onClick={() =>{
+                                    if (!tenantId) throw new Error("テナントIDが見つかりません");
+                                    onDeleteReservation(tenantId, slot.reservation!.id)
+                                  }}
                                   className="text-red-600 hover:text-red-900 text-sm ml-2"
                                 >
                                   削除
