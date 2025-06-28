@@ -233,6 +233,76 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    // テナント検証
+    let tenant;
+    try {
+      tenant = await requireValidTenant(request);
+    } catch (error) {
+      if (error instanceof TenantValidationError) {
+        return createValidationErrorResponse({ tenant: error.message });
+      }
+      throw error;
+    }
+
+    const { searchParams } = new URL(request.url);
+    const reservationId = searchParams.get("id");
+
+    if (!reservationId) {
+      return createValidationErrorResponse({ id: "Reservation ID is required" });
+    }
+
+    const body = await request.json();
+    const { staff_member_id } = body;
+
+    // 予約が存在し、テナントに属していることを確認
+    const { data: existingReservation, error: fetchError } = await supabase
+      .from("reservations")
+      .select("id, tenant_id")
+      .eq("id", reservationId)
+      .eq("tenant_id", tenant.id)
+      .single();
+
+    if (fetchError || !existingReservation) {
+      return createNotFoundResponse("Reservation");
+    }
+
+    // スタッフメンバーが指定されている場合、有効性をチェック
+    if (staff_member_id) {
+      const { data: staffMember, error: staffError } = await supabase
+        .from("staff_members")
+        .select("id")
+        .eq("id", staff_member_id)
+        .eq("tenant_id", tenant.id)
+        .single();
+
+      if (staffError || !staffMember) {
+        return createValidationErrorResponse({ staff_member_id: "Invalid staff member" });
+      }
+    }
+
+    // 予約を更新
+    const { data: reservation, error: updateError } = await supabase
+      .from("reservations")
+      .update({ staff_member_id: staff_member_id || null })
+      .eq("id", reservationId)
+      .eq("tenant_id", tenant.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("Reservation update error:", updateError);
+      return createErrorResponse("Failed to update reservation");
+    }
+
+    return createApiResponse(reservation);
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return createErrorResponse("Internal server error");
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     // テナント検証

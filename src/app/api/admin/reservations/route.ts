@@ -55,7 +55,11 @@ export async function GET(request: NextRequest) {
 
     // スタッフフィルタ
     if (staffMemberId && staffMemberId !== "all") {
-      query = query.eq("staff_member_id", staffMemberId);
+      if (staffMemberId === "unassigned") {
+        query = query.is("staff_member_id", null);
+      } else {
+        query = query.eq("staff_member_id", staffMemberId);
+      }
     }
 
     // 日付範囲フィルタ

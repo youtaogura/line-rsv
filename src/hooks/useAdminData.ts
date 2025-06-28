@@ -666,3 +666,43 @@ export const useRecentReservations = () => {
     fetchRecentReservations,
   };
 };
+
+export const useUnassignedReservations = () => {
+  const [unassignedReservations, setUnassignedReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { session } = useAdminSession();
+
+  const fetchUnassignedReservations = useCallback(async () => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        console.error("No tenant ID found in session");
+        return;
+      }
+
+      setLoading(true);
+      const response = await fetch(
+        buildApiUrl("/api/admin/reservations?staff_member_id=unassigned", tenantId),
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUnassignedReservations(data || []);
+      } else {
+        console.error("Error fetching unassigned reservations:", response.statusText);
+        setUnassignedReservations([]);
+      }
+    } catch (error) {
+      console.error("Fetch unassigned reservations error:", error);
+      setUnassignedReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  return {
+    unassignedReservations,
+    loading,
+    fetchUnassignedReservations,
+  };
+};

@@ -5,10 +5,13 @@ import {
   useAdminSession,
   useTenant,
   useRecentReservations,
+  useUnassignedReservations,
+  useStaffMembers,
 } from "@/hooks/useAdminData";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
+import { UnassignedReservations } from '@/components/admin/UnassignedReservations';
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
 
@@ -16,6 +19,8 @@ function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { tenant, fetchTenant } = useTenant();
   const { recentReservations, fetchRecentReservations } = useRecentReservations();
+  const { unassignedReservations, fetchUnassignedReservations } = useUnassignedReservations();
+  const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +29,8 @@ function AdminContent() {
         await Promise.all([
           fetchTenant(),
           fetchRecentReservations(5),
+          fetchUnassignedReservations(),
+          fetchStaffMembers(),
         ]);
         setLoading(false);
       };
@@ -34,6 +41,8 @@ function AdminContent() {
     session,
     fetchTenant,
     fetchRecentReservations,
+    fetchUnassignedReservations,
+    fetchStaffMembers,
   ]);
 
   if (loading) {
@@ -52,6 +61,16 @@ function AdminContent() {
         tenant={tenant}
       >
         <DashboardGrid />
+        {unassignedReservations.length > 0 && (
+          <div className="mt-8">
+            <UnassignedReservations 
+              reservations={unassignedReservations}
+              staffMembers={staffMembers}
+              tenantId={session?.user?.tenant_id || ''}
+              onStaffAssigned={fetchUnassignedReservations}
+            />
+          </div>
+        )}
         <RecentReservations reservations={recentReservations} />
       </AdminLayout>
     </AuthGuard>
