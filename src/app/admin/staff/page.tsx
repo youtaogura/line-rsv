@@ -36,7 +36,7 @@ function StaffContent() {
         title="スタッフ管理"
         description="スタッフの追加・編集・削除ができます"
         user={session?.user}
-        showBackToAdmin={true}
+        showBackButton={true}
       >
         <div className="space-y-8">
           <StaffMemberForm onCreateStaffMember={createStaffMember} />

@@ -104,7 +104,7 @@ function UsersContent() {
         title={UI_TEXT.USER_MANAGEMENT}
         description="登録ユーザーの管理ができます"
         user={session?.user}
-        showBackToAdmin={true}
+        showBackButton={true}
       >
         <UserList
           users={filteredUsers}

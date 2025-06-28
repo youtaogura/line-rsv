@@ -121,7 +121,7 @@ function ReservationsContent() {
         title={UI_TEXT.RESERVATION_MANAGEMENT}
         description="予約の確認と管理ができます"
         user={session?.user}
-        showBackToAdmin={true}
+        showBackButton={true}
       >
         <div className="mb-6 space-y-4">
           <div className="flex justify-between items-center">
