@@ -6,12 +6,19 @@ import { ReservationModal } from "./ReservationModal";
 import { startOfMonth, format, addMinutes, isSameDay } from "date-fns";
 import type { TimeSlot } from "./types";
 import type { Reservation, User } from "@/lib/supabase";
+
+interface ReservationWithUser extends Reservation {
+  users?: {
+    user_id: string;
+    name: string;
+  } | null;
+}
 import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
 import { availabilityApi } from "@/lib/api/availability";
 
 interface AdminReservationCalendarProps {
   tenantId: string | null;
-  reservations: Reservation[];
+  reservations: ReservationWithUser[];
   onDeleteReservation: (tenantId:string, id: string) => void;
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
@@ -20,20 +27,20 @@ interface AdminReservationCalendarProps {
 }
 
 interface DayReservations {
-  [date: string]: Reservation[];
+  [date: string]: ReservationWithUser[];
 }
 
 interface TimeSlotWithReservation {
   startTime: string;
   endTime?: string;
   datetime: string;
-  reservation?: Reservation;
+  reservation?: ReservationWithUser;
 }
 
 // タイムスロットを統合する関数
 function consolidateTimeSlots(
   timeSlots: TimeSlot[],
-  reservations: Reservation[],
+  reservations: ReservationWithUser[],
 ): TimeSlotWithReservation[] {
   const consolidatedSlots: TimeSlotWithReservation[] = [];
   const processedSlots = new Set<string>();
@@ -85,7 +92,7 @@ function consolidateTimeSlots(
 }
 
 function reservationOnlyTimeSlots(
-  currentDayReservations: Reservation[],
+  currentDayReservations: ReservationWithUser[],
 ): TimeSlotWithReservation[] {
   return currentDayReservations
     .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
@@ -286,7 +293,7 @@ export function AdminReservationCalendar({
                                 {slot.reservation && (
                                   <>
                                     <span className="text-sm font-medium text-gray-700">
-                                      {slot.reservation!.name}
+                                      {slot.reservation!.users?.name || "ユーザー名が取得できませんでした"}
                                     </span>
                                     <span
                                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

@@ -3,8 +3,8 @@
 import { useState, Suspense, useEffect } from "react";
 import {
   useAdminSession,
-  useReservations,
   useTenant,
+  useRecentReservations,
 } from "@/hooks/useAdminData";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { DashboardCard } from '@/components/admin/DashboardCard';
@@ -15,7 +15,7 @@ import { ROUTES } from '@/constants/routes';
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { tenant, fetchTenant } = useTenant();
-  const { reservations, fetchReservations } = useReservations();
+  const { recentReservations, loading: recentLoading, fetchRecentReservations } = useRecentReservations();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +23,7 @@ function AdminContent() {
       const fetchData = async () => {
         await Promise.all([
           fetchTenant(),
+          fetchRecentReservations(5),
         ]);
         setLoading(false);
       };
@@ -31,15 +32,9 @@ function AdminContent() {
   }, [
     isAuthenticated,
     session,
-    fetchReservations,
     fetchTenant,
+    fetchRecentReservations,
   ]);
-
-  useEffect(() => {
-    if (tenant?.id) {
-      fetchReservations(tenant.id);
-    }
-  }, [tenant?.id]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -57,7 +52,7 @@ function AdminContent() {
         tenant={tenant}
       >
         <DashboardGrid />
-        <RecentReservations reservations={reservations} />
+        <RecentReservations reservations={recentReservations} />
       </AdminLayout>
     </AuthGuard>
   );

@@ -13,10 +13,11 @@ type UserFilter = 'all' | 'regular' | 'guest';
 
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { users, fetchUsers, updateUser } = useUsers();
+  const { users, fetchUsers, updateUser, mergeUser } = useUsers();
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'edit' | 'merge'>('edit');
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [nameFilter, setNameFilter] = useState('');
 
@@ -52,12 +53,20 @@ function UsersContent() {
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
+    setModalMode('edit');
+    setIsEditModalOpen(true);
+  };
+
+  const handleMergeUser = (user: User) => {
+    setEditingUser(user);
+    setModalMode('merge');
     setIsEditModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setEditingUser(null);
     setIsEditModalOpen(false);
+    setModalMode('edit');
   };
 
   const handleUpdateUser = async (updateData: {
@@ -68,6 +77,14 @@ function UsersContent() {
     if (!editingUser) return false;
 
     const success = await updateUser(editingUser.user_id, updateData);
+    if (success) {
+      handleCloseModal();
+    }
+    return success;
+  };
+
+  const handleMergeUserConfirm = async (sourceUserId: string, targetUserId: string) => {
+    const success = await mergeUser(sourceUserId, targetUserId);
     if (success) {
       handleCloseModal();
     }
@@ -90,6 +107,7 @@ function UsersContent() {
           userFilter={userFilter}
           nameFilter={nameFilter}
           onEditUser={handleEditUser}
+          onMergeUser={handleMergeUser}
           onUserFilterChange={setUserFilter}
           onNameFilterChange={setNameFilter}
         />
@@ -97,8 +115,11 @@ function UsersContent() {
         <UserEditModal
           isOpen={isEditModalOpen}
           user={editingUser}
+          allUsers={users}
+          mode={modalMode}
           onClose={handleCloseModal}
           onUpdateUser={handleUpdateUser}
+          onMergeUser={handleMergeUserConfirm}
         />
       </AdminLayout>
     </AuthGuard>

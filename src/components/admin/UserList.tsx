@@ -10,6 +10,7 @@ interface UserListProps {
   userFilter: UserFilter;
   nameFilter: string;
   onEditUser: (user: User) => void;
+  onMergeUser?: (user: User) => void;
   onUserFilterChange: (filter: UserFilter) => void;
   onNameFilterChange: (name: string) => void;
 }
@@ -18,7 +19,8 @@ export const UserList: React.FC<UserListProps> = ({
   users, 
   userFilter, 
   nameFilter, 
-  onEditUser, 
+  onEditUser,
+  onMergeUser,
   onUserFilterChange, 
   onNameFilterChange 
 }) => {
@@ -125,12 +127,22 @@ export const UserList: React.FC<UserListProps> = ({
                     <MemberTypeBadge memberType={user.member_type} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() => onEditUser(user)}
-                      className="text-primary hover:text-primary-hover font-medium"
-                    >
-                      {UI_TEXT.EDIT}
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => onEditUser(user)}
+                        className="text-primary hover:text-primary-hover font-medium"
+                      >
+                        {UI_TEXT.EDIT}
+                      </button>
+                      {user.member_type === 'guest' && onMergeUser && (
+                        <button
+                          onClick={() => onMergeUser(user)}
+                          className="text-orange-600 hover:text-orange-800 font-medium"
+                        >
+                          統合
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

@@ -9,6 +9,10 @@ interface ReservationWithStaff extends Reservation {
     id: string;
     name: string;
   } | null;
+  users?: {
+    user_id: string;
+    name: string;
+  } | null;
 }
 
 interface ReservationListProps {
@@ -81,7 +85,7 @@ export const ReservationList: React.FC<ReservationListProps> = ({
             filteredReservations.map((reservation) => (
               <tr key={reservation.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {reservation.name}
+                  {reservation.users?.name || "ユーザー名が取得できませんでした"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <MemberTypeBadge memberType={reservation.member_type} />

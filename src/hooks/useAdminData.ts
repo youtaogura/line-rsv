@@ -285,10 +285,59 @@ export const useUsers = () => {
     }
   };
 
+  const mergeUser = async (
+    sourceUserId: string,
+    targetUserId: string,
+  ) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert("セッション情報が正しくありません");
+        return false;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/users/${sourceUserId}/merge`, tenantId),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ target_user_id: targetUserId }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // ユーザーリストを更新（ソースユーザーを削除、ターゲットユーザーを更新）
+        setUsers(prevUsers => 
+          prevUsers
+            .filter(user => user.user_id !== sourceUserId)
+            .map(user => 
+              user.user_id === targetUserId ? result.updated_user : user
+            )
+        );
+        
+        alert(`ユーザーの統合が完了しました。${result.merged_reservations_count}件の予約が移行されました。`);
+        return true;
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "ユーザーの統合に失敗しました");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error merging user:", error);
+      alert("ユーザーの統合に失敗しました");
+      return false;
+    }
+  };
+
   return {
     users,
     fetchUsers,
     updateUser,
+    mergeUser,
   };
 };
 
@@ -575,5 +624,45 @@ export const useTenant = () => {
   return {
     tenant,
     fetchTenant,
+  };
+};
+
+export const useRecentReservations = () => {
+  const [recentReservations, setRecentReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { session } = useAdminSession();
+
+  const fetchRecentReservations = useCallback(async (limit: number = 5) => {
+    try {
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        console.error("No tenant ID found in session");
+        return;
+      }
+
+      setLoading(true);
+      const response = await fetch(
+        buildApiUrl(`/api/admin/recent-reservations?limit=${limit}`, tenantId),
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setRecentReservations(data || []);
+      } else {
+        console.error("Error fetching recent reservations:", response.statusText);
+        setRecentReservations([]);
+      }
+    } catch (error) {
+      console.error("Fetch recent reservations error:", error);
+      setRecentReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  return {
+    recentReservations,
+    loading,
+    fetchRecentReservations,
   };
 };

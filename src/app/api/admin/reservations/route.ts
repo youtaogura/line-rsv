@@ -44,6 +44,10 @@ export async function GET(request: NextRequest) {
         staff_members (
           id,
           name
+        ),
+        users (
+          user_id,
+          name
         )
       `)
       .eq("tenant_id", tenant.id)
