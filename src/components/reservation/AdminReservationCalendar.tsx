@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { CalendarView } from "./Calendar/CalendarView";
 import { ReservationModal } from "./ReservationModal";
+import { Switch } from "@/components/ui/switch";
 import { startOfMonth, format, addMinutes, isSameDay } from "date-fns";
 import type { TimeSlot } from "./types";
 import type { Reservation, User } from "@/lib/supabase";
@@ -221,21 +222,25 @@ export function AdminReservationCalendar({
             予約カレンダー
           </h3>
           {selectedStaffId && selectedStaffId !== "all" && selectedStaffId !== "unassigned" && (
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+            <div className="flex items-center space-x-3">
+              <Switch
                 checked={reservationsOnlySelected}
-                onChange={(e) => setReservationsOnlySelected(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                onCheckedChange={setReservationsOnlySelected}
+                id="reservations-only-toggle"
               />
-              <span className="text-sm text-gray-700">予約だけ表示</span>
-            </label>
+              <label 
+                htmlFor="reservations-only-toggle"
+                className="text-sm font-medium text-gray-700 cursor-pointer"
+              >
+                予約だけ表示
+              </label>
+            </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96 lg:h-auto lg:min-h-96">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* カレンダー部分 */}
-          <div>
+          <div className="w-full overflow-hidden">
             <CalendarView
               selectedDate={selectedDate}
               onDateChange={handleDateChange}
@@ -248,7 +253,7 @@ export function AdminReservationCalendar({
           </div>
 
           {/* 選択日の予約詳細 */}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col min-h-[400px] lg:min-h-96">
             <h4 className="text-md font-medium text-gray-900 mb-3">
               {selectedDate
                 ? format(selectedDate, "M月d日の予約")
@@ -259,7 +264,7 @@ export function AdminReservationCalendar({
               <div className="flex-1 flex flex-col min-h-0">
                 {/* タイムスロット一覧 */}
                 <div className="flex-1 overflow-hidden">
-                  <div className="space-y-2 max-h-140 overflow-y-auto">
+                  <div className="space-y-2 max-h-80 lg:max-h-96 overflow-y-auto">
                     {timeSlotsWithReservation.map((slot, index) => {
                       const displayTime = slot.endTime
                         ? `${slot.startTime}-${slot.endTime}`

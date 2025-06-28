@@ -10,6 +10,7 @@ export const ROUTES = {
     LOGIN: '/admin/login',
     RESERVATIONS: '/admin/reservations',
     BUSINESS_HOURS: '/admin/business-hours',
+    STAFF: '/admin/staff',
     USERS: '/admin/users',
   },
   

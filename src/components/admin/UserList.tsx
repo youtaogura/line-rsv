@@ -1,6 +1,11 @@
 import React from "react";
 import type { User } from "@/lib/supabase";
 import { MemberTypeBadge } from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Phone } from "lucide-react";
 import { UI_TEXT } from "@/constants/ui";
 
 type UserFilter = 'all' | 'regular' | 'guest';
@@ -25,16 +30,16 @@ export const UserList: React.FC<UserListProps> = ({
   onNameFilterChange 
 }) => {
   return (
-    <div className="bg-white shadow rounded-lg overflow-x-auto">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900">{UI_TEXT.USER_MANAGEMENT}</h2>
-        <p className="text-sm text-gray-600 mt-1">
+    <Card>
+      <CardHeader>
+        <CardTitle>{UI_TEXT.USER_MANAGEMENT}</CardTitle>
+        <p className="text-sm text-muted-foreground">
           登録ユーザーの会員種別を管理できます
         </p>
         
-        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
           <div className="flex-1">
-            <label htmlFor="name-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name-filter" className="block text-sm font-medium mb-1">
               名前で検索
             </label>
             <input
@@ -43,12 +48,12 @@ export const UserList: React.FC<UserListProps> = ({
               value={nameFilter}
               onChange={(e) => onNameFilterChange(e.target.value)}
               placeholder="ユーザー名を入力"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium mb-1">
               会員種別
             </label>
             <div className="flex gap-4">
@@ -59,9 +64,9 @@ export const UserList: React.FC<UserListProps> = ({
                   value="all"
                   checked={userFilter === 'all'}
                   onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
-                  className="mr-2 text-primary focus:ring-primary"
+                  className="mr-2"
                 />
-                <span className="text-sm text-gray-700">全て</span>
+                <span className="text-sm">全て</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -70,9 +75,9 @@ export const UserList: React.FC<UserListProps> = ({
                   value="regular"
                   checked={userFilter === 'regular'}
                   onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
-                  className="mr-2 text-primary focus:ring-primary"
+                  className="mr-2"
                 />
-                <span className="text-sm text-gray-700">会員</span>
+                <span className="text-sm">会員</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -81,75 +86,153 @@ export const UserList: React.FC<UserListProps> = ({
                   value="guest"
                   checked={userFilter === 'guest'}
                   onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
-                  className="mr-2 text-primary focus:ring-primary"
+                  className="mr-2"
                 />
-                <span className="text-sm text-gray-700">ゲスト</span>
+                <span className="text-sm">ゲスト</span>
               </label>
             </div>
           </div>
         </div>
-      </div>
-      <div className="min-w-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                名前
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                電話番号
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                会員種別
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.length === 0 ? (
+      </CardHeader>
+      
+      <CardContent>
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/50">
               <tr>
-                <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                  {UI_TEXT.NO_USERS}
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  名前
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  電話番号
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  会員種別
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  操作
+                </th>
               </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.user_id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {user.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.phone || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <MemberTypeBadge memberType={user.member_type} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => onEditUser(user)}
-                        className="text-primary hover:text-primary-hover font-medium"
-                      >
-                        {UI_TEXT.EDIT}
-                      </button>
-                      {user.member_type === 'guest' && onMergeUser && (
-                        <button
-                          onClick={() => onMergeUser(user)}
-                          className="text-orange-600 hover:text-orange-800 font-medium"
-                        >
-                          統合
-                        </button>
-                      )}
-                    </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-muted-foreground">
+                    {UI_TEXT.NO_USERS}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.user_id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {user.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      {user.phone ? (
+                        <a 
+                          href={`tel:${user.phone}`}
+                          className="flex items-center space-x-1 text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <Phone className="h-3 w-3" />
+                          <span>{user.phone}</span>
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <MemberTypeBadge memberType={user.member_type} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditUser(user)}
+                          className="text-primary hover:text-primary/80"
+                        >
+                          {UI_TEXT.EDIT}
+                        </Button>
+                        {user.member_type === 'guest' && onMergeUser && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onMergeUser(user)}
+                            className="text-orange-600 hover:text-orange-700"
+                          >
+                            統合
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4">
+          {users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {UI_TEXT.NO_USERS}
+            </div>
+          ) : (
+            users.map((user) => (
+              <Card key={user.user_id} className="border">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-lg">{user.name}</h3>
+                      <div className="mt-1">
+                        <MemberTypeBadge memberType={user.member_type} />
+                      </div>
+                    </div>
+                    <div className="flex space-x-2 ml-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEditUser(user)}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        {UI_TEXT.EDIT}
+                      </Button>
+                      {user.member_type === 'guest' && onMergeUser && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onMergeUser(user)}
+                          className="text-orange-600 hover:text-orange-700"
+                        >
+                          統合
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {user.phone && (
+                    <>
+                      <Separator className="my-3" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">電話番号</span>
+                        <a 
+                          href={`tel:${user.phone}`}
+                          className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <Phone className="h-4 w-4" />
+                          <span className="text-sm">{user.phone}</span>
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect, useMemo } from "react";
 import { useAdminSession, useUsers } from "@/hooks/useAdminData";
 import { UserList } from "@/components/admin/UserList";
 import { UserEditModal } from "@/components/admin/UserEditModal";
+import { UserMergeModal } from "@/components/admin/UserMergeModal";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
 import { MEMBER_TYPES } from '@/constants/business';
@@ -16,8 +17,9 @@ function UsersContent() {
   const { users, fetchUsers, updateUser, mergeUser } = useUsers();
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [mergingUser, setMergingUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'edit' | 'merge'>('edit');
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [nameFilter, setNameFilter] = useState('');
 
@@ -53,20 +55,22 @@ function UsersContent() {
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
-    setModalMode('edit');
     setIsEditModalOpen(true);
   };
 
   const handleMergeUser = (user: User) => {
-    setEditingUser(user);
-    setModalMode('merge');
-    setIsEditModalOpen(true);
+    setMergingUser(user);
+    setIsMergeModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseEditModal = () => {
     setEditingUser(null);
     setIsEditModalOpen(false);
-    setModalMode('edit');
+  };
+
+  const handleCloseMergeModal = () => {
+    setMergingUser(null);
+    setIsMergeModalOpen(false);
   };
 
   const handleUpdateUser = async (updateData: {
@@ -78,7 +82,7 @@ function UsersContent() {
 
     const success = await updateUser(editingUser.user_id, updateData);
     if (success) {
-      handleCloseModal();
+      handleCloseEditModal();
     }
     return success;
   };
@@ -86,7 +90,7 @@ function UsersContent() {
   const handleMergeUserConfirm = async (sourceUserId: string, targetUserId: string) => {
     const success = await mergeUser(sourceUserId, targetUserId);
     if (success) {
-      handleCloseModal();
+      handleCloseMergeModal();
     }
     return success;
   };
@@ -115,10 +119,15 @@ function UsersContent() {
         <UserEditModal
           isOpen={isEditModalOpen}
           user={editingUser}
-          allUsers={users}
-          mode={modalMode}
-          onClose={handleCloseModal}
+          onClose={handleCloseEditModal}
           onUpdateUser={handleUpdateUser}
+        />
+
+        <UserMergeModal
+          isOpen={isMergeModalOpen}
+          user={mergingUser}
+          allUsers={users}
+          onClose={handleCloseMergeModal}
           onMergeUser={handleMergeUserConfirm}
         />
       </AdminLayout>

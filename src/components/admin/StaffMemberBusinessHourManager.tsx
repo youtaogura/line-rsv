@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import type { StaffMember } from "@/lib/supabase";
 import { useStaffMemberBusinessHours } from "@/hooks/useAdminData";
 import { LoadingSpinner } from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock, Trash2, Plus } from "lucide-react";
 import { DAYS_OF_WEEK } from "@/constants/time";
 
 interface StaffMemberBusinessHourManagerProps {
@@ -64,133 +70,163 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
   return (
     <div className="space-y-6">
       {/* 営業時間追加フォーム */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-md font-medium text-gray-900 mb-4">
-          新しい営業時間を追加
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label
-                htmlFor="dayOfWeek"
-                className="block text-sm font-medium text-gray-700"
-              >
-                曜日
-              </label>
-              <select
-                id="dayOfWeek"
-                value={dayOfWeek}
-                onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                {DAYS_OF_WEEK.map((day, index) => (
-                  <option key={index} value={index}>
-                    {day}
-                  </option>
-                ))}
-              </select>
+      <Card className="border-dashed">
+        <CardContent className="p-6">
+          <h3 className="flex items-center space-x-2 text-lg font-medium mb-4">
+            <Plus className="h-5 w-5" />
+            <span>新しい営業時間を追加</span>
+          </h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dayOfWeek">曜日</Label>
+                <Select 
+                  value={dayOfWeek.toString()} 
+                  onValueChange={(value) => setDayOfWeek(Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DAYS_OF_WEEK.map((day, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {day}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startTime">開始時間</Label>
+                <Input
+                  type="time"
+                  id="startTime"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  min="09:00"
+                  max="18:00"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">終了時間</Label>
+                <Input
+                  type="time"
+                  id="endTime"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  min="09:00"
+                  max="18:00"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label
-                htmlFor="startTime"
-                className="block text-sm font-medium text-gray-700"
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center space-x-2"
               >
-                開始時間
-              </label>
-              <input
-                type="time"
-                id="startTime"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                min="09:00"
-                max="18:00"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
+                <Plus className="h-4 w-4" />
+                <span>{isSubmitting ? "追加中..." : "営業時間を追加"}</span>
+              </Button>
             </div>
-            <div>
-              <label
-                htmlFor="endTime"
-                className="block text-sm font-medium text-gray-700"
-              >
-                終了時間
-              </label>
-              <input
-                type="time"
-                id="endTime"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                min="09:00"
-                max="18:00"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {isSubmitting ? "追加中..." : "営業時間を追加"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
-            >
-              閉じる
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* 現在の営業時間一覧 */}
-      <div>
-        <h3 className="text-md font-medium text-gray-900 mb-4">
-          現在の営業時間
+      <div className="space-y-4">
+        <h3 className="flex items-center space-x-2 text-lg font-medium">
+          <Clock className="h-5 w-5" />
+          <span>現在の営業時間</span>
         </h3>
+        
         {businessHours.length === 0 ? (
-          <p className="text-gray-500">営業時間が設定されていません</p>
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              営業時間が設定されていません
+            </CardContent>
+          </Card>
         ) : (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    曜日
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    時間
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {businessHours.map((hour) => (
-                  <tr key={hour.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {DAYS_OF_WEEK[hour.day_of_week]}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {hour.start_time} - {hour.end_time}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
+              <Card>
+                <CardContent className="p-0">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          曜日
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          時間
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          操作
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {businessHours.map((hour) => (
+                        <tr key={hour.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {DAYS_OF_WEEK[hour.day_of_week]}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {hour.start_time} - {hour.end_time}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(hour.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              削除
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-3">
+              {businessHours.map((hour) => (
+                <Card key={hour.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-lg">
+                          {DAYS_OF_WEEK[hour.day_of_week]}
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {hour.start_time} - {hour.end_time}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleDelete(hour.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
                       >
-                        削除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

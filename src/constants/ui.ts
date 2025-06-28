@@ -31,6 +31,10 @@ export const UI_TEXT = {
   BUSINESS_HOURS_MANAGEMENT: '営業時間管理',
   BUSINESS_HOURS_SETTINGS: '営業時間の設定・変更',
   
+  // Staff
+  STAFF_MANAGEMENT: 'スタッフ管理',
+  STAFF_INFO_MANAGEMENT: 'スタッフ情報の編集・管理',
+  
   // Users
   USER_MANAGEMENT: 'ユーザー管理',
   USER_INFO_MANAGEMENT: '会員情報の編集・管理',
