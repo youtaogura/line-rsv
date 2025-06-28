@@ -4,6 +4,7 @@ import type {
   BusinessHour,
   Reservation,
   ReservationMenu,
+  StaffMemberBusinessHour,
 } from "@/lib/supabase";
 import type { DayAvailabilityInfo, TimeSlot } from "../types";
 
@@ -127,6 +128,7 @@ export function calculateDayAvailability(
   businessHours: BusinessHour[],
   reservations: Reservation[],
   reservationMenu?: ReservationMenu,
+  staffBusinessHours?: StaffMemberBusinessHour[],
 ): DayAvailabilityInfo {
   const dateStr = format(date, "yyyy-MM-dd");
 
@@ -135,15 +137,27 @@ export function calculateDayAvailability(
     isSameDay(new Date(reservation.datetime), date),
   );
 
-  // タイムスロットを生成
-  let timeSlots = generateTimeSlots(date, businessHours, reservationMenu);
+  // スタッフ営業時間が提供されている場合は新しいロジックを使用
+  let timeSlots;
+  if (staffBusinessHours) {
+    timeSlots = calculateAvailabilityWithoutStaffSelection(
+      date,
+      businessHours,
+      staffBusinessHours,
+      dayReservations,
+      reservationMenu,
+    );
+  } else {
+    // タイムスロットを生成
+    timeSlots = generateTimeSlots(date, businessHours, reservationMenu);
 
-  // 予約状況を反映
-  timeSlots = updateSlotsWithReservations(
-    timeSlots,
-    dayReservations,
-    reservationMenu,
-  );
+    // 予約状況を反映
+    timeSlots = updateSlotsWithReservations(
+      timeSlots,
+      dayReservations,
+      reservationMenu,
+    );
+  }
 
   const totalSlots = timeSlots.length;
   const availableSlots = timeSlots.filter((slot) => slot.isAvailable).length;
@@ -162,28 +176,131 @@ export function calculateDayAvailability(
  * 月間の空き状況マップを計算
  */
 export function calculateMonthlyAvailability(
-  startDate: Date,
-  endDate: Date,
-  businessHours: BusinessHour[],
+  timeSlots: TimeSlot[],
   reservations: Reservation[],
-  reservationMenu?: ReservationMenu,
+  reservationMenu: ReservationMenu,
 ): Map<string, DayAvailabilityInfo> {
   const availabilityMap = new Map<string, DayAvailabilityInfo>();
 
   let currentDate = new Date(startDate);
 
   while (isBefore(currentDate, endDate) || isSameDay(currentDate, endDate)) {
-    const dayInfo = calculateDayAvailability(
-      currentDate,
-      businessHours,
-      reservations,
-      reservationMenu,
-    );
-    availabilityMap.set(dayInfo.date, dayInfo);
+    let dayInfo;
+    
+    if (staffId && staffBusinessHours) {
+      // スタッフが選択されている場合は、そのスタッフの営業時間のみを使用
+      const filteredBusinessHours = staffBusinessHours
+          .filter(sbh => sbh.staff_member_id === staffId)
+          .map(sbh => ({
+            id: sbh.id,
+            tenant_id: "",
+            day_of_week: sbh.day_of_week,
+            start_time: sbh.start_time,
+            end_time: sbh.end_time,
+            is_active: sbh.is_active,
+            created_at: sbh.created_at,
+          })) as BusinessHour[];
 
-    currentDate = new Date(currentDate);
+      dayInfo = calculateDayAvailability(
+        currentDate,
+        filteredBusinessHours,
+        reservations,
+        reservationMenu,
+      );
+    } else {
+      // スタッフ営業時間がない場合は従来の処理
+      dayInfo = calculateDayAvailability(
+        currentDate,
+        businessHours,
+        reservations,
+        reservationMenu,
+      );
+    }
+
+    console.log(dayInfo)
+    
+    availabilityMap.set(dayInfo.date, dayInfo);
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
   return availabilityMap;
+}
+
+/**
+ * スタッフ未選択時の空き状況を計算（一人でも空いているスタッフがいる時間のみ利用可能）
+ */
+export function calculateAvailabilityWithoutStaffSelection(
+  date: Date,
+  generalBusinessHours: BusinessHour[],
+  staffBusinessHours: StaffMemberBusinessHour[],
+  reservations: Reservation[],
+  reservationMenu?: ReservationMenu,
+): TimeSlot[] {
+  const dayOfWeek = date.getDay();
+
+  // テナント全体の営業時間でベースとなる時間枠を生成
+  const baseTimeSlots = generateTimeSlots(date, generalBusinessHours, reservationMenu);
+  
+  if (baseTimeSlots.length === 0) {
+    return [];
+  }
+
+  // 各スタッフの営業時間を取得
+  const dayStaffBusinessHours = staffBusinessHours.filter(
+    (sbh) => sbh.day_of_week === dayOfWeek && sbh.is_active
+  );
+
+  // 各時間スロットについて、利用可能なスタッフがいるかチェック
+  return baseTimeSlots.map((slot) => {
+    const slotStartTime = new Date(slot.datetime);
+    const slotEndTime = addMinutes(slotStartTime, reservationMenu?.duration_minutes || 30);
+
+    // 少なくとも一人のスタッフが利用可能かチェック
+    const hasAvailableStaff = dayStaffBusinessHours.some((staffBH) => {
+      // スタッフの営業時間内かチェック
+      const [startHour, startMinute] = staffBH.start_time.split(":").map(Number);
+      const [endHour, endMinute] = staffBH.end_time.split(":").map(Number);
+
+      const staffStartTime = new Date(date);
+      staffStartTime.setHours(startHour, startMinute, 0, 0);
+      
+      const staffEndTime = new Date(date);
+      staffEndTime.setHours(endHour, endMinute, 0, 0);
+
+      // スロットがスタッフの営業時間内に収まるかチェック
+      const isWithinStaffHours = 
+        !isBefore(slotStartTime, staffStartTime) &&
+        !isAfter(slotEndTime, staffEndTime);
+
+      if (!isWithinStaffHours) {
+        return false;
+      }
+
+      // そのスタッフに既存の予約がないかチェック
+      const staffReservations = reservations.filter(
+        (reservation) => 
+          reservation.staff_member_id === staffBH.staff_member_id &&
+          isSameDay(new Date(reservation.datetime), date)
+      );
+
+      const isStaffReserved = staffReservations.some((reservation) => {
+        const reservationStartTime = new Date(reservation.datetime);
+        const reservationDuration = reservation.duration_minutes || 30;
+        const reservationEndTime = addMinutes(reservationStartTime, reservationDuration);
+
+        const overlaps =
+          slotStartTime < reservationEndTime &&
+          slotEndTime > reservationStartTime;
+
+        return overlaps;
+      });
+
+      return !isStaffReserved;
+    });
+
+    return {
+      ...slot,
+      isAvailable: hasAvailableStaff,
+    };
+  });
 }

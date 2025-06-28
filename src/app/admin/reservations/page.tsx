@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useMemo } from "react";
 import {
   useReservations,
   useAdminSession,
@@ -19,7 +19,17 @@ function ReservationsContent() {
   const { users, fetchUsers } = useUsers();
   const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const [viewMode, setViewMode] = useState<"calendar" | "table">("calendar");
-  const [selectedStaffId, setSelectedStaffId] = useState<string>("all");
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+
+  const selectedStaffReservations = useMemo(() => {
+    return reservations.filter((reservation) => reservation.staff_member_id === selectedStaffId);
+  }, [reservations, selectedStaffId]);
+
+  useEffect(() => {
+    if (staffMembers.length > 0) {
+      setSelectedStaffId(staffMembers[0].id);
+    }
+  }, [staffMembers])
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -69,35 +79,39 @@ function ReservationsContent() {
           </div>
           
           {/* スタッフフィルタ */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex items-center space-x-4">
-              <label htmlFor="staff-filter" className="block text-sm font-medium text-gray-700">
-                担当スタッフでフィルタ:
-              </label>
-              <select
-                id="staff-filter"
-                value={selectedStaffId}
-                onChange={(e) => setSelectedStaffId(e.target.value)}
-                className="block w-auto rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="all">全スタッフ</option>
-                {staffMembers.map((staff) => (
-                  <option key={staff.id} value={staff.id}>
-                    {staff.name}
-                  </option>
-                ))}
-              </select>
+          {staffMembers && staffMembers.length > 1 && (
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex items-center space-x-4">
+                <label htmlFor="staff-filter" className="block text-sm font-medium text-gray-700">
+                  担当スタッフでフィルタ:
+                </label>
+                <select
+                  id="staff-filter"
+                  value={selectedStaffId}
+                  defaultValue={staffMembers[0]?.id}
+                  onChange={(e) => setSelectedStaffId(e.target.value)}
+                  className="block w-auto rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                >
+                  {staffMembers.map((staff) => (
+                    <option key={staff.id} value={staff.id}>
+                      {staff.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
 
         {viewMode === "calendar" && (
           <AdminReservationCalendar
             tenantId={session?.user?.tenant_id || null}
-            reservations={reservations}
+            reservations={selectedStaffReservations}
             onDeleteReservation={deleteReservation}
             onCreateReservation={handleCreateReservation}
             availableUsers={users}
+            selectedStaffId={selectedStaffId}
           />
         )}
 
@@ -106,6 +120,7 @@ function ReservationsContent() {
             tenantId={session?.user?.tenant_id || null}
             reservations={reservations}
             onDeleteReservation={deleteReservation}
+            selectedStaffId={selectedStaffId}
           />
         )}
       </AdminLayout>

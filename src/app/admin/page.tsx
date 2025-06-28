@@ -4,8 +4,6 @@ import { useState, Suspense, useEffect } from "react";
 import {
   useAdminSession,
   useReservations,
-  useBusinessHours,
-  useUsers,
   useTenant,
 } from "@/hooks/useAdminData";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
@@ -16,19 +14,14 @@ import { ROUTES } from '@/constants/routes';
 
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { businessHours: _businessHours, fetchBusinessHours } = useBusinessHours();
-  const { users: _users, fetchUsers } = useUsers();
   const { tenant, fetchTenant } = useTenant();
   const { reservations, fetchReservations } = useReservations();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated && session?.user && tenant) {
+    if (isAuthenticated && session?.user) {
       const fetchData = async () => {
         await Promise.all([
-          fetchReservations(tenant.id),
-          fetchBusinessHours(),
-          fetchUsers(),
           fetchTenant(),
         ]);
         setLoading(false);
@@ -38,12 +31,15 @@ function AdminContent() {
   }, [
     isAuthenticated,
     session,
-    tenant,
     fetchReservations,
-    fetchBusinessHours,
-    fetchUsers,
     fetchTenant,
   ]);
+
+  useEffect(() => {
+    if (tenant?.id) {
+      fetchReservations(tenant.id);
+    }
+  }, [tenant?.id]);
 
   if (loading) {
     return <LoadingSpinner />;

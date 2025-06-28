@@ -9,7 +9,6 @@ interface TimeSlotListProps {
   availableSlots: TimeSlot[];
   selectedDateTime: string | null;
   onTimeSelect: (datetime: string) => void;
-  loading: boolean;
   reservationMenu: ReservationMenu | null;
 }
 
@@ -18,7 +17,6 @@ export function TimeSlotList({
   availableSlots,
   selectedDateTime,
   onTimeSelect,
-  loading,
   reservationMenu,
 }: TimeSlotListProps) {
   if (!selectedDate) {
@@ -30,16 +28,6 @@ export function TimeSlotList({
   };
 
   const title = `${formatSelectedDate(selectedDate)}の予約可能時間`;
-
-  if (loading) {
-    return (
-      <TimeSlotContainer title={title}>
-        <div className="flex items-center justify-center py-8">
-          <div className="text-gray-500">時間を読み込み中...</div>
-        </div>
-      </TimeSlotContainer>
-    );
-  }
 
   if (availableSlots.length === 0) {
     return (

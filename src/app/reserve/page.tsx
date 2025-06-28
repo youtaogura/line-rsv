@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo } from "react";
-import type { User, Reservation, StaffMember, ReservationMenu, BusinessHour } from "@/lib/supabase";
-import type { TimeSlot } from "@/components/reservation/types";
+import { useState, useEffect, Suspense } from "react";
+import type { User, Reservation, StaffMember, ReservationMenu } from "@/lib/supabase";
 import type { CreateReservationParams } from "@/components/reservation/ReservationInputForm";
 import { StaffSelection } from "@/components/reservation/StaffSelection";
 import { ReservationCalendar } from "@/components/reservation/ReservationCalendar";
 import { ReservationInputForm } from "@/components/reservation/ReservationInputForm";
 import { format as formatTz } from "date-fns-tz";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth } from "date-fns";
 import { LoadingSpinner, PageLayout } from '@/components/common';
-import { calculateMonthlyAvailability } from "@/components/reservation/utils/availabilityCalculator";
-import type { DayAvailabilityInfo } from "@/components/reservation/types";
-import { userApi, timeSlotsApi, reservationApi, businessHoursApi, reservationMenuApi, staffApi, tenantApi } from "@/lib/api";
+import { userApi, reservationApi, reservationMenuApi, staffApi, tenantApi } from "@/lib/api";
+import { MonthlyAvailability } from "../api/availability/monthly/route";
+import { availabilityApi } from "@/lib/api/availability";
 
 function ReserveContent() {
   const [urlUserId, setUrlUserId] = useState<string | null>(null);
@@ -50,11 +49,9 @@ function ReserveContent() {
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [businessHours, setBusinessHours] = useState<BusinessHour[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()));
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability>();
 
   useEffect(() => {
     if (!urlTenantId || !urlUserId) {
@@ -78,14 +75,13 @@ function ReserveContent() {
         return;
       }
 
-      const { user: dbUserData, tenant, staffMembers, reservationMenu, businessHours } = result.data!;
+      const { user: dbUserData, tenant, staffMembers, reservationMenu } = result.data!;
       
       // 状態を更新
       if (dbUserData) setDbUser(dbUserData);
       if (tenant) setTenant(tenant);
       setStaffMembers(staffMembers);
       setReservationMenu(reservationMenu ?? null);
-      setBusinessHours(businessHours);
 
       // ユーザー予約を取得
       const reservationsResult = await userApi.getUserReservations(urlUserId, urlTenantId);
@@ -126,44 +122,18 @@ function ReserveContent() {
     return { success: true };
   };
 
-  // 月間の空きスロット計算
-  const monthlyAvailabilityInfo = useMemo(() => {
-    if (!businessHours.length) return new Map<string, DayAvailabilityInfo>();
-
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-
-    return calculateMonthlyAvailability(
-      monthStart,
-      monthEnd,
-      businessHours,
-      userReservations,
-      reservationMenu || undefined,
-    );
-  }, [currentMonth, businessHours, userReservations, reservationMenu]);
-
-  // 選択された日の時間スロットを取得
-  const fetchTimeSlots = async (date: Date, staffId?: string) => {
+  useEffect(() => {
     if (!urlTenantId) return;
-    
-    setSlotsLoading(true);
-    const result = await timeSlotsApi.getAvailableSlots(date, urlTenantId, staffId);
-    
-    if (result.success && result.data) {
-      setAvailableSlots(result.data);
-    } else {
-      console.error("Error fetching time slots:", result.error);
-      setAvailableSlots([]);
-    }
-    
-    setSlotsLoading(false);
-  };
+    availabilityApi.getMonthlyAvailability(urlTenantId, currentMonth.getFullYear(), currentMonth.getMonth())
+      .then((response) => {
+        setMonthlyAvailability(response.data ?? undefined);
+      });
+  }, [urlTenantId, currentMonth]);
 
   // 日付選択ハンドラー
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
     setSelectedDateTime(null);
-    fetchTimeSlots(date, selectedStaffId);
   };
 
   // 月変更ハンドラー
@@ -171,15 +141,7 @@ function ReserveContent() {
     setCurrentMonth(startOfMonth(activeStartDate));
     setSelectedDate(null);
     setSelectedDateTime(null);
-    setAvailableSlots([]);
   };
-
-  // スタッフ変更時に時間スロットを再取得
-  useEffect(() => {
-    if (selectedDate) {
-      fetchTimeSlots(selectedDate, selectedStaffId);
-    }
-  }, [selectedStaffId, selectedDate, urlTenantId]);
 
   // selectedDateTimeからselectedDateを復元
   useEffect(() => {
@@ -268,18 +230,21 @@ function ReserveContent() {
               )}
 
               {/* カレンダー */}
-              <ReservationCalendar
-                reservationMenu={reservationMenu}
-                selectedDate={selectedDate}
-                onDateChange={handleDateChange}
-                currentMonth={currentMonth}
-                onMonthChange={handleMonthChange}
-                monthlyAvailabilityInfo={monthlyAvailabilityInfo}
-                availableSlots={availableSlots}
-                selectedDateTime={selectedDateTime}
-                onDateTimeSelect={setSelectedDateTime}
-                slotsLoading={slotsLoading}
-              />
+              {
+                monthlyAvailability && (
+                  <ReservationCalendar
+                    reservationMenu={reservationMenu}
+                    selectedDate={selectedDate}
+                    onDateChange={handleDateChange}
+                    currentMonth={currentMonth}
+                    onMonthChange={handleMonthChange}
+                    monthlyAvailability={monthlyAvailability}
+                    selectedDateTime={selectedDateTime}
+                    onDateTimeSelect={setSelectedDateTime}
+                    selectedStaffId={selectedStaffId}
+                  />
+                )
+              }
 
               {/* 予約入力フォーム */}
               <ReservationInputForm
@@ -318,13 +283,11 @@ export const fetchInitialData = async (tenantId: string, userId: string) => {
     tenantResult,
     staffResult,
     menuResult,
-    businessHoursResult,
   ] = await Promise.all([
     userApi.getUser(userId, tenantId),
     tenantApi.getTenant(tenantId),
     staffApi.getStaffMembers(tenantId),
     reservationMenuApi.getReservationMenu(tenantId),
-    businessHoursApi.getBusinessHours(tenantId),
   ]);
 
   // Check if any critical API calls failed
@@ -345,7 +308,6 @@ export const fetchInitialData = async (tenantId: string, userId: string) => {
       tenant: tenantResult.data,
       staffMembers: staffResult.data || [],
       reservationMenu: menuResult.data,
-      businessHours: businessHoursResult.data || [],
     },
   };
 }

@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+'use client'
+
+import React, { useMemo } from "react";
 import { CalendarView } from "./Calendar/CalendarView";
 import { TimeSlotList } from "./TimeSlot/TimeSlotList";
-import type { DayAvailabilityInfo } from "./types";
 import type { ReservationMenu } from "@/lib/supabase";
-import type { TimeSlot } from "./types";
+import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
 
 interface ReservationCalendarProps {
   reservationMenu: ReservationMenu | null;
@@ -11,28 +12,36 @@ interface ReservationCalendarProps {
   onDateChange: (date: Date) => void;
   currentMonth: Date;
   onMonthChange: (activeStartDate: Date) => void;
-  monthlyAvailabilityInfo: Map<string, DayAvailabilityInfo>;
-  availableSlots: TimeSlot[];
+  monthlyAvailability: MonthlyAvailability;
   selectedDateTime: string | null;
   onDateTimeSelect: (datetime: string | null) => void;
-  slotsLoading: boolean;
+  selectedStaffId: string;
 }
 
 export function ReservationCalendar({
   reservationMenu,
   selectedDate,
   onDateChange,
-  currentMonth,
   onMonthChange,
-  monthlyAvailabilityInfo,
-  availableSlots,
+  monthlyAvailability,
   selectedDateTime,
   onDateTimeSelect,
-  slotsLoading,
+  selectedStaffId,
 }: ReservationCalendarProps) {
   const handleTimeSelect = (datetime: string) => {
     onDateTimeSelect(datetime);
   };
+
+  const timeSlots = useMemo(() => {
+    if (selectedStaffId) {
+      const staffAvailability = monthlyAvailability.staffMembers.find(
+        (staff) => staff.id === selectedStaffId
+      );
+      return staffAvailability?.timeSlots ?? []
+    }
+
+    return monthlyAvailability.tenant.timeSlots;
+  }, [monthlyAvailability, selectedStaffId]);
 
   return (
     <div className="space-y-6">
@@ -44,9 +53,8 @@ export function ReservationCalendar({
         <CalendarView
           selectedDate={selectedDate}
           onDateChange={onDateChange}
-          currentMonth={currentMonth}
           onActiveStartDateChange={onMonthChange}
-          availabilityInfo={monthlyAvailabilityInfo}
+          timeSlots={timeSlots}
         />
       </div>
 
@@ -55,10 +63,9 @@ export function ReservationCalendar({
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <TimeSlotList
             selectedDate={selectedDate}
-            availableSlots={availableSlots}
+            availableSlots={timeSlots.filter(slot => slot.isAvailable)}
             selectedDateTime={selectedDateTime}
             onTimeSelect={handleTimeSelect}
-            loading={slotsLoading}
             reservationMenu={reservationMenu}
           />
         </div>

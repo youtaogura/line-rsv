@@ -1,15 +1,16 @@
 import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { startOfMonth, endOfMonth, addDays, format } from "date-fns";
+import { startOfMonth, endOfMonth, addDays } from "date-fns";
 import {
   requireValidTenant,
   TenantValidationError,
 } from "@/lib/tenant-validation";
-import { calculateMonthlyAvailability } from "@/components/reservation/utils/availabilityCalculator";
+import { generateTimeSlots, updateSlotsWithReservations } from "@/components/reservation/utils/availabilityCalculator";
 import type {
   BusinessHour,
   Reservation,
   ReservationMenu,
+  StaffMember,
 } from "@/lib/supabase";
 import {
   createApiResponse,
@@ -17,9 +18,22 @@ import {
   createValidationErrorResponse,
 } from "@/utils/api";
 
-interface DayAvailability {
-  date: string;
-  hasAvailability: boolean;
+interface TimeSlot {
+  time: string;
+  datetime: string;
+  isAvailable: boolean;
+}
+
+interface StaffTimeSlots {
+  id: string;
+  timeSlots: TimeSlot[];
+}
+
+export interface MonthlyAvailability {
+  tenant: {
+    timeSlots: TimeSlot[];
+  };
+  staffMembers: StaffTimeSlots[];
 }
 
 export async function GET(request: NextRequest) {
@@ -54,7 +68,7 @@ export async function GET(request: NextRequest) {
     const monthStart = startOfMonth(new Date(yearNum, monthNum));
     const monthEnd = endOfMonth(new Date(yearNum, monthNum));
 
-    // 営業時間を取得
+    // テナントの営業時間を取得
     const { data: businessHours, error: businessError } = await supabase
       .from("business_hours")
       .select("*")
@@ -66,7 +80,7 @@ export async function GET(request: NextRequest) {
       return createErrorResponse("Failed to fetch business hours");
     }
 
-    // 予約メニューを取得
+    // サービスメニューを取得
     const { data: reservationMenus, error: menuError } = await supabase
       .from("reservation_menu")
       .select("*")
@@ -78,17 +92,37 @@ export async function GET(request: NextRequest) {
       return createErrorResponse("Failed to fetch reservation menu");
     }
 
-    const reservationMenu = reservationMenus?.[0] as
-      | ReservationMenu
-      | undefined;
+    const reservationMenu = reservationMenus?.[0] as ReservationMenu | undefined;
 
-    // 月内のすべての予約を取得
+    // スタッフメンバーを取得
+    const { data: staffMembers, error: staffError } = await supabase
+      .from("staff_members")
+      .select("*")
+      .eq("tenant_id", tenant.id);
+
+    if (staffError) {
+      console.error("Error fetching staff members:", staffError);
+      return createErrorResponse("Failed to fetch staff members");
+    }
+
+    // スタッフの対応時間を取得
+    const { data: staffBusinessHours, error: staffBusinessError } = await supabase
+      .from("staff_member_business_hours")
+      .select("*")
+      .in("staff_member_id", (staffMembers as StaffMember[]).map(s => s.id));
+
+    if (staffBusinessError) {
+      console.error("Error fetching staff business hours:", staffBusinessError);
+      return createErrorResponse("Failed to fetch staff business hours");
+    }
+
+    // 期間内のすべての予約を取得
     const monthStartISO = monthStart.toISOString();
     const monthEndISO = monthEnd.toISOString();
 
     const { data: reservations, error: reservationsError } = await supabase
       .from("reservations")
-      .select("id, datetime, duration_minutes, reservation_menu_id")
+      .select("id, datetime, duration_minutes, reservation_menu_id, staff_member_id")
       .eq("tenant_id", tenant.id)
       .gte("datetime", monthStartISO)
       .lte("datetime", monthEndISO);
@@ -98,32 +132,85 @@ export async function GET(request: NextRequest) {
       return createErrorResponse("Failed to fetch reservations");
     }
 
-    // 新しいロジックで月間空き状況を計算
-    const availabilityMap = calculateMonthlyAvailability(
-      monthStart,
-      monthEnd,
-      businessHours as BusinessHour[],
-      reservations as Reservation[],
-      reservationMenu,
-    );
-
-    // 結果を配列形式に変換
-    const dayAvailabilities: DayAvailability[] = [];
+    // テナント営業時間のベースタイムスロットを生成
+    const tenantTimeSlots: TimeSlot[] = [];
     let currentDay = monthStart;
 
     while (currentDay <= monthEnd) {
-      const dateStr = format(currentDay, "yyyy-MM-dd");
-      const dayInfo = availabilityMap.get(dateStr);
-
-      dayAvailabilities.push({
-        date: dateStr,
-        hasAvailability: dayInfo ? dayInfo.availableSlots > 0 : false,
-      });
-
+      const daySlots = generateTimeSlots(
+        currentDay,
+        businessHours as BusinessHour[],
+        reservationMenu
+      );
+      
+      tenantTimeSlots.push(...daySlots.map(slot => ({
+        time: slot.time,
+        datetime: slot.datetime,
+        isAvailable: true // 初期値はtrue、後でスタッフの空き状況から計算
+      })));
+      
       currentDay = addDays(currentDay, 1);
     }
 
-    return createApiResponse(dayAvailabilities);
+    // スタッフごとのタイムスロットを生成
+    const staffTimeSlotsMap = new Map<string, TimeSlot[]>();
+    
+    for (const staff of staffMembers as StaffMember[]) {
+      const staffHours = staffBusinessHours?.filter(h => h.staff_member_id === staff.id) || [];
+      if (staffHours.length < 1) {
+        continue;
+      }
+      const staffReservations = (reservations as Reservation[])?.filter(r => r.staff_member_id === staff.id) || [];
+      
+      const staffSlots: TimeSlot[] = [];
+      let currentDay = monthStart;
+
+      while (currentDay <= monthEnd) {
+        const daySlots = generateTimeSlots(
+          currentDay,
+          staffHours,
+          reservationMenu
+        );
+        
+        // 予約状況を反映
+        const updatedSlots = updateSlotsWithReservations(
+          daySlots,
+          staffReservations,
+          reservationMenu
+        );
+        
+        staffSlots.push(...updatedSlots);
+        
+        currentDay = addDays(currentDay, 1);
+      }
+      
+      staffTimeSlotsMap.set(staff.id, staffSlots);
+    }
+
+    // テナントの空き状況を計算（一人でもスタッフが空いていればtrue）
+    const updatedTenantTimeSlots = tenantTimeSlots.map(tenantSlot => {
+      const hasAvailableStaff = staffTimeSlotsMap.values().some(
+        staffSlots => staffSlots.find(s => s.datetime === tenantSlot.datetime)?.isAvailable
+      );
+      
+      return {
+        ...tenantSlot,
+        isAvailable: hasAvailableStaff
+      };
+    });
+
+    // レスポンス形式に変換
+    const response: MonthlyAvailability = {
+      tenant: {
+        timeSlots: updatedTenantTimeSlots
+      },
+      staffMembers: Array.from(staffTimeSlotsMap.entries()).map(([staffId, timeSlots]) => ({
+        id: staffId,
+        timeSlots
+      }))
+    };
+
+    return createApiResponse(response);
   } catch (error) {
     console.error("Unexpected error:", error);
     return createErrorResponse("Internal server error");

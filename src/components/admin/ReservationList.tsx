@@ -14,13 +14,20 @@ interface ReservationListProps {
   tenantId: string | null;
   reservations: ReservationWithStaff[];
   onDeleteReservation: (tenantId: string, id: string) => Promise<void>;
+  selectedStaffId: string;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
   tenantId,
   reservations,
   onDeleteReservation,
+  selectedStaffId,
 }) => {
+  const filteredReservations = reservations.filter(
+    (reservation) =>
+      !selectedStaffId
+      || reservation.staff_member_id === selectedStaffId,
+  );
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
@@ -50,14 +57,14 @@ export const ReservationList: React.FC<ReservationListProps> = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {reservations.length === 0 ? (
+          {filteredReservations.length === 0 ? (
             <tr>
               <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                 予約がありません
               </td>
             </tr>
           ) : (
-            reservations.map((reservation) => (
+            filteredReservations.map((reservation) => (
               <tr key={reservation.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {reservation.name}

@@ -1,83 +1,84 @@
 import React, { useCallback } from "react";
 import Calendar from "react-calendar";
 import { CalendarTile } from "./CalendarTile";
-import { DayAvailability } from "../types";
-import { format, isBefore, startOfDay } from "date-fns";
+import { isBefore, isSameDay, startOfDay } from "date-fns";
 import "react-calendar/dist/Calendar.css";
 import "./calendar-styles.css";
+import { TimeSlot } from "../types";
 
 interface CalendarViewProps {
   selectedDate: Date | null;
   onDateChange: (date: Date) => void;
-  currentMonth: Date;
   onActiveStartDateChange: (activeStartDate: Date) => void;
-  reservationCount?: { [date: string]: Array<unknown> };
-  availabilityInfo: Map<string, { availableSlots: number }>;
+  timeSlots: TimeSlot[];
 }
 
 export const CalendarView = React.memo(function CalendarView({
   selectedDate,
   onDateChange,
-  currentMonth,
   onActiveStartDateChange,
-  reservationCount,
-  availabilityInfo,
+  timeSlots,
 }: CalendarViewProps) {
   const today = startOfDay(new Date());
+
+  const isPastDate = useCallback(
+    (date: Date) => isBefore(startOfDay(date), today),
+    [today]
+  );
+
+  const hasEmptySlot = useCallback(
+    (date: Date) => timeSlots.some(
+        (slot) => isSameDay(new Date(slot.datetime), date) && slot.isAvailable,
+      ),
+    [timeSlots]);
+
+  const isTileAvailable = useCallback(
+    ({ date }: { date: Date }) => {
+      return !isPastDate(date) && hasEmptySlot(date);
+    },
+    [timeSlots, today]
+  );
 
   const getTileClassName = useCallback(
     ({ date, view }: { date: Date; view: string }) => {
       if (view !== "month") return "";
 
-      const dateStr = format(date, "yyyy-MM-dd");
-      const dayAvailability = availabilityInfo.get(dateStr);
-      const isPastDate = isBefore(startOfDay(date), today);
-      const isSelected =
-        selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr;
-
       let classes = "relative ";
+      const isAvailable = isTileAvailable({ date });
 
-      if (isPastDate || !dayAvailability?.availableSlots) {
+      if (!isAvailable) {
         classes += "bg-gray-200 text-gray-400 cursor-not-allowed ";
       } else {
         classes += "bg-white hover:bg-blue-50 cursor-pointer ";
       }
 
-      if (isSelected && !isPastDate && dayAvailability?.availableSlots) {
+      const isSelected = selectedDate && isSameDay(selectedDate, date)
+
+      if (isSelected && isAvailable) {
         classes += "bg-blue-500 text-white hover:bg-blue-600 ";
       }
 
       return classes.trim();
     },
-    [availabilityInfo, selectedDate, today],
+    [timeSlots, selectedDate, today],
   );
 
   const getTileDisabled = ({ date, view }: { date: Date; view: string }) => {
     if (view !== "month") return false;
 
-    // 管理者モード（reservationCountが存在する場合）では過去の日付も選択可能
-    if (reservationCount) {
-      return false;
-    }
-
-    const dateStr = format(date, "yyyy-MM-dd");
-    const dayAvailability = availabilityInfo.get(dateStr);
-    const isPastDate = isBefore(startOfDay(date), today);
-
-    return isPastDate || !dayAvailability?.availableSlots;
+    return !isTileAvailable({ date });
   };
 
   const getTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== "month") return null;
 
-    const dateStr = format(date, "yyyy-MM-dd");
-    const availableSlots = availabilityInfo.get(dateStr)?.availableSlots || 0;  ;
-    const isPastDate = isBefore(startOfDay(date), today);
+    const isPast = isPastDate(date);
+    const hasEmpty = hasEmptySlot(date);
 
     return (
       <CalendarTile
-        isPast={isPastDate}
-        isAvailable={availableSlots > 0}
+        isPast={isPast}
+        isAvailable={hasEmpty}
       />
     );
   };
@@ -86,17 +87,7 @@ export const CalendarView = React.memo(function CalendarView({
     value: Date | Date[] | null | [Date | null, Date | null],
   ) => {
     if (value && !Array.isArray(value)) {
-      // 管理者モード（reservationCountが存在する場合）では全ての日付を選択可能
-      if (reservationCount) {
-        onDateChange(value);
-        return;
-      }
-
-      const dateStr = format(value, "yyyy-MM-dd");
-      const availableSlots = availabilityInfo.get(dateStr)?.availableSlots || 0;
-      const isPastDate = isBefore(startOfDay(value), today);
-
-      if (!isPastDate && availableSlots > 0) {
+      if (isTileAvailable({ date: value })) {
         onDateChange(value);
       }
     }
@@ -117,13 +108,13 @@ export const CalendarView = React.memo(function CalendarView({
       <Calendar
         value={selectedDate}
         onChange={handleDateClick}
-        activeStartDate={currentMonth}
+        // activeStartDate={currentMonth}
         onActiveStartDateChange={handleActiveStartDateChange}
         tileClassName={getTileClassName}
         tileDisabled={getTileDisabled}
         tileContent={getTileContent}
         locale="ja-JP"
-        minDate={reservationCount ? undefined : today}
+        minDate={today}
         maxDetail="month"
         minDetail="month"
         className="w-full border-0 bg-white rounded-lg"
