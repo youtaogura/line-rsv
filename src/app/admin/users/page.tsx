@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useMemo } from "react";
 import { useAdminSession, useUsers } from "@/hooks/useAdminData";
 import { UserList } from "@/components/admin/UserList";
 import { UserEditModal } from "@/components/admin/UserEditModal";
@@ -9,12 +9,32 @@ import { UI_TEXT } from '@/constants/ui';
 import { MEMBER_TYPES } from '@/constants/business';
 import type { User } from "@/lib/supabase";
 
+type UserFilter = 'all' | 'regular' | 'guest';
+
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { users, fetchUsers, updateUser } = useUsers();
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userFilter, setUserFilter] = useState<UserFilter>('all');
+  const [nameFilter, setNameFilter] = useState('');
+
+  const filteredUsers = useMemo(() => {
+    let filtered = users;
+
+    if (userFilter !== 'all') {
+      filtered = filtered.filter(user => user.member_type === userFilter);
+    }
+
+    if (nameFilter.trim()) {
+      filtered = filtered.filter(user => 
+        user.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
+
+    return filtered;
+  }, [users, userFilter, nameFilter]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -66,8 +86,12 @@ function UsersContent() {
         showBackToAdmin={true}
       >
         <UserList
-          users={users}
+          users={filteredUsers}
+          userFilter={userFilter}
+          nameFilter={nameFilter}
           onEditUser={handleEditUser}
+          onUserFilterChange={setUserFilter}
+          onNameFilterChange={setNameFilter}
         />
 
         <UserEditModal
