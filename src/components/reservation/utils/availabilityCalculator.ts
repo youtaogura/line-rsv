@@ -173,60 +173,6 @@ export function calculateDayAvailability(
 }
 
 /**
- * 月間の空き状況マップを計算
- */
-export function calculateMonthlyAvailability(
-  timeSlots: TimeSlot[],
-  reservations: Reservation[],
-  reservationMenu: ReservationMenu,
-): Map<string, DayAvailabilityInfo> {
-  const availabilityMap = new Map<string, DayAvailabilityInfo>();
-
-  let currentDate = new Date(startDate);
-
-  while (isBefore(currentDate, endDate) || isSameDay(currentDate, endDate)) {
-    let dayInfo;
-    
-    if (staffId && staffBusinessHours) {
-      // スタッフが選択されている場合は、そのスタッフの営業時間のみを使用
-      const filteredBusinessHours = staffBusinessHours
-          .filter(sbh => sbh.staff_member_id === staffId)
-          .map(sbh => ({
-            id: sbh.id,
-            tenant_id: "",
-            day_of_week: sbh.day_of_week,
-            start_time: sbh.start_time,
-            end_time: sbh.end_time,
-            is_active: sbh.is_active,
-            created_at: sbh.created_at,
-          })) as BusinessHour[];
-
-      dayInfo = calculateDayAvailability(
-        currentDate,
-        filteredBusinessHours,
-        reservations,
-        reservationMenu,
-      );
-    } else {
-      // スタッフ営業時間がない場合は従来の処理
-      dayInfo = calculateDayAvailability(
-        currentDate,
-        businessHours,
-        reservations,
-        reservationMenu,
-      );
-    }
-
-    console.log(dayInfo)
-    
-    availabilityMap.set(dayInfo.date, dayInfo);
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return availabilityMap;
-}
-
-/**
  * スタッフ未選択時の空き状況を計算（一人でも空いているスタッフがいる時間のみ利用可能）
  */
 export function calculateAvailabilityWithoutStaffSelection(

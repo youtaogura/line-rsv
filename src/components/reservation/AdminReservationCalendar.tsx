@@ -16,6 +16,7 @@ interface AdminReservationCalendarProps {
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
   selectedStaffId: string;
+  businessDaysSet: Set<number>;
 }
 
 interface DayReservations {
@@ -83,6 +84,25 @@ function consolidateTimeSlots(
   );
 }
 
+function reservationOnlyTimeSlots(
+  currentDayReservations: Reservation[],
+): TimeSlotWithReservation[] {
+  return currentDayReservations
+    .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
+    .map(reservation => {
+      const reservationStart = new Date(reservation.datetime);
+      const reservationDuration = reservation.duration_minutes || 30;
+      const reservationEnd = addMinutes(reservationStart, reservationDuration);
+      
+      return {
+        startTime: format(reservationStart, "HH:mm"),
+        endTime: format(reservationEnd, "HH:mm"),
+        datetime: reservation.datetime,
+        reservation,
+      };
+    });
+}
+
 export function AdminReservationCalendar({
   tenantId,
   reservations,
@@ -90,6 +110,7 @@ export function AdminReservationCalendar({
   onCreateReservation,
   availableUsers = [],
   selectedStaffId,
+  businessDaysSet,
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(
@@ -99,9 +120,13 @@ export function AdminReservationCalendar({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
   const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability | null>(null);
+  const [reservationsOnlySelected, setReservationsOnlySelected] = useState(false);
 
   const timeSlots = useMemo(() => {
     if (!monthlyAvailability) return [];
+    if (selectedStaffId === "all" || selectedStaffId === "unassigned") {
+      return monthlyAvailability.tenant.timeSlots;
+    }
     if (selectedStaffId) {
       const staffAvailability = monthlyAvailability.staffMembers.find(
         (staff) => staff.id === selectedStaffId
@@ -111,6 +136,10 @@ export function AdminReservationCalendar({
 
     return monthlyAvailability.tenant.timeSlots;
   }, [monthlyAvailability, selectedStaffId]);
+
+  const showReservationsOnly = useMemo(() => {
+    return selectedStaffId === "all" || selectedStaffId === "unassigned" || reservationsOnlySelected;
+  }, [selectedStaffId, reservationsOnlySelected]);
 
   // 月間の空きスロット計算
   useEffect(() => {
@@ -147,32 +176,55 @@ export function AdminReservationCalendar({
     ? format(selectedDate, "yyyy-MM-dd")
     : null;
   const selectedDayTimeSlots = useMemo(() => {
-    if (!monthlyAvailability || !selectedDate || !selectedStaffId) return [];
+    if (!monthlyAvailability || !selectedDate) return [];
+    
+    // 「全員」「担当なし」選択時、または「予約だけ表示」がONの場合は空き情報を表示しない
+    if (selectedStaffId === "all" || selectedStaffId === "unassigned" || reservationsOnlySelected) {
+      return [];
+    }
+    
     return monthlyAvailability.staffMembers.find(
       (staff) => staff.id === selectedStaffId
     )?.timeSlots.filter(
       slot => isSameDay(new Date(slot.datetime), selectedDate),
     ) ?? [];
-  }, [monthlyAvailability, selectedDate, selectedStaffId])
+  }, [monthlyAvailability, selectedDate, selectedStaffId, reservationsOnlySelected])
 
   // 統合されたタイムスロットを計算
   const timeSlotsWithReservation = useMemo(() => {
     const currentDayReservations = selectedDateString
       ? dayReservations[selectedDateString] || []
       : [];
-    const ret = consolidateTimeSlots(
+    
+    // 「全員」「担当なし」選択時、または「予約だけ表示」がONの場合は予約情報のみを表示（空き情報は表示しない）
+    if (showReservationsOnly) {
+      return reservationOnlyTimeSlots(currentDayReservations)
+    }
+    return consolidateTimeSlots(
       selectedDayTimeSlots,
       currentDayReservations,
     );
-    return ret
-  }, [selectedDayTimeSlots, selectedDateString, dayReservations]);
+  }, [selectedDayTimeSlots, selectedDateString, dayReservations, selectedStaffId, reservationsOnlySelected]);
 
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          予約カレンダー
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">
+            予約カレンダー
+          </h3>
+          {selectedStaffId && selectedStaffId !== "all" && selectedStaffId !== "unassigned" && (
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={reservationsOnlySelected}
+                onChange={(e) => setReservationsOnlySelected(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <span className="text-sm text-gray-700">予約だけ表示</span>
+            </label>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96 lg:h-auto lg:min-h-96">
           {/* カレンダー部分 */}
@@ -182,6 +234,9 @@ export function AdminReservationCalendar({
               onDateChange={handleDateChange}
               onActiveStartDateChange={handleMonthChange}
               timeSlots={timeSlots}
+              reservations={reservations}
+              showReservationsOnly={showReservationsOnly}
+              businessDaysSet={businessDaysSet}
             />
           </div>
 

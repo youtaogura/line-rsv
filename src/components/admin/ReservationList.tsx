@@ -1,6 +1,7 @@
 import React from "react";
 import type { Reservation } from "@/lib/supabase";
 import { MemberTypeBadge, DateTimeDisplay } from "@/components/common";
+import { MonthNavigation } from "@/components/admin/MonthNavigation";
 import { UI_TEXT } from "@/constants/ui";
 
 interface ReservationWithStaff extends Reservation {
@@ -15,6 +16,8 @@ interface ReservationListProps {
   reservations: ReservationWithStaff[];
   onDeleteReservation: (tenantId: string, id: string) => Promise<void>;
   selectedStaffId: string;
+  currentMonth: string;
+  onMonthChange: (month: string) => void;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
@@ -22,14 +25,25 @@ export const ReservationList: React.FC<ReservationListProps> = ({
   reservations,
   onDeleteReservation,
   selectedStaffId,
+  currentMonth,
+  onMonthChange,
 }) => {
-  const filteredReservations = reservations.filter(
-    (reservation) =>
-      !selectedStaffId
-      || reservation.staff_member_id === selectedStaffId,
-  );
+  const filteredReservations = reservations.filter((reservation) => {
+    if (selectedStaffId === "all") {
+      return true;
+    }
+    if (selectedStaffId === "unassigned") {
+      return !reservation.staff_member_id;
+    }
+    return reservation.staff_member_id === selectedStaffId;
+  });
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
+    <div>
+      <MonthNavigation 
+        currentMonth={currentMonth}
+        onMonthChange={onMonthChange}
+      />
+      <div className="bg-white shadow rounded-lg overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -100,6 +114,7 @@ export const ReservationList: React.FC<ReservationListProps> = ({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

@@ -1,15 +1,27 @@
 interface CalendarTileProps {
-  isPast: boolean;
   isAvailable: boolean;
+  reservationCount: number;
+  showNothing?: boolean;
 }
 
 export function CalendarTile({
-  isPast,
-  isAvailable
+  isAvailable,
+  reservationCount,
+  showNothing,
 }: CalendarTileProps) {
   const getIndicator = () => {
-    if (isPast) {
+    if (showNothing) {
       return <></>;
+    }
+
+    // 予約数がある場合はバッジを表示
+    if (reservationCount > 0) {
+      // インジケーターを非表示にする場合
+      return (
+        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-white bg-blue-500 rounded-full min-w-[20px]">
+          {reservationCount}
+        </span>
+      );
     }
 
     if (isAvailable) {
