@@ -1,31 +1,12 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-
-interface Reservation {
-  id: string;
-  name: string;
-  member_type: string;
-  datetime: string;
-  users?: {
-    user_id: string;
-    name: string;
-  } | null;
-  staff_members?: {
-    id: string;
-    name: string;
-  } | null;
-}
-
-interface StaffMember {
-  id: string;
-  name: string;
-}
+import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 
 interface StaffAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reservation: Reservation | null;
-  staffMembers: StaffMember[];
+  reservation: ReservationSimple | null;
+  staffMembers: StaffMemberSimple[];
   onAssignStaff: (reservationId: string, staffId: string) => Promise<void>;
   onRemoveStaff: (reservationId: string) => Promise<void>;
 }

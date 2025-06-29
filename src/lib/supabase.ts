@@ -82,6 +82,34 @@ export type StaffMemberBusinessHour = {
   updated_at: string;
 };
 
+// 予約作成時に使用するデータ型
+export interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
+
+// コンポーネントで使用される簡略版の型
+export type ReservationMenuSimple = Pick<ReservationMenu, 'id' | 'name'>;
+export type BusinessHourSimple = Pick<BusinessHour, 'id' | 'day_of_week' | 'start_time' | 'end_time'>;
+export type StaffMemberSimple = Pick<StaffMember, 'id' | 'name'>;
+export type ReservationSimple = Pick<Reservation, 'id' | 'name' | 'member_type' | 'datetime'> & {
+  users?: {
+    user_id: string;
+    name: string;
+  } | null;
+  staff_members?: {
+    id: string;
+    name: string;
+  } | null;
+};
+
 export type Admin = {
   id: string;
   tenant_id: string;

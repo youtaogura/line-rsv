@@ -3,31 +3,14 @@
 import { useState, useEffect } from "react";
 // import { X } from 'lucide-react'
 import { format as formatTz } from "date-fns-tz";
-import type { User } from "@/lib/supabase";
-
-interface ReservationMenu {
-  id: string;
-  name: string;
-}
-
-interface ReservationData {
-  user_id: string;
-  name: string;
-  datetime: string;
-  note?: string | null;
-  member_type: string;
-  phone?: string | null;
-  admin_note?: string | null;
-  is_admin_mode: boolean;
-  reservation_menu_id?: string | null;
-}
+import type { User, ReservationMenuSimple, ReservationData } from "@/lib/supabase";
 
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedDateTime: string;
   availableUsers: User[];
-  reservationMenu: ReservationMenu | null;
+  reservationMenu: ReservationMenuSimple | null;
   onCreateReservation: (reservationData: ReservationData) => Promise<void>;
 }
 

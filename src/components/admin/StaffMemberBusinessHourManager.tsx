@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { StaffMember } from "@/lib/supabase";
+import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
 import { LoadingSpinner } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,18 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Clock, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { DAYS_OF_WEEK } from "@/constants/time";
 
-interface BusinessHour {
-  id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-}
-
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
   onClose?: () => void;
-  businessHours: BusinessHour[];
-  tenantBusinessHours: BusinessHour[];
+  businessHours: BusinessHourSimple[];
+  tenantBusinessHours: BusinessHourSimple[];
   loading: boolean;
   onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;

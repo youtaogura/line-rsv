@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import type { StaffMember } from "@/lib/supabase";
+import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -9,20 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Clock } from "lucide-react";
 import { StaffMemberBusinessHourManager } from "./StaffMemberBusinessHourManager";
 
-interface BusinessHour {
-  id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-}
-
 interface StaffEditModalProps {
   isOpen: boolean;
   staffMember: StaffMember | null;
   onClose: () => void;
   onUpdateStaffMember: (id: string, name: string) => Promise<boolean>;
-  businessHours: BusinessHour[];
-  tenantBusinessHours: BusinessHour[];
+  businessHours: BusinessHourSimple[];
+  tenantBusinessHours: BusinessHourSimple[];
   businessHoursLoading: boolean;
   onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;

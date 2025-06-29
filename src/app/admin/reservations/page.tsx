@@ -12,23 +12,7 @@ import {
 import { availabilityApi } from "@/lib/api/availability";
 import { buildApiUrl } from "@/lib/tenant-helpers";
 import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
-
-interface ReservationMenu {
-  id: string;
-  name: string;
-}
-
-interface ReservationData {
-  user_id: string;
-  name: string;
-  datetime: string;
-  note?: string | null;
-  member_type: string;
-  phone?: string | null;
-  admin_note?: string | null;
-  is_admin_mode: boolean;
-  reservation_menu_id?: string | null;
-}
+import type { ReservationMenuSimple, ReservationData } from "@/lib/supabase";
 import { AdminReservationCalendar } from "@/components/reservation/AdminReservationCalendar";
 import { ReservationList } from "@/components/admin/ReservationList";
 import { AuthGuard, AdminLayout, LoadingSpinner, ViewModeToggle } from '@/components/common';
@@ -44,7 +28,7 @@ function ReservationsContent() {
   const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } = useStaffMemberBusinessHours();
   const [viewMode, setViewMode] = useState<"calendar" | "table">("calendar");
   const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability | null>(null);
-  const [reservationMenu] = useState<ReservationMenu | null>(null);
+  const [reservationMenu] = useState<ReservationMenuSimple | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState<string>(() => {
     const now = new Date();

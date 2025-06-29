@@ -112,7 +112,6 @@ function AdminContent() {
               reservations={unassignedReservations}
               staffMembers={staffMembers}
               tenantId={session?.user?.tenant_id || ''}
-              onStaffAssigned={fetchUnassignedReservations}
               onAssignStaff={handleAssignStaff}
               onRemoveStaff={handleRemoveStaff}
             />

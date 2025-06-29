@@ -1,24 +1,17 @@
 import React, { useState } from "react";
-import type { StaffMember } from "@/lib/supabase";
+import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
 import { DateTimeDisplay } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StaffEditModal } from "./StaffEditModal";
 import { UI_TEXT } from "@/constants/ui";
 
-interface BusinessHour {
-  id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-}
-
 interface StaffMemberListProps {
   staffMembers: StaffMember[];
   onUpdateStaffMember: (id: string, name: string) => Promise<boolean>;
   onDeleteStaffMember: (id: string) => Promise<void>;
-  businessHours: BusinessHour[];
-  tenantBusinessHours: BusinessHour[];
+  businessHours: BusinessHourSimple[];
+  tenantBusinessHours: BusinessHourSimple[];
   businessHoursLoading: boolean;
   onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;

@@ -1,32 +1,12 @@
 import React, { useState } from 'react';
 import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
 import { StaffAssignModal } from './StaffAssignModal';
-
-interface Reservation {
-  id: string;
-  name: string;
-  member_type: string;
-  datetime: string;
-  users?: {
-    user_id: string;
-    name: string;
-  } | null;
-  staff_members?: {
-    id: string;
-    name: string;
-  } | null;
-}
-
-interface StaffMember {
-  id: string;
-  name: string;
-}
+import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 
 interface UnassignedReservationsProps {
-  reservations: Reservation[];
-  staffMembers: StaffMember[];
+  reservations: ReservationSimple[];
+  staffMembers: StaffMemberSimple[];
   tenantId: string;
-  onStaffAssigned?: () => void;
   onAssignStaff: (reservationId: string, staffId: string) => Promise<void>;
   onRemoveStaff: (reservationId: string) => Promise<void>;
 }
@@ -35,14 +15,13 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   reservations,
   staffMembers,
   tenantId: _tenantId,
-  onStaffAssigned,
   onAssignStaff,
   onRemoveStaff,
 }) => {
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [selectedReservation, setSelectedReservation] = useState<ReservationSimple | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAssignStaff = (reservation: Reservation) => {
+  const handleAssignStaff = (reservation: ReservationSimple) => {
     setSelectedReservation(reservation);
     setIsModalOpen(true);
   };

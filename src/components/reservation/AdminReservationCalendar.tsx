@@ -6,7 +6,7 @@ import { ReservationModal } from "./ReservationModal";
 import { Switch } from "@/components/ui/switch";
 import { startOfMonth, format, addMinutes, isSameDay } from "date-fns";
 import type { TimeSlot } from "./types";
-import type { Reservation, User } from "@/lib/supabase";
+import type { Reservation, User, ReservationMenuSimple, ReservationData } from "@/lib/supabase";
 
 interface ReservationWithUser extends Reservation {
   users?: {
@@ -15,23 +15,6 @@ interface ReservationWithUser extends Reservation {
   } | null;
 }
 import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
-
-interface ReservationMenu {
-  id: string;
-  name: string;
-}
-
-interface ReservationData {
-  user_id: string;
-  name: string;
-  datetime: string;
-  note?: string | null;
-  member_type: string;
-  phone?: string | null;
-  admin_note?: string | null;
-  is_admin_mode: boolean;
-  reservation_menu_id?: string | null;
-}
 
 interface AdminReservationCalendarProps {
   tenantId: string | null;
@@ -42,7 +25,7 @@ interface AdminReservationCalendarProps {
   selectedStaffId: string;
   businessDaysSet: Set<number>;
   monthlyAvailability: MonthlyAvailability | null;
-  reservationMenu: ReservationMenu | null;
+  reservationMenu: ReservationMenuSimple | null;
   onCreateReservationData: (reservationData: ReservationData) => Promise<void>;
 }
 
