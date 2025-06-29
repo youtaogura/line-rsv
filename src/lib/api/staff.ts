@@ -8,8 +8,8 @@ export const staffApi = {
     return fetchApi<StaffMember[]>(url);
   },
   
-  async getStaffMemberBusinessHours(tenantId: string): Promise<ApiResponse<StaffMemberBusinessHour[]>> {
-    const url = buildTenantApiUrl("/api/staff-member-business-hours", tenantId);
+  async getStaffMemberBusinessHours(tenantId: string, staffMemberId: string | 'all'): Promise<ApiResponse<StaffMemberBusinessHour[]>> {
+    const url = buildTenantApiUrl(`/api/staff-member-business-hours?staff_member_id=${staffMemberId}`, tenantId);
     return fetchApi<StaffMemberBusinessHour[]>(url);
   },
 };

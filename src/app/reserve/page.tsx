@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import type { User, Reservation, StaffMember, ReservationMenu } from "@/lib/supabase";
+import { useState, useEffect, Suspense, useMemo } from "react";
+import type { User, Reservation, StaffMember, ReservationMenu, BusinessHour, StaffMemberBusinessHour } from "@/lib/supabase";
 import type { CreateReservationParams } from "@/components/reservation/ReservationInputForm";
 import { StaffSelection } from "@/components/reservation/StaffSelection";
 import { ReservationCalendar } from "@/components/reservation/ReservationCalendar";
@@ -10,6 +10,7 @@ import { format as formatTz } from "date-fns-tz";
 import { startOfMonth } from "date-fns";
 import { LoadingSpinner, PageLayout } from '@/components/common';
 import { userApi, reservationApi, reservationMenuApi, staffApi, tenantApi } from "@/lib/api";
+import { businessHoursApi } from "@/lib/api/businessHours";
 import { MonthlyAvailability } from "../api/availability/monthly/route";
 import { availabilityApi } from "@/lib/api/availability";
 
@@ -46,6 +47,8 @@ function ReserveContent() {
   const [userReservations, setUserReservations] = useState<Reservation[]>([]);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [reservationMenu, setReservationMenu] = useState<ReservationMenu | null>(null);
+  const [businessHours, setBusinessHours] = useState<BusinessHour[]>([]);
+  const [staffBusinessHours, setStaffBusinessHours] = useState<StaffMemberBusinessHour[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -75,13 +78,15 @@ function ReserveContent() {
         return;
       }
 
-      const { user: dbUserData, tenant, staffMembers, reservationMenu } = result.data!;
+      const { user: dbUserData, tenant, staffMembers, reservationMenu, businessHours, staffBusinessHours } = result.data!;
       
       // 状態を更新
       if (dbUserData) setDbUser(dbUserData);
       if (tenant) setTenant(tenant);
       setStaffMembers(staffMembers);
       setReservationMenu(reservationMenu ?? null);
+      setBusinessHours(businessHours || []);
+      setStaffBusinessHours(staffBusinessHours || []);
 
       // ユーザー予約を取得
       const reservationsResult = await userApi.getUserReservations(urlUserId, urlTenantId);
@@ -150,6 +155,22 @@ function ReserveContent() {
       setSelectedDate(date);
     }
   }, [selectedDateTime, selectedDate]);
+
+  // 営業日のSetを作成（スタッフ選択時はそのスタッフの対応可能日も考慮）
+  const businessDaysSet = useMemo(() => {
+    if (selectedStaffId) {
+      // 選択されたスタッフの対応可能日を取得
+      return new Set(
+        staffBusinessHours.filter(
+          (hour) => hour.staff_member_id === selectedStaffId
+        ).map((hour) => hour.day_of_week)
+      );
+    }
+    // スタッフが選択されていない場合はテナントの営業時間を使用
+    return new Set(
+      businessHours.map((hour) => hour.day_of_week)
+    );
+  }, [businessHours, staffBusinessHours, selectedStaffId]);
 
   if (!tenant || loading) {
     return <LoadingSpinner />;
@@ -242,6 +263,7 @@ function ReserveContent() {
                     selectedDateTime={selectedDateTime}
                     onDateTimeSelect={setSelectedDateTime}
                     selectedStaffId={selectedStaffId}
+                    businessDaysSet={businessDaysSet}
                   />
                 )
               }
@@ -283,11 +305,15 @@ const fetchInitialData = async (tenantId: string, userId: string) => {
     tenantResult,
     staffResult,
     menuResult,
+    businessHoursResult,
+    staffBusinessHoursResult,
   ] = await Promise.all([
     userApi.getUser(userId, tenantId),
     tenantApi.getTenant(tenantId),
     staffApi.getStaffMembers(tenantId),
     reservationMenuApi.getReservationMenu(tenantId),
+    businessHoursApi.getBusinessHours(tenantId),
+    staffApi.getStaffMemberBusinessHours(tenantId, 'all'),
   ]);
 
   // Check if any critical API calls failed
@@ -308,6 +334,8 @@ const fetchInitialData = async (tenantId: string, userId: string) => {
       tenant: tenantResult.data,
       staffMembers: staffResult.data || [],
       reservationMenu: menuResult.data,
+      businessHours: businessHoursResult.data || [],
+      staffBusinessHours: staffBusinessHoursResult.data || [],
     },
   };
 }

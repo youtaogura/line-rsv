@@ -32,6 +32,22 @@ export async function GET(request: NextRequest) {
       return createValidationErrorResponse({ staff_member_id: "Staff member ID is required" });
     }
 
+    if (staffMemberId === 'all') {
+      const { data, error } = await supabase
+        .from("staff_member_business_hours")
+        .select("*")
+        .eq("is_active", true)
+        .order("day_of_week", { ascending: true })
+        .order("start_time", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching all staff members business hours:", error);
+        return createErrorResponse("Failed to fetch all staff members business hours");
+      }
+
+      return createApiResponse(data);
+    }
+
     // スタッフメンバーがテナントに属するかチェック
     const { data: staffMember, error: staffError } = await supabase
       .from("staff_members")

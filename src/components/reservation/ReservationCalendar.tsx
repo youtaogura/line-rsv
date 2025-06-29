@@ -16,6 +16,7 @@ interface ReservationCalendarProps {
   selectedDateTime: string | null;
   onDateTimeSelect: (datetime: string | null) => void;
   selectedStaffId: string;
+  businessDaysSet: Set<number>;
 }
 
 export function ReservationCalendar({
@@ -27,6 +28,7 @@ export function ReservationCalendar({
   selectedDateTime,
   onDateTimeSelect,
   selectedStaffId,
+  businessDaysSet,
 }: ReservationCalendarProps) {
   const handleTimeSelect = (datetime: string) => {
     onDateTimeSelect(datetime);
@@ -55,6 +57,7 @@ export function ReservationCalendar({
           onDateChange={onDateChange}
           onActiveStartDateChange={onMonthChange}
           timeSlots={timeSlots}
+          businessDaysSet={businessDaysSet}
         />
       </div>
 
