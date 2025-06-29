@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { buildApiUrl } from '@/lib/tenant-helpers';
 
 interface Reservation {
   id: string;
@@ -27,8 +26,8 @@ interface StaffAssignModalProps {
   onClose: () => void;
   reservation: Reservation | null;
   staffMembers: StaffMember[];
-  tenantId: string;
-  onSuccess: () => void;
+  onAssignStaff: (reservationId: string, staffId: string) => Promise<void>;
+  onRemoveStaff: (reservationId: string) => Promise<void>;
 }
 
 export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
@@ -36,39 +35,21 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
   onClose,
   reservation,
   staffMembers,
-  tenantId,
-  onSuccess,
+  onAssignStaff,
+  onRemoveStaff,
 }) => {
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reservation || !selectedStaffId || !tenantId) return;
+    if (!reservation || !selectedStaffId) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        buildApiUrl(`/api/reservations?id=${reservation.id}`, tenantId),
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            staff_member_id: selectedStaffId,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        alert('担当スタッフを設定しました');
-        onSuccess();
-        onClose();
-      } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'スタッフの設定に失敗しました');
-      }
+      await onAssignStaff(reservation.id, selectedStaffId);
+      alert('担当スタッフを設定しました');
+      onClose();
     } catch (error) {
       console.error('Error assigning staff:', error);
       alert('スタッフの設定に失敗しました');
@@ -77,32 +58,14 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
     }
   };
 
-  const handleRemoveStaff = async () => {
-    if (!reservation || !tenantId) return;
+  const handleRemoveStaffClick = async () => {
+    if (!reservation) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        buildApiUrl(`/api/reservations?id=${reservation.id}`, tenantId),
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            staff_member_id: null,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        alert('担当スタッフを解除しました');
-        onSuccess();
-        onClose();
-      } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'スタッフの解除に失敗しました');
-      }
+      await onRemoveStaff(reservation.id);
+      alert('担当スタッフを解除しました');
+      onClose();
     } catch (error) {
       console.error('Error removing staff:', error);
       alert('スタッフの解除に失敗しました');
@@ -162,7 +125,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
               {reservation.staff_members && (
                 <button
                   type="button"
-                  onClick={handleRemoveStaff}
+                  onClick={handleRemoveStaffClick}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                 >
@@ -180,7 +143,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !selectedStaffId || !tenantId}
+                  disabled={isLoading || !selectedStaffId}
                   className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isLoading ? '設定中...' : '設定'}

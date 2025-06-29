@@ -16,7 +16,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   authenticationMessage = UI_TEXT.ADMIN_LOGIN_REQUIRED,
 }) => {
   if (isLoading) {
-    return <LoadingSpinner text={UI_TEXT.AUTHENTICATION_CHECKING} />;
+    return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {

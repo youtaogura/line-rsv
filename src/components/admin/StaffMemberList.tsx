@@ -6,16 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StaffEditModal } from "./StaffEditModal";
 import { UI_TEXT } from "@/constants/ui";
 
+interface BusinessHour {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 interface StaffMemberListProps {
   staffMembers: StaffMember[];
   onUpdateStaffMember: (id: string, name: string) => Promise<boolean>;
   onDeleteStaffMember: (id: string) => Promise<void>;
+  businessHours: BusinessHour[];
+  tenantBusinessHours: BusinessHour[];
+  businessHoursLoading: boolean;
+  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
+  onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
 export const StaffMemberList: React.FC<StaffMemberListProps> = ({
   staffMembers,
   onUpdateStaffMember,
   onDeleteStaffMember,
+  businessHours,
+  tenantBusinessHours,
+  businessHoursLoading,
+  onCreateBusinessHour,
+  onDeleteBusinessHour,
 }) => {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,6 +103,11 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
         staffMember={selectedStaff}
         onClose={handleCloseModal}
         onUpdateStaffMember={onUpdateStaffMember}
+        businessHours={businessHours}
+        tenantBusinessHours={tenantBusinessHours}
+        businessHoursLoading={businessHoursLoading}
+        onCreateBusinessHour={onCreateBusinessHour}
+        onDeleteBusinessHour={onDeleteBusinessHour}
       />
     </>
   );

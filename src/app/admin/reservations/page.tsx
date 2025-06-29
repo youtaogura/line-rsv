@@ -9,6 +9,26 @@ import {
   useBusinessHours,
   useStaffMemberBusinessHours,
 } from "@/hooks/useAdminData";
+import { availabilityApi } from "@/lib/api/availability";
+import { buildApiUrl } from "@/lib/tenant-helpers";
+import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
+
+interface ReservationMenu {
+  id: string;
+  name: string;
+}
+
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 import { AdminReservationCalendar } from "@/components/reservation/AdminReservationCalendar";
 import { ReservationList } from "@/components/admin/ReservationList";
 import { AuthGuard, AdminLayout, LoadingSpinner, ViewModeToggle } from '@/components/common';
@@ -23,6 +43,8 @@ function ReservationsContent() {
   const { businessHours, fetchBusinessHours } = useBusinessHours();
   const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } = useStaffMemberBusinessHours();
   const [viewMode, setViewMode] = useState<"calendar" | "table">("calendar");
+  const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability | null>(null);
+  const [reservationMenu] = useState<ReservationMenu | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState<string>(() => {
     const now = new Date();
@@ -66,6 +88,20 @@ function ReservationsContent() {
     }
   }, [isAuthenticated, session, fetchUsers, fetchStaffMembers, fetchBusinessHours]);
 
+  // 月間カレンダー用の利用可能性データを取得
+  useEffect(() => {
+    if (isAuthenticated && session?.user?.tenant_id && viewMode === "calendar") {
+      const currentDate = new Date();
+      availabilityApi.getMonthlyAvailability(
+        session.user.tenant_id, 
+        currentDate.getFullYear(), 
+        currentDate.getMonth()
+      ).then((response) => {
+        setMonthlyAvailability(response.data ?? null);
+      }).catch(console.error);
+    }
+  }, [isAuthenticated, session, viewMode]);
+
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const staffIdForApi =
@@ -101,6 +137,26 @@ function ReservationsContent() {
     } else {
       fetchReservations(session.user.tenant_id, staffIdForApi);
     }
+  };
+
+  const handleCreateReservationData = async (reservationData: ReservationData) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+    
+    const response = await fetch(buildApiUrl('/api/reservations', session.user.tenant_id), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(reservationData),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '予約の作成に失敗しました');
+    }
+
+    return result;
   };
 
   const handleMonthChange = (month: string) => {
@@ -172,6 +228,9 @@ function ReservationsContent() {
             availableUsers={users}
             selectedStaffId={selectedStaffId}
             businessDaysSet={businessDaysSet}
+            monthlyAvailability={monthlyAvailability}
+            reservationMenu={reservationMenu}
+            onCreateReservationData={handleCreateReservationData}
           />
         )}
 

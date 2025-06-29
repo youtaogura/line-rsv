@@ -2,27 +2,42 @@
 
 import { useState, useEffect } from "react";
 // import { X } from 'lucide-react'
-import { useReservationMenu } from "./hooks/useReservationMenu";
 import { format as formatTz } from "date-fns-tz";
-import { buildApiUrl } from "@/lib/tenant-helpers";
 import type { User } from "@/lib/supabase";
+
+interface ReservationMenu {
+  id: string;
+  name: string;
+}
+
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  tenantId: string;
   preselectedDateTime: string;
   availableUsers: User[];
-  onSuccess: () => void;
+  reservationMenu: ReservationMenu | null;
+  onCreateReservation: (reservationData: ReservationData) => Promise<void>;
 }
 
 export function ReservationModal({
   isOpen,
   onClose,
-  tenantId,
   preselectedDateTime,
   availableUsers,
-  onSuccess,
+  reservationMenu,
+  onCreateReservation,
 }: ReservationModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,8 +47,6 @@ export function ReservationModal({
   const [userMode, setUserMode] = useState<"existing" | "new">("existing");
   const [selectedUserId, setSelectedUserId] = useState("");
 
-  // 予約メニューを取得
-  const { reservationMenu } = useReservationMenu(tenantId);
 
   // モーダルが開いたときの初期化
   useEffect(() => {
@@ -114,27 +127,8 @@ export function ReservationModal({
         reservation_menu_id: reservationMenu?.id || null,
       };
 
-      const response = await fetch(buildApiUrl("/api/reservations", tenantId), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reservationData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error("Reservation error:", result);
-        alert(
-          result.error ||
-            "予約に失敗しました。時間をおいて再度お試しください。",
-        );
-        return;
-      }
-
+      await onCreateReservation(reservationData);
       alert("予約を登録しました！");
-      onSuccess();
       onClose();
     } catch (error) {
       console.error("Reservation error:", error);

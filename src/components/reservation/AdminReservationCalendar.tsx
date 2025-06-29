@@ -15,7 +15,23 @@ interface ReservationWithUser extends Reservation {
   } | null;
 }
 import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
-import { availabilityApi } from "@/lib/api/availability";
+
+interface ReservationMenu {
+  id: string;
+  name: string;
+}
+
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 
 interface AdminReservationCalendarProps {
   tenantId: string | null;
@@ -25,6 +41,9 @@ interface AdminReservationCalendarProps {
   availableUsers?: User[];
   selectedStaffId: string;
   businessDaysSet: Set<number>;
+  monthlyAvailability: MonthlyAvailability | null;
+  reservationMenu: ReservationMenu | null;
+  onCreateReservationData: (reservationData: ReservationData) => Promise<void>;
 }
 
 interface DayReservations {
@@ -119,15 +138,17 @@ export function AdminReservationCalendar({
   availableUsers = [],
   selectedStaffId,
   businessDaysSet,
+  monthlyAvailability,
+  reservationMenu,
+  onCreateReservationData,
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [currentMonth, setCurrentMonth] = useState<Date>(
+  const [, setCurrentMonth] = useState<Date>(
     startOfMonth(new Date()),
   );
   const [dayReservations, setDayReservations] = useState<DayReservations>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
-  const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability | null>(null);
   const [reservationsOnlySelected, setReservationsOnlySelected] = useState(false);
 
   const timeSlots = useMemo(() => {
@@ -149,14 +170,6 @@ export function AdminReservationCalendar({
     return selectedStaffId === "all" || selectedStaffId === "unassigned" || reservationsOnlySelected;
   }, [selectedStaffId, reservationsOnlySelected]);
 
-  // 月間の空きスロット計算
-  useEffect(() => {
-    if (!tenantId) return;
-    availabilityApi.getMonthlyAvailability(tenantId, currentMonth.getFullYear(), currentMonth.getMonth())
-      .then((response) => {
-        setMonthlyAvailability(response.data ?? null);
-      });
-  }, [tenantId, currentMonth]);
 
   // 予約データを日付ごとにグループ化
   useEffect(() => {
@@ -365,11 +378,11 @@ export function AdminReservationCalendar({
       <ReservationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        tenantId={tenantId || ""}
         preselectedDateTime={selectedDateTime}
         availableUsers={availableUsers}
-        onSuccess={() => {
-          // 予約作成成功時の処理
+        reservationMenu={reservationMenu}
+        onCreateReservation={async (reservationData) => {
+          await onCreateReservationData(reservationData);
           if (onCreateReservation) {
             onCreateReservation(selectedDateTime);
           }

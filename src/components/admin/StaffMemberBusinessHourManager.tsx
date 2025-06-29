@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { StaffMember } from "@/lib/supabase";
-import { useStaffMemberBusinessHours, useBusinessHours } from "@/hooks/useAdminData";
 import { LoadingSpinner } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,38 +9,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Clock, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { DAYS_OF_WEEK } from "@/constants/time";
 
+interface BusinessHour {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
   onClose?: () => void;
+  businessHours: BusinessHour[];
+  tenantBusinessHours: BusinessHour[];
+  loading: boolean;
+  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
+  onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
 export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourManagerProps> = ({
   staffMember,
   onClose: _onClose,
+  businessHours,
+  tenantBusinessHours,
+  loading,
+  onCreateBusinessHour,
+  onDeleteBusinessHour,
 }) => {
-  const {
-    businessHours,
-    loading,
-    fetchStaffMemberBusinessHours,
-    createStaffMemberBusinessHour,
-    deleteStaffMemberBusinessHour,
-  } = useStaffMemberBusinessHours();
-
-  const {
-    businessHours: tenantBusinessHours,
-    fetchBusinessHours,
-  } = useBusinessHours();
 
   const [dayOfWeek, setDayOfWeek] = useState(1); // 月曜日
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [_errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    fetchStaffMemberBusinessHours(staffMember.id);
-    fetchBusinessHours();
-  }, [staffMember.id, fetchStaffMemberBusinessHours, fetchBusinessHours]);
 
   // テナントの営業時間を取得する関数
   const getTenantBusinessHoursForDay = (day: number) => {
@@ -57,27 +57,26 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
     setErrorMessage("");
     
     setIsSubmitting(true);
-    const success = await createStaffMemberBusinessHour({
-      staff_member_id: staffMember.id,
-      day_of_week: dayOfWeek,
-      start_time: startTime,
-      end_time: endTime,
-    });
-    
-    if (success) {
+    try {
+      await onCreateBusinessHour(staffMember.id, dayOfWeek, startTime, endTime);
       setDayOfWeek(1);
       setStartTime("09:00");
       setEndTime("18:00");
-      // 再取得
-      await fetchStaffMemberBusinessHours(staffMember.id);
+    } catch (error) {
+      console.error("Failed to create business hour:", error);
+      setErrorMessage("営業時間の追加に失敗しました");
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const handleDelete = async (id: string) => {
-    await deleteStaffMemberBusinessHour(id);
-    // 再取得
-    await fetchStaffMemberBusinessHours(staffMember.id);
+    try {
+      await onDeleteBusinessHour(id);
+    } catch (error) {
+      console.error("Failed to delete business hour:", error);
+      alert("営業時間の削除に失敗しました");
+    }
   };
 
   if (loading) {

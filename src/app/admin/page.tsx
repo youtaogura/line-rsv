@@ -8,6 +8,7 @@ import {
   useUnassignedReservations,
   useStaffMembers,
 } from "@/hooks/useAdminData";
+import { buildApiUrl } from "@/lib/tenant-helpers";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
@@ -22,6 +23,50 @@ function AdminContent() {
   const { unassignedReservations, fetchUnassignedReservations } = useUnassignedReservations();
   const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const [loading, setLoading] = useState(true);
+
+  const handleAssignStaff = async (reservationId: string, staffId: string) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+    
+    const response = await fetch(
+      buildApiUrl(`/api/reservations?id=${reservationId}`, session.user.tenant_id),
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          staff_member_id: staffId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'スタッフの設定に失敗しました');
+    }
+  };
+
+  const handleRemoveStaff = async (reservationId: string) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+    
+    const response = await fetch(
+      buildApiUrl(`/api/reservations?id=${reservationId}`, session.user.tenant_id),
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          staff_member_id: null,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'スタッフの解除に失敗しました');
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -68,6 +113,8 @@ function AdminContent() {
               staffMembers={staffMembers}
               tenantId={session?.user?.tenant_id || ''}
               onStaffAssigned={fetchUnassignedReservations}
+              onAssignStaff={handleAssignStaff}
+              onRemoveStaff={handleRemoveStaff}
             />
           </div>
         )}

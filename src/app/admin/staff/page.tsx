@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
-import { useAdminSession, useStaffMembers } from "@/hooks/useAdminData";
+import { useAdminSession, useStaffMembers, useBusinessHours, useStaffMemberBusinessHours } from "@/hooks/useAdminData";
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { StaffMemberList } from "@/components/admin/StaffMemberList";
 import { StaffMemberForm } from "@/components/admin/StaffMemberForm";
@@ -16,12 +16,29 @@ function StaffContent() {
     updateStaffMember,
     deleteStaffMember,
   } = useStaffMembers();
+  const { businessHours: tenantBusinessHours, fetchBusinessHours } = useBusinessHours();
+  const {
+    businessHours,
+    loading: businessHoursLoading,
+    createStaffMemberBusinessHour,
+    deleteStaffMemberBusinessHour,
+  } = useStaffMemberBusinessHours();
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       fetchStaffMembers();
+      fetchBusinessHours();
     }
-  }, [isAuthenticated, session, fetchStaffMembers]);
+  }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours]);
+
+  const handleCreateBusinessHour = async (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => {
+    await createStaffMemberBusinessHour({
+      staff_member_id: staffMemberId,
+      day_of_week: dayOfWeek,
+      start_time: startTime,
+      end_time: endTime,
+    });
+  };
 
   if (loading) {
     return <LoadingSpinner />;
@@ -44,6 +61,11 @@ function StaffContent() {
             staffMembers={staffMembers}
             onUpdateStaffMember={updateStaffMember}
             onDeleteStaffMember={deleteStaffMember}
+            businessHours={businessHours}
+            tenantBusinessHours={tenantBusinessHours}
+            businessHoursLoading={businessHoursLoading}
+            onCreateBusinessHour={handleCreateBusinessHour}
+            onDeleteBusinessHour={deleteStaffMemberBusinessHour}
           />
         </div>
       </AdminLayout>

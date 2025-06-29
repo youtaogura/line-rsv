@@ -27,13 +27,17 @@ interface UnassignedReservationsProps {
   staffMembers: StaffMember[];
   tenantId: string;
   onStaffAssigned?: () => void;
+  onAssignStaff: (reservationId: string, staffId: string) => Promise<void>;
+  onRemoveStaff: (reservationId: string) => Promise<void>;
 }
 
 export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   reservations,
   staffMembers,
-  tenantId,
+  tenantId: _tenantId,
   onStaffAssigned,
+  onAssignStaff,
+  onRemoveStaff,
 }) => {
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,12 +50,6 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedReservation(null);
-  };
-
-  const handleSuccess = () => {
-    if (onStaffAssigned) {
-      onStaffAssigned();
-    }
   };
 
   return (
@@ -122,8 +120,8 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
         onClose={handleModalClose}
         reservation={selectedReservation}
         staffMembers={staffMembers}
-        tenantId={tenantId}
-        onSuccess={handleSuccess}
+        onAssignStaff={onAssignStaff}
+        onRemoveStaff={onRemoveStaff}
       />
     </div>
   );

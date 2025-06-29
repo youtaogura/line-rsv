@@ -9,11 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Clock } from "lucide-react";
 import { StaffMemberBusinessHourManager } from "./StaffMemberBusinessHourManager";
 
+interface BusinessHour {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 interface StaffEditModalProps {
   isOpen: boolean;
   staffMember: StaffMember | null;
   onClose: () => void;
   onUpdateStaffMember: (id: string, name: string) => Promise<boolean>;
+  businessHours: BusinessHour[];
+  tenantBusinessHours: BusinessHour[];
+  businessHoursLoading: boolean;
+  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
+  onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
 export const StaffEditModal: React.FC<StaffEditModalProps> = ({
@@ -21,6 +33,11 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
   staffMember,
   onClose,
   onUpdateStaffMember,
+  businessHours,
+  tenantBusinessHours,
+  businessHoursLoading,
+  onCreateBusinessHour,
+  onDeleteBusinessHour,
 }) => {
   const [activeTab, setActiveTab] = useState("info");
   const [staffName, setStaffName] = useState("");
@@ -148,6 +165,11 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
                 <StaffMemberBusinessHourManager
                   staffMember={staffMember}
                   onClose={() => {}} // Don't close the entire modal, just stay on this tab
+                  businessHours={businessHours}
+                  tenantBusinessHours={tenantBusinessHours}
+                  loading={businessHoursLoading}
+                  onCreateBusinessHour={onCreateBusinessHour}
+                  onDeleteBusinessHour={onDeleteBusinessHour}
                 />
               </CardContent>
             </Card>
