@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import type { StaffMember } from "@/lib/supabase";
-import { useStaffMemberBusinessHours } from "@/hooks/useAdminData";
+import { useStaffMemberBusinessHours, useBusinessHours } from "@/hooks/useAdminData";
 import { LoadingSpinner } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Trash2, Plus } from "lucide-react";
+import { Clock, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { DAYS_OF_WEEK } from "@/constants/time";
 
 interface StaffMemberBusinessHourManagerProps {
@@ -27,17 +27,34 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
     deleteStaffMemberBusinessHour,
   } = useStaffMemberBusinessHours();
 
+  const {
+    businessHours: tenantBusinessHours,
+    fetchBusinessHours,
+  } = useBusinessHours();
+
   const [dayOfWeek, setDayOfWeek] = useState(1); // 月曜日
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     fetchStaffMemberBusinessHours(staffMember.id);
-  }, [staffMember.id, fetchStaffMemberBusinessHours]);
+    fetchBusinessHours();
+  }, [staffMember.id, fetchStaffMemberBusinessHours, fetchBusinessHours]);
+
+  // テナントの営業時間を取得する関数
+  const getTenantBusinessHoursForDay = (day: number) => {
+    return tenantBusinessHours.filter(hour => hour.day_of_week === day);
+  };
+
+  // 選択された曜日のテナント営業時間があるかチェック
+  const selectedDayTenantHours = getTenantBusinessHoursForDay(dayOfWeek);
+  const isDayAvailable = selectedDayTenantHours.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     
     setIsSubmitting(true);
     const success = await createStaffMemberBusinessHour({
@@ -88,11 +105,20 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DAYS_OF_WEEK.map((day, index) => (
-                      <SelectItem key={index} value={index.toString()}>
-                        {day}
-                      </SelectItem>
-                    ))}
+                    {DAYS_OF_WEEK.map((day, index) => {
+                      const dayTenantHours = getTenantBusinessHoursForDay(index);
+                      const hasOperatingHours = dayTenantHours.length > 0;
+                      return (
+                        <SelectItem key={index} value={index.toString()} disabled={!hasOperatingHours}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{day}</span>
+                            {!hasOperatingHours && (
+                              <span className="text-xs text-muted-foreground ml-2">(営業日ではありません)</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -103,9 +129,8 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                   id="startTime"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  min="09:00"
-                  max="18:00"
                   required
+                  disabled={!isDayAvailable}
                 />
               </div>
               <div className="space-y-2">
@@ -115,16 +140,53 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                   id="endTime"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  min="09:00"
-                  max="18:00"
                   required
+                  disabled={!isDayAvailable}
                 />
               </div>
             </div>
+            
+            {/* テナント営業時間の情報表示 */}
+            {isDayAvailable && selectedDayTenantHours.length > 0 && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium">テナント営業時間: {DAYS_OF_WEEK[dayOfWeek]}</p>
+                    <div className="mt-1">
+                      {selectedDayTenantHours.map((hour, index) => (
+                        <span key={hour.id} className="font-mono">
+                          {hour.start_time} - {hour.end_time}
+                          {index < selectedDayTenantHours.length - 1 && ", "}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-xs">
+                      スタッフの対応時間はこの営業時間内に設定してください
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!isDayAvailable && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-medium">{DAYS_OF_WEEK[dayOfWeek]}はテナントの営業日ではありません</p>
+                    <p className="mt-1 text-xs">
+                      まずテナントの営業時間を設定してください
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isDayAvailable}
                 className="flex items-center space-x-2"
               >
                 <Plus className="h-4 w-4" />
@@ -150,81 +212,65 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
           </Card>
         ) : (
           <>
-            {/* Desktop Table View */}
-            <div className="hidden lg:block">
-              <Card>
-                <CardContent className="p-0">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          曜日
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          時間
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          操作
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {businessHours.map((hour) => (
-                        <tr key={hour.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            {DAYS_OF_WEEK[hour.day_of_week]}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {hour.start_time} - {hour.end_time}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(hour.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              削除
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
-            </div>
+            <div className="space-y-3">
+              {(() => {
+                // 曜日ごとにグループ化
+                const groupedByDay = businessHours.reduce((acc, hour) => {
+                  const dayKey = hour.day_of_week;
+                  if (!acc[dayKey]) {
+                    acc[dayKey] = [];
+                  }
+                  acc[dayKey].push(hour);
+                  return acc;
+                }, {} as Record<number, typeof businessHours>);
 
-            {/* Mobile Card View */}
-            <div className="lg:hidden space-y-3">
-              {businessHours.map((hour) => (
-                <Card key={hour.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium text-lg">
-                          {DAYS_OF_WEEK[hour.day_of_week]}
+                // 各曜日の営業時間を開始時間順にソート
+                Object.keys(groupedByDay).forEach(dayKey => {
+                  groupedByDay[parseInt(dayKey)].sort((a, b) => a.start_time.localeCompare(b.start_time));
+                });
+
+                // 曜日順にソート
+                const sortedDayKeys = Object.keys(groupedByDay)
+                  .map(key => parseInt(key))
+                  .sort((a, b) => a - b);
+
+                return sortedDayKeys.map((dayOfWeek) => {
+                  const dayHours = groupedByDay[dayOfWeek];
+                  return (
+                    <Card key={dayOfWeek} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="font-medium text-lg">
+                              {DAYS_OF_WEEK[dayOfWeek]}
+                            </div>
+                            <div className="mt-2 space-y-2">
+                              {dayHours.map((hour) => (
+                                <div key={hour.id} className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">
+                                      {hour.start_time} - {hour.end_time}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(hour.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            {hour.start_time} - {hour.end_time}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(hour.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </CardContent>
+                    </Card>
+                  );
+                });
+              })()}
             </div>
           </>
         )}

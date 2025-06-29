@@ -126,13 +126,57 @@ export async function POST(request: NextRequest) {
     const endMinute = parseInt(end_time.split(":")[1]);
 
     if (
-      startHour < 9 ||
-      endHour > 18 ||
       startHour >= endHour ||
       (startHour === endHour && startMinute >= endMinute)
     ) {
       return createValidationErrorResponse({
-        time_range: "Invalid time range. Business hours must be between 09:00-18:00 and start time must be before end time"
+        time_range: "開始時間は終了時間より前である必要があります"
+      });
+    }
+
+    // テナントの営業時間をチェック
+    const { data: tenantBusinessHours, error: tenantHoursError } = await supabase
+      .from("business_hours")
+      .select("*")
+      .eq("tenant_id", tenant.id)
+      .eq("day_of_week", day_of_week)
+      .eq("is_active", true);
+
+    if (tenantHoursError) {
+      console.error("Error fetching tenant business hours:", tenantHoursError);
+      return createErrorResponse("Failed to check tenant business hours");
+    }
+
+    if (!tenantBusinessHours || tenantBusinessHours.length === 0) {
+      return createValidationErrorResponse({
+        time_range: "この曜日はテナントの営業日ではありません"
+      });
+    }
+
+    // スタッフの対応時間がテナントの営業時間内に収まっているかチェック
+    const staffStartMinutes = startHour * 60 + startMinute;
+    const staffEndMinutes = endHour * 60 + endMinute;
+
+    let isWithinTenantHours = false;
+    for (const tenantHour of tenantBusinessHours) {
+      const tenantStartParts = tenantHour.start_time.split(":");
+      const tenantEndParts = tenantHour.end_time.split(":");
+      const tenantStartMinutes = parseInt(tenantStartParts[0]) * 60 + parseInt(tenantStartParts[1]);
+      const tenantEndMinutes = parseInt(tenantEndParts[0]) * 60 + parseInt(tenantEndParts[1]);
+
+      // スタッフの時間がテナントの営業時間内に完全に収まっているかチェック
+      if (staffStartMinutes >= tenantStartMinutes && staffEndMinutes <= tenantEndMinutes) {
+        isWithinTenantHours = true;
+        break;
+      }
+    }
+
+    if (!isWithinTenantHours) {
+      const tenantHoursDisplay = tenantBusinessHours
+        .map(h => `${h.start_time}-${h.end_time}`)
+        .join(", ");
+      return createValidationErrorResponse({
+        time_range: `スタッフの対応時間はテナントの営業時間内（${tenantHoursDisplay}）に設定してください`
       });
     }
 
