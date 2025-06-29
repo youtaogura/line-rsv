@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
@@ -81,10 +82,29 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   backUrl 
 }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: ROUTES.ADMIN.LOGIN });
+  };
+
+  const handlePasswordChange = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+    const response = await fetch('/api/admin/password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'パスワード変更に失敗しました');
+    }
+
+    alert('パスワードが正常に変更されました');
   };
 
   const handleBack = () => {
@@ -198,7 +218,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem onClick={() => setIsPasswordModalOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>パスワード変更</span>
                 </DropdownMenuItem>
@@ -212,6 +232,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </div>
         </div>
       </div>
+      <PasswordChangeModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onSubmit={handlePasswordChange}
+      />
     </header>
   );
 };

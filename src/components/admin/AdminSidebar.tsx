@@ -37,6 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
@@ -81,9 +82,28 @@ const navigationItems = [
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
   const pathname = usePathname();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = React.useState(false);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: ROUTES.ADMIN.LOGIN });
+  };
+
+  const handlePasswordChange = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+    const response = await fetch('/api/admin/password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'パスワード変更に失敗しました');
+    }
+
+    alert('パスワードが正常に変更されました');
   };
 
   const getUserInitials = () => {
@@ -172,7 +192,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem onClick={() => setIsPasswordModalOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>パスワード変更</span>
                 </DropdownMenuItem>
@@ -188,6 +208,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
       </SidebarFooter>
 
       <SidebarRail />
+      
+      <PasswordChangeModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onSubmit={handlePasswordChange}
+      />
     </Sidebar>
   );
 };
