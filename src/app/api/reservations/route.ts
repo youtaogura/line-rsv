@@ -232,6 +232,40 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Failed to create reservation');
     }
 
+    // 通知を作成
+    try {
+      const memberTypeText = member_type === 'regular' ? '会員' : '新規';
+      const staffMemberName = staff_member_id ? 
+        (await supabase
+          .from('staff_members')
+          .select('name')
+          .eq('id', staff_member_id)
+          .single()
+        ).data?.name || '未指定' : '未指定';
+
+      const notificationTitle = `予約のお知らせ（${memberTypeText}）`;
+      const notificationMessage = `新しい予約がありました。
+${name}（${memberTypeText}）
+日時：${new Date(datetime).toLocaleString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}
+担当スタッフ：${staffMemberName}`;
+
+      await supabase
+        .from('notifications')
+        .insert({
+          tenant_id: tenant.id,
+          title: notificationTitle,
+          message: notificationMessage,
+        });
+    } catch (notificationError) {
+      console.error('Notification creation error:', notificationError);
+    }
+
     return createApiResponse(reservation, HTTP_STATUS.CREATED);
   } catch (error) {
     console.error('Unexpected error:', error);

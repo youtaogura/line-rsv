@@ -14,16 +14,20 @@ import {
   Settings,
   LogOut,
   Building,
+  Bell,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
+import { NotificationDrawer } from '@/components/admin/NotificationDrawer';
 
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminHeaderProps {
   title: string;
@@ -32,6 +36,7 @@ interface AdminHeaderProps {
     username?: string | null;
   };
   tenant?: {
+    id?: string;
     name: string;
   } | null;
   showBackButton?: boolean;
@@ -75,7 +80,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
   const router = useRouter();
+
+  const { getUnreadCount } = useNotifications(tenant?.id);
+  const unreadCount = getUnreadCount();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: ROUTES.ADMIN.LOGIN });
@@ -151,8 +160,29 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             </div>
           </div>
 
-          {/* Right side - Mobile menu and user dropdown */}
+          {/* Right side - Notification bell and Mobile menu */}
           <div className="flex items-center space-x-2">
+            {/* Notification bell */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsNotificationDrawerOpen(true)}
+                className="relative"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 min-w-[20px]"
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
+                <span className="sr-only">通知を開く</span>
+              </Button>
+            </div>
+
             {/* Mobile menu button */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
@@ -167,7 +197,32 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                   <div className="flex flex-col space-y-2 p-6 pb-4">
-                    <h2 className="text-lg font-semibold">管理画面</h2>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold">管理画面</h2>
+                      {/* Notification bell in mobile drawer */}
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setIsNotificationDrawerOpen(true);
+                            setIsSheetOpen(false);
+                          }}
+                          className="relative"
+                        >
+                          <Bell className="h-5 w-5" />
+                          {unreadCount > 0 && (
+                            <Badge
+                              variant="destructive"
+                              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 min-w-[20px]"
+                            >
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </Badge>
+                          )}
+                          <span className="sr-only">通知を開く</span>
+                        </Button>
+                      </div>
+                    </div>
                     {tenant && (
                       <p className="text-sm text-muted-foreground">
                         {tenant.name}
@@ -247,6 +302,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}
         onSubmit={handlePasswordChange}
+      />
+      <NotificationDrawer
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        tenantId={tenant?.id}
       />
     </header>
   );

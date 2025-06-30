@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Bell } from 'lucide-react';
 
 import {
   SidebarProvider,
@@ -10,8 +10,11 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AdminSidebar } from './AdminSidebar';
+import { NotificationDrawer } from './NotificationDrawer';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminLayoutWithSidebarProps {
   children: React.ReactNode;
@@ -22,6 +25,7 @@ interface AdminLayoutWithSidebarProps {
     username?: string | null;
   };
   tenant?: {
+    id?: string;
     name: string;
   } | null;
   showBackButton?: boolean;
@@ -38,6 +42,10 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
   backUrl,
 }) => {
   const router = useRouter();
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
+  
+  const { getUnreadCount } = useNotifications(tenant?.id);
+  const unreadCount = getUnreadCount();
 
   const handleBack = () => {
     if (backUrl) {
@@ -80,13 +88,34 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
             )}
 
             {/* Page title */}
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1">
               <h1 className="text-lg font-semibold">{title}</h1>
               {tenant && (
                 <p className="text-xs text-muted-foreground hidden sm:block">
                   {tenant.name}
                 </p>
               )}
+            </div>
+
+            {/* Notification bell for desktop */}
+            <div className="relative ml-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsNotificationDrawerOpen(true)}
+                className="relative"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 min-w-[20px]"
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
+                <span className="sr-only">通知を開く</span>
+              </Button>
             </div>
           </header>
 
@@ -103,6 +132,11 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
           </main>
         </SidebarInset>
       </div>
+      <NotificationDrawer
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        tenantId={tenant?.id}
+      />
     </SidebarProvider>
   );
 };
