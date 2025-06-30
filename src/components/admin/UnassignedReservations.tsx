@@ -54,11 +54,11 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
           {reservations.map((reservation) => (
             <div
               key={reservation.id}
-              className="flex justify-between items-center py-3 px-4 bg-white border rounded-xs"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 px-4 bg-white border rounded-xs gap-3"
             >
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-900">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-sm text-gray-900 truncate">
                     {reservation.users?.name ||
                       'ユーザー名が取得できませんでした'}
                   </span>
@@ -70,7 +70,7 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                   <MemberTypeBadge memberType={reservation.member_type} />
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
                 <div className="text-sm text-gray-600">
                   <DateTimeDisplay
                     datetime={reservation.datetime}
@@ -81,6 +81,7 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                   onClick={() => handleAssignStaff(reservation)}
                   variant="outline"
                   size="sm"
+                  className="whitespace-nowrap"
                 >
                   設定
                 </Button>

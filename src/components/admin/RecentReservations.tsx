@@ -35,9 +35,9 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
   const hasMoreReservations = reservations.length > maxDisplay;
 
   return (
-    <div className="mt-8 bg-white rounded-xs shadow">
+    <div className="mt-8 bg-white rounded-xs border shadow">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900">
+        <h2 className="text-md font-medium text-gray-900">
           {UI_TEXT.RECENT_RESERVATIONS}
         </h2>
       </div>
@@ -49,11 +49,11 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
             {displayedReservations.map((reservation) => (
               <div
                 key={reservation.id}
-                className="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0"
+                className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-gray-100 last:border-b-0 gap-2"
               >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-sm truncate">
                       {reservation.users?.name ||
                         'ユーザー名が取得できませんでした'}
                     </span>
@@ -68,7 +68,7 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
                     担当: {reservation.staff_members?.name || '未指定'}
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 flex-shrink-0">
                   <DateTimeDisplay
                     datetime={reservation.datetime}
                     format="short"
