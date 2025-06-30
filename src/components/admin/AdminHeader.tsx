@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -144,6 +144,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>管理画面メニュー</SheetTitle>
+                </SheetHeader>
                 <div className="flex flex-col space-y-4">
                   <div className="flex flex-col space-y-2">
                     <h2 className="text-lg font-semibold">管理画面</h2>
