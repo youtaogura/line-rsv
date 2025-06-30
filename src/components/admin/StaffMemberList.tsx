@@ -98,14 +98,16 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
                         >
                           設定
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDeleteStaffMember(staff.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          {UI_TEXT.DELETE}
-                        </Button>
+                        {staffMembers.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDeleteStaffMember(staff.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            {UI_TEXT.DELETE}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>

@@ -186,6 +186,26 @@ async function createTenant() {
 
     console.log(`✅ Default menu created: ${menu.name} (${menu.duration_minutes} minutes)`);
 
+    // 5. デフォルトスタッフを作成
+    console.log("👥 Creating default staff...");
+    const { data: staff, error: staffError } = await supabase
+      .from("staff")
+      .insert({
+        tenant_id: tenant.id,
+        name: adminName,
+      })
+      .select()
+      .single();
+
+    if (staffError) {
+      console.error("❌ Error creating default staff:", staffError.message);
+      // テナント、管理者、メニューを削除（ロールバック）
+      await supabase.from("tenants").delete().eq("id", tenant.id);
+      process.exit(1);
+    }
+
+    console.log(`✅ Default staff created: ${staff.name}`);
+
     console.log("\n🎉 Tenant setup completed successfully!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log(`🏢 Tenant Information:`);
@@ -205,6 +225,11 @@ async function createTenant() {
     console.log(`   Name:       ${menu.name}`);
     console.log(`   Duration:   ${menu.duration_minutes} minutes`);
     console.log(`   Slots:      ${menu.start_minutes_options.join(", ")} minutes past hour`);
+    console.log("");
+    console.log(`👥 Default Staff Information:`);
+    console.log(`   ID:         ${staff.id}`);
+    console.log(`   Name:       ${staff.name}`);
+    console.log(`   Created:    ${new Date(staff.created_at).toLocaleString()}`);
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("\n🔑 Login Information:");
     console.log(`   URL:        /admin/login`);
