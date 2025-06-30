@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { generateTimeOptions } from '@/lib/admin-types';
+import React, { useState } from 'react';
 
 interface BusinessHourFormProps {
   onCreateBusinessHour: (businessHour: {
@@ -34,7 +34,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
   const timeOptions = generateTimeOptions();
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white shadow rounded-xs p-6">
       <h2 className="text-lg font-medium text-gray-900 mb-4">営業時間を追加</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -54,7 +54,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
                   day_of_week: parseInt(e.target.value),
                 })
               }
-              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-xs border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               <option value={1}>月曜日</option>
               <option value={2}>火曜日</option>
@@ -81,7 +81,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
                   start_time: e.target.value,
                 })
               }
-              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-xs border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               {timeOptions.map((time) => (
                 <option key={time} value={time}>
@@ -106,7 +106,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
                   end_time: e.target.value,
                 })
               }
-              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="mt-1 block w-full h-8 rounded-xs border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             >
               {timeOptions.map((time) => (
                 <option key={time} value={time}>
@@ -118,7 +118,7 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="w-full bg-primary text-white px-4 py-2 rounded-xs hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               追加
             </button>

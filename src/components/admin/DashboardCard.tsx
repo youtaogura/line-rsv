@@ -6,7 +6,6 @@ interface DashboardCardProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  borderColor: string;
   bgColor: string;
 }
 
@@ -15,13 +14,12 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
   title,
   description,
   icon,
-  borderColor,
   bgColor,
 }) => {
   return (
     <Link
       href={href}
-      className={`bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border-l-4 ${borderColor}`}
+      className={`bg-white p-6 rounded-xs shadow hover:shadow-md transition-shadow border`}
     >
       <div className="flex items-center">
         <div className="flex-shrink-0">

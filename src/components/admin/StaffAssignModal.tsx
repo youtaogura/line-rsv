@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
+import React, { useState } from 'react';
 
 interface StaffAssignModalProps {
   isOpen: boolean;
@@ -73,7 +73,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">予約情報</h3>
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-xs">
               <p className="text-sm flex items-center gap-2">
                 <span className="font-medium">お客様:</span>{' '}
                 {reservation.users?.name || '名前不明'}
@@ -106,7 +106,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                 id="staff-select"
                 value={selectedStaffId}
                 onChange={(e) => setSelectedStaffId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               >
                 <option value="">スタッフを選択してください</option>
@@ -124,7 +124,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                   type="button"
                   onClick={handleRemoveStaffClick}
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-xs hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   担当解除
                 </button>
@@ -134,14 +134,14 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || !selectedStaffId}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-xs hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isLoading ? '設定中...' : '設定'}
                 </button>

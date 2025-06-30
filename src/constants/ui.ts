@@ -22,22 +22,22 @@ export const UI_TEXT = {
 
   // Reservations
   RESERVATION_MANAGEMENT: '予約管理',
-  RESERVATION_CONFIRM_DELETE: '予約の確認・削除・エクスポート',
-  RECENT_RESERVATIONS: '最近の予約',
+  RESERVATION_CONFIRM_DELETE: '予約・空き状況の確認と管理',
+  RECENT_RESERVATIONS: '直近の予約',
   NO_RESERVATIONS: '予約がありません',
   VIEW_ALL_RESERVATIONS: 'すべての予約を見る →',
 
   // Business hours
   BUSINESS_HOURS_MANAGEMENT: '営業時間管理',
-  BUSINESS_HOURS_SETTINGS: '営業時間の設定・変更',
+  BUSINESS_HOURS_SETTINGS: '営業時間の設定',
 
   // Staff
   STAFF_MANAGEMENT: 'スタッフ管理',
-  STAFF_INFO_MANAGEMENT: 'スタッフ情報の編集・管理',
+  STAFF_INFO_MANAGEMENT: 'スタッフ情報の確認と管理',
 
   // Users
   USER_MANAGEMENT: 'ユーザー管理',
-  USER_INFO_MANAGEMENT: '会員情報の編集・管理',
+  USER_INFO_MANAGEMENT: 'お客様情報の確認と管理',
   NO_USERS: '登録ユーザーがいません',
 
   // System

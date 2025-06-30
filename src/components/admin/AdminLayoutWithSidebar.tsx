@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import {
-  SidebarProvider,
   SidebarInset,
+  SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { useNotifications } from '@/hooks/useNotifications';
 import { AdminSidebar } from './AdminSidebar';
 import { NotificationDrawer } from './NotificationDrawer';
-import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminLayoutWithSidebarProps {
   children: React.ReactNode;
@@ -42,8 +42,9 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
   backUrl,
 }) => {
   const router = useRouter();
-  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
-  
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] =
+    useState(false);
+
   const { getUnreadCount } = useNotifications(tenant?.id);
   const unreadCount = getUnreadCount();
 
@@ -122,11 +123,6 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
           {/* Main content area */}
           <main className="flex-1 overflow-hidden">
             <div className="container mx-auto px-4 py-6 max-w-none">
-              {description && (
-                <div className="mb-6">
-                  <p className="text-muted-foreground">{description}</p>
-                </div>
-              )}
               {children}
             </div>
           </main>

@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import type { User } from '@/lib/supabase';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import type { User } from '@/lib/supabase';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 interface UserMergeModalProps {
   isOpen: boolean;
@@ -139,7 +139,7 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
           {/* 統合先ユーザー選択 */}
           <div className="space-y-3">
             <Label>統合先ユーザー選択</Label>
-            <div className="max-h-60 overflow-y-auto border rounded-md">
+            <div className="max-h-60 overflow-y-auto border rounded-xs">
               {targetUsers.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   {searchTerm

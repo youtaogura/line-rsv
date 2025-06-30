@@ -25,10 +25,10 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow mb-4">
+    <div className="flex items-center justify-between bg-white p-4 rounded-xs shadow mb-4">
       <button
         onClick={() => onMonthChange(previousMonthStr)}
-        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xs hover:bg-gray-200 transition-colors"
       >
         <svg
           className="w-4 h-4 mr-1"
@@ -52,7 +52,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
 
       <button
         onClick={() => onMonthChange(nextMonthStr)}
-        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xs hover:bg-gray-200 transition-colors"
       >
         {formatMonth(nextMonthStr)}
         <svg

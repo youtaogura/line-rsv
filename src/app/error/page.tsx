@@ -1,9 +1,9 @@
 'use client';
 
+import { ErrorIcon, LoadingSpinner, PageLayout } from '@/components/common';
+import { UI_TEXT } from '@/constants/ui';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { LoadingSpinner, PageLayout, ErrorIcon } from '@/components/common';
-import { UI_TEXT } from '@/constants/ui';
 
 function ErrorContent() {
   const searchParams = useSearchParams();
@@ -57,7 +57,7 @@ function ErrorContent() {
         <div className="space-y-4">
           <button
             onClick={() => window.history.back()}
-            className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors text-center block font-medium"
+            className="w-full bg-primary text-white py-3 px-4 rounded-xs hover:bg-primary-hover transition-colors text-center block font-medium"
           >
             戻る
           </button>

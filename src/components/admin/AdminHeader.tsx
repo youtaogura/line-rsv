@@ -1,32 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import {
-  Menu,
   ArrowLeft,
+  Bell,
+  Building,
   Calendar,
   Clock,
-  Users,
-  UserCheck,
-  Settings,
   LogOut,
-  Building,
-  Bell,
+  Menu,
+  Settings,
+  UserCheck,
+  Users,
 } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { NotificationDrawer } from '@/components/admin/NotificationDrawer';
+import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
-import { NotificationDrawer } from '@/components/admin/NotificationDrawer';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
-import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
+import { UI_TEXT } from '@/constants/ui';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminHeaderProps {
@@ -80,7 +86,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] =
+    useState(false);
   const router = useRouter();
 
   const { getUnreadCount } = useNotifications(tenant?.id);
@@ -199,29 +206,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   <div className="flex flex-col space-y-2 p-6 pb-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold">管理画面</h2>
-                      {/* Notification bell in mobile drawer */}
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setIsNotificationDrawerOpen(true);
-                            setIsSheetOpen(false);
-                          }}
-                          className="relative"
-                        >
-                          <Bell className="h-5 w-5" />
-                          {unreadCount > 0 && (
-                            <Badge
-                              variant="destructive"
-                              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 min-w-[20px]"
-                            >
-                              {unreadCount > 99 ? '99+' : unreadCount}
-                            </Badge>
-                          )}
-                          <span className="sr-only">通知を開く</span>
-                        </Button>
-                      </div>
                     </div>
                     {tenant && (
                       <p className="text-sm text-muted-foreground">
@@ -238,7 +222,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                           key={item.href}
                           href={item.href}
                           onClick={() => setIsSheetOpen(false)}
-                          className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                          className="flex items-center space-x-3 rounded-xs px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Icon className="h-4 w-4" />
                           <span>{item.label}</span>
@@ -246,7 +230,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                       );
                     })}
                   </nav>
-                  
+
                   {/* User section in drawer */}
                   <div className="mt-auto">
                     <Separator />

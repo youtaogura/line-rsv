@@ -1,11 +1,11 @@
-import React from 'react';
-import type { User } from '@/lib/supabase';
 import { MemberTypeBadge } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Phone } from 'lucide-react';
 import { UI_TEXT } from '@/constants/ui';
+import type { User } from '@/lib/supabase';
+import { Phone } from 'lucide-react';
+import React from 'react';
 
 type UserFilter = 'all' | 'regular' | 'guest';
 
@@ -50,7 +50,7 @@ export const UserList: React.FC<UserListProps> = ({
               value={nameFilter}
               onChange={(e) => onNameFilterChange(e.target.value)}
               placeholder="ユーザー名を入力"
-              className="w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              className="w-full border border-input rounded-xs px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 

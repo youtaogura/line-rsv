@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-import type { StaffMember, BusinessHourSimple } from '@/lib/supabase';
 import { LoadingSpinner } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Clock, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { DAYS_OF_WEEK } from '@/constants/time';
+import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
+import { AlertTriangle, Clock, Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
@@ -158,7 +158,7 @@ export const StaffMemberBusinessHourManager: React.FC<
 
             {/* テナント営業時間の情報表示 */}
             {isDayAvailable && selectedDayTenantHours.length > 0 && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xs">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
@@ -182,7 +182,7 @@ export const StaffMemberBusinessHourManager: React.FC<
             )}
 
             {!isDayAvailable && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xs">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
                   <div className="text-sm text-amber-800">

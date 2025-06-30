@@ -158,7 +158,7 @@ export function ReservationModal({
         </DialogHeader>
 
         {/* 予約日時表示 */}
-        <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-6 p-3 bg-blue-50 rounded-xs border border-blue-200">
           <h3 className="text-sm font-medium text-blue-900 mb-1">予約日時</h3>
           <p className="text-blue-800">{formattedDateTime}</p>
         </div>
@@ -246,7 +246,7 @@ export function ReservationModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={submitting}
             />
           </div>
@@ -259,7 +259,7 @@ export function ReservationModal({
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={submitting}
             />
           </div>

@@ -1,5 +1,5 @@
-import React from 'react';
 import Link from 'next/link';
+import React from 'react';
 
 interface ActionButtonProps {
   href: string;
@@ -15,7 +15,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   className = '',
 }) => {
   const baseClasses =
-    'w-full py-3 px-4 rounded-lg transition-colors text-center block font-medium';
+    'w-full py-3 px-4 rounded-xs transition-colors text-center block font-medium';
 
   const variantClasses = {
     primary: 'bg-primary text-white hover:bg-primary/90',

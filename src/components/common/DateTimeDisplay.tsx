@@ -1,5 +1,5 @@
-import React from 'react';
 import { formatDateTimeWithTz } from '@/utils/date';
+import React from 'react';
 
 interface DateTimeDisplayProps {
   datetime: string | Date;
@@ -15,10 +15,10 @@ export const DateTimeDisplay: React.FC<DateTimeDisplayProps> = ({
   className = '',
 }) => {
   const formatMap = {
-    short: 'M月d日 HH:mm',
-    full: 'yyyy年M月d日(EEEE) HH:mm',
+    short: 'MM/dd HH:mm',
+    full: 'yyyy/MM/dd(EEEE) HH:mm',
     'time-only': 'HH:mm',
-    'date-only': 'M月d日',
+    'date-only': 'MM/dd',
   };
 
   const formatString = formatMap[format];

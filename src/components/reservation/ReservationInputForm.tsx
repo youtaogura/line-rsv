@@ -89,7 +89,7 @@ export function ReservationInputForm({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xs shadow-sm border border-gray-200 p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">予約情報入力</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -111,7 +111,7 @@ export function ReservationInputForm({
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors disabled:bg-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors disabled:bg-gray-100"
               placeholder="お名前を入力してください"
             />
           )}
@@ -123,7 +123,7 @@ export function ReservationInputForm({
             予約日時 <span className="text-red-500">*</span>
           </label>
           <div
-            className={`w-full px-4 py-3 border rounded-md transition-colors ${
+            className={`w-full px-4 py-3 border rounded-xs transition-colors ${
               selectedDateTime
                 ? 'border-green-300 bg-green-50 text-green-800'
                 : 'border-red-300 bg-red-50 text-red-800'
@@ -184,7 +184,7 @@ export function ReservationInputForm({
               pattern="[0-9]*"
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               placeholder="電話番号を入力してください"
             />
           </div>
@@ -199,7 +199,7 @@ export function ReservationInputForm({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
             placeholder="特記事項やご要望があればご記入ください"
           />
         </div>
@@ -212,7 +212,7 @@ export function ReservationInputForm({
             !name.trim() ||
             (initialUser.member_type === 'guest' && !phone.trim())
           }
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+          className="w-full bg-blue-600 text-white py-3 px-6 rounded-xs hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
           {submitting ? '登録中...' : '予約する'}
         </button>

@@ -1,9 +1,9 @@
+import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
+import { Badge } from '@/components/ui/badge';
+import { ROUTES } from '@/constants/routes';
+import { UI_TEXT } from '@/constants/ui';
 import Link from 'next/link';
 import React from 'react';
-import { UI_TEXT } from '@/constants/ui';
-import { ROUTES } from '@/constants/routes';
-import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
-import { Badge } from '@/components/ui/badge';
 
 interface Reservation {
   id: string;
@@ -35,7 +35,7 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
   const hasMoreReservations = reservations.length > maxDisplay;
 
   return (
-    <div className="mt-8 bg-white rounded-lg shadow">
+    <div className="mt-8 bg-white rounded-xs shadow">
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-medium text-gray-900">
           {UI_TEXT.RECENT_RESERVATIONS}

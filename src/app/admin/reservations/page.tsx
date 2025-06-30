@@ -222,7 +222,7 @@ function ReservationsContent() {
 
           {/* スタッフフィルタ */}
           {staffMembers && staffMembers.length > 1 && (
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="bg-white p-4 rounded-xs shadow">
               <div className="flex items-center space-x-4">
                 <label
                   htmlFor="staff-filter"
@@ -234,7 +234,7 @@ function ReservationsContent() {
                   id="staff-filter"
                   value={selectedStaffId}
                   onChange={(e) => setSelectedStaffId(e.target.value)}
-                  className="block w-auto rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="block w-auto rounded-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
                   {staffMembers.length > 1 && (
                     <>

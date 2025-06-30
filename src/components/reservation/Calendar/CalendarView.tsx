@@ -1,11 +1,11 @@
+import type { Reservation } from '@/lib/supabase';
+import { format, isBefore, isSameDay, startOfDay } from 'date-fns';
 import React, { useCallback, useMemo } from 'react';
 import Calendar from 'react-calendar';
-import { CalendarTile } from './CalendarTile';
-import { isBefore, isSameDay, startOfDay, format } from 'date-fns';
 import 'react-calendar/dist/Calendar.css';
-import './calendar-styles.css';
 import { TimeSlot } from '../types';
-import type { Reservation } from '@/lib/supabase';
+import './calendar-styles.css';
+import { CalendarTile } from './CalendarTile';
 
 interface CalendarViewProps {
   selectedDate: Date | null;
@@ -151,7 +151,7 @@ export const CalendarView = React.memo(function CalendarView({
         minDate={today}
         maxDetail="month"
         minDetail="month"
-        className="w-full border-0 bg-white rounded-lg"
+        className="w-full border-0 bg-white rounded-xs"
       />
     </div>
   );

@@ -1,8 +1,8 @@
 'use client';
 
 import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import type {
   Reservation,
   ReservationData,
@@ -182,10 +182,13 @@ export function AdminReservationCalendar({
     setSelectedDate(date);
   }, []);
 
-  const handleMonthChange = useCallback((activeStartDate: Date) => {
-    onMonthChange(format(activeStartDate, 'yyyy-MM'));
-    setSelectedDate(null);
-  }, [onMonthChange]);
+  const handleMonthChange = useCallback(
+    (activeStartDate: Date) => {
+      onMonthChange(format(activeStartDate, 'yyyy-MM'));
+      setSelectedDate(null);
+    },
+    [onMonthChange]
+  );
 
   const selectedDateString = selectedDate
     ? format(selectedDate, 'yyyy-MM-dd')
@@ -236,7 +239,7 @@ export function AdminReservationCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white shadow rounded-xs p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-900">予約カレンダー</h3>
           {selectedStaffId &&
@@ -293,7 +296,7 @@ export function AdminReservationCalendar({
                       return (
                         <div
                           key={`${slot.startTime}-${index}`}
-                          className={`border rounded-lg p-3 ${
+                          className={`border rounded-xs p-3 ${
                             slot.reservation
                               ? 'border-orange-200 bg-orange-50'
                               : 'border-green-200 bg-green-50'
@@ -323,7 +326,10 @@ export function AdminReservationCalendar({
                                           'ユーザー名が取得できませんでした'}
                                       </span>
                                       {slot.reservation!.is_created_by_user && (
-                                        <Badge variant="secondary" className="text-xs">
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-xs"
+                                        >
                                           LINE予約
                                         </Badge>
                                       )}

@@ -132,7 +132,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center space-x-3 px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xs bg-primary text-primary-foreground">
             <Building className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">

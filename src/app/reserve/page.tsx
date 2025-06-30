@@ -1,31 +1,31 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo } from 'react';
-import type {
-  User,
-  Reservation,
-  StaffMember,
-  ReservationMenu,
-  BusinessHour,
-  StaffMemberBusinessHour,
-} from '@/lib/supabase';
-import type { CreateReservationParams } from '@/components/reservation/ReservationInputForm';
-import { StaffSelection } from '@/components/reservation/StaffSelection';
-import { ReservationCalendar } from '@/components/reservation/ReservationCalendar';
-import { ReservationInputForm } from '@/components/reservation/ReservationInputForm';
-import { format as formatTz } from 'date-fns-tz';
-import { startOfMonth } from 'date-fns';
 import { LoadingSpinner, PageLayout } from '@/components/common';
+import { ReservationCalendar } from '@/components/reservation/ReservationCalendar';
+import type { CreateReservationParams } from '@/components/reservation/ReservationInputForm';
+import { ReservationInputForm } from '@/components/reservation/ReservationInputForm';
+import { StaffSelection } from '@/components/reservation/StaffSelection';
 import {
-  userApi,
   reservationApi,
   reservationMenuApi,
   staffApi,
   tenantApi,
+  userApi,
 } from '@/lib/api';
-import { businessHoursApi } from '@/lib/api/businessHours';
-import { MonthlyAvailability } from '../api/availability/monthly/route';
 import { availabilityApi } from '@/lib/api/availability';
+import { businessHoursApi } from '@/lib/api/businessHours';
+import type {
+  BusinessHour,
+  Reservation,
+  ReservationMenu,
+  StaffMember,
+  StaffMemberBusinessHour,
+  User,
+} from '@/lib/supabase';
+import { startOfMonth } from 'date-fns';
+import { format as formatTz } from 'date-fns-tz';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { MonthlyAvailability } from '../api/availability/monthly/route';
 
 function ReserveContent() {
   const [urlUserId, setUrlUserId] = useState<string | null>(null);
@@ -229,7 +229,7 @@ function ReserveContent() {
 
         {/* 既存予約一覧 */}
         {userReservations.length > 0 && (
-          <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="mb-8 bg-white rounded-xs shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               あなたの予約一覧
             </h2>
@@ -237,7 +237,7 @@ function ReserveContent() {
               {userReservations.map((reservation) => (
                 <div
                   key={reservation.id}
-                  className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-xs"
                 >
                   <div className="flex-1">
                     <div className="font-medium text-blue-900">
@@ -274,7 +274,7 @@ function ReserveContent() {
 
             {/* メニュー情報表示 */}
             {reservationMenu && (
-              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+              <div className="bg-blue-50 rounded-xs border border-blue-200 p-4">
                 <h3 className="text-lg font-semibold text-blue-900 mb-2">
                   {reservationMenu.name}
                 </h3>

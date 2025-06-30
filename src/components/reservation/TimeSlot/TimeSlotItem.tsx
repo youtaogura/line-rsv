@@ -30,7 +30,7 @@ export function TimeSlotItem({
     <button
       onClick={onClick}
       className={`
-        w-full px-4 py-3 text-left rounded-md border transition-colors
+        w-full px-4 py-3 text-left rounded-xs border transition-colors
         ${
           isSelected
             ? 'bg-blue-500 text-white border-blue-500 shadow-md'

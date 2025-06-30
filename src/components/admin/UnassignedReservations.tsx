@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
-import { StaffAssignModal } from './StaffAssignModal';
+import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
+import { CircleAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { Button } from '../ui/button';
+import { StaffAssignModal } from './StaffAssignModal';
 
 interface UnassignedReservationsProps {
   reservations: ReservationSimple[];
@@ -34,27 +36,15 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   };
 
   return (
-    <div className="mb-8 bg-white border border-red-200 rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-red-200 bg-red-50">
+    <div className="mb-8 bg-white border border-amber-200 rounded-xs shadow">
+      <div className="px-6 py-4 border-b border-amber-200 bg-amber-50">
         <div className="flex items-center space-x-2">
-          <svg
-            className="w-5 h-5 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-            />
-          </svg>
-          <h2 className="text-lg font-medium text-red-800">
-            担当スタッフ未割り当ての予約
+          <CircleAlert className="w-5 h-5 text-amber-600" />
+          <h2 className="text-md font-medium text-amber-800">
+            担当未設定の予約
           </h2>
           {reservations.length > 0 && (
-            <span className="px-2 py-1 text-xs font-medium text-red-800 bg-red-200 rounded-full">
+            <span className="px-2 py-1 text-xs font-medium text-amber-800 bg-amber-200 rounded-full">
               {reservations.length}件
             </span>
           )}
@@ -68,7 +58,7 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
             {reservations.map((reservation) => (
               <div
                 key={reservation.id}
-                className="flex justify-between items-center py-3 px-4 bg-white border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                className="flex justify-between items-center py-3 px-4 bg-white border rounded-xs"
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
@@ -83,9 +73,6 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                     )}
                     <MemberTypeBadge memberType={reservation.member_type} />
                   </div>
-                  <div className="text-sm text-red-600 mt-1 font-medium">
-                    担当スタッフ: 未指定
-                  </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="text-sm text-gray-600">
@@ -94,12 +81,13 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                       format="short"
                     />
                   </div>
-                  <button
+                  <Button
                     onClick={() => handleAssignStaff(reservation)}
-                    className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 border border-red-300 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                    variant="outline"
+                    size="sm"
                   >
-                    担当設定
-                  </button>
+                    設定
+                  </Button>
                 </div>
               </div>
             ))}

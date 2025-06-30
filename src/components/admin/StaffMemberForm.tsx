@@ -23,7 +23,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white shadow rounded-xs p-6">
       <h2 className="text-lg font-medium text-gray-900 mb-4">
         新しいスタッフを追加
       </h2>
@@ -40,7 +40,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="スタッフ名を入力"
             required
           />
@@ -48,7 +48,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
         <button
           type="submit"
           disabled={!name.trim() || isSubmitting}
-          className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+          className="bg-blue-600 text-white py-2 px-4 rounded-xs hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
           {isSubmitting ? '追加中...' : 'スタッフを追加'}
         </button>

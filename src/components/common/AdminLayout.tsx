@@ -1,6 +1,6 @@
-import React from 'react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminLayoutWithSidebar } from '@/components/admin/AdminLayoutWithSidebar';
+import React from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -52,14 +52,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             showBackButton={showBackButton}
             backUrl={backUrl}
           />
-          <main className="container mx-auto px-4 py-6">
-            {description && (
-              <div className="mb-6">
-                <p className="text-muted-foreground">{description}</p>
-              </div>
-            )}
-            {children}
-          </main>
+          <main className="container mx-auto px-4 py-6">{children}</main>
         </div>
       </div>
     </>
