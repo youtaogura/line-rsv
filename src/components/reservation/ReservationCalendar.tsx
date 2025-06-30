@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
+import type { ReservationMenu } from '@/lib/supabase';
+import { useMemo } from 'react';
 import { CalendarView } from './Calendar/CalendarView';
 import { TimeSlotList } from './TimeSlot/TimeSlotList';
-import type { ReservationMenu } from '@/lib/supabase';
-import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
 
 interface ReservationCalendarProps {
   reservationMenu: ReservationMenu | null;

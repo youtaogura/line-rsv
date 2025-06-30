@@ -1,10 +1,3 @@
-import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { startOfMonth, endOfMonth, addDays } from 'date-fns';
-import {
-  requireValidTenant,
-  TenantValidationError,
-} from '@/lib/tenant-validation';
 import {
   generateTimeSlots,
   updateSlotsWithReservations,
@@ -15,11 +8,18 @@ import type {
   ReservationMenu,
   StaffMember,
 } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import {
+  requireValidTenant,
+  TenantValidationError,
+} from '@/lib/tenant-validation';
 import {
   createApiResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/utils/api';
+import { addDays, endOfMonth, startOfMonth } from 'date-fns';
+import { NextRequest } from 'next/server';
 
 interface TimeSlot {
   time: string;
@@ -120,7 +120,8 @@ export async function GET(request: NextRequest) {
         .in(
           'staff_member_id',
           (staffMembers as StaffMember[]).map((s) => s.id)
-        );
+        )
+        .eq('is_active', true);
 
     if (staffBusinessError) {
       console.error('Error fetching staff business hours:', staffBusinessError);
@@ -210,10 +211,10 @@ export async function GET(request: NextRequest) {
     const updatedTenantTimeSlots = tenantTimeSlots.map((tenantSlot) => {
       const hasAvailableStaff = staffTimeSlotsMap
         .values()
-        .some(
-          (staffSlots) =>
-            staffSlots.find((s) => s.datetime === tenantSlot.datetime)
-              ?.isAvailable
+        .some((staffSlots) =>
+          staffSlots.some(
+            (s) => s.datetime === tenantSlot.datetime && s.isAvailable
+          )
         );
 
       return {

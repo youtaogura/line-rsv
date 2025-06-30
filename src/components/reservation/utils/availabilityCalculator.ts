@@ -1,11 +1,11 @@
-import { format, addMinutes, isSameDay, isBefore, isAfter } from 'date-fns';
-import { fromZonedTime } from 'date-fns-tz';
 import type {
   BusinessHour,
   Reservation,
   ReservationMenu,
   StaffMemberBusinessHour,
 } from '@/lib/supabase';
+import { addMinutes, format, isAfter, isBefore, isSameDay } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import type { DayAvailabilityInfo, TimeSlot } from '../types';
 
 /**
@@ -18,9 +18,9 @@ export function generateTimeSlots(
 ): TimeSlot[] {
   const dayOfWeek = date.getDay();
 
-  // その日の営業時間を取得
+  // その日の営業時間を取得（is_activeがtrueのもののみ）
   const dayBusinessHours = businessHours.filter(
-    (bh) => bh.day_of_week === dayOfWeek
+    (bh) => bh.day_of_week === dayOfWeek && bh.is_active
   );
 
   if (dayBusinessHours.length === 0) {
@@ -52,9 +52,9 @@ export function generateTimeSlots(
       currentHour < endHour ||
       (currentHour === endHour && 0 < endMinute)
     ) {
-      startMinutesOptions.forEach((startMinute) => {
+      startMinutesOptions.forEach((minuteOption) => {
         const slotStartTime = new Date(date);
-        slotStartTime.setHours(currentHour, startMinute, 0, 0);
+        slotStartTime.setHours(currentHour, minuteOption, 0, 0);
 
         const slotEndTime = addMinutes(slotStartTime, menuDuration);
 
