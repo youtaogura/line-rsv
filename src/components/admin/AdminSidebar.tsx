@@ -1,20 +1,37 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import {
   Building,
   Calendar,
   Clock,
-  Users,
-  UserCheck,
-  Settings,
-  LogOut,
   Home,
+  LogOut,
+  Settings,
+  UserCheck,
+  Users,
 } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import React from 'react';
 
+import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -28,21 +45,9 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 
-import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
+import { UI_TEXT } from '@/constants/ui';
 
 interface AdminSidebarProps {
   user?: {
@@ -215,7 +220,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-        
+
         <div className="px-3 py-2 mt-2 border-t">
           <div className="text-xs text-muted-foreground text-center mb-2">
             © 2024 株式会社プラスツーシステム
@@ -248,11 +253,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <h3 className="font-semibold text-sm text-gray-700 mb-2">電話番号</h3>
+              <h3 className="font-semibold text-sm text-gray-700 mb-2">
+                電話番号
+              </h3>
               <p className="text-lg">03-1234-5678</p>
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-gray-700 mb-2">メールアドレス</h3>
+              <h3 className="font-semibold text-sm text-gray-700 mb-2">
+                メールアドレス
+              </h3>
               <p className="text-lg">info@plus2system.co.jp</p>
             </div>
           </div>

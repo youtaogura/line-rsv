@@ -1,18 +1,18 @@
 'use client';
 
-import React from 'react';
-import { Check, X, Bell } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerClose,
 } from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useNotifications, type Notification } from '@/hooks/useNotifications';
+import { Bell, Check, X } from 'lucide-react';
+import React from 'react';
 
 interface NotificationDrawerProps {
   isOpen: boolean;
@@ -104,7 +104,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   return (
     <Drawer open={isOpen} onOpenChange={onClose} direction="right">
       <DrawerContent className="h-full max-w-md">
-        <DrawerHeader className="border-b">
+        <DrawerHeader className="border-b h-16">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
