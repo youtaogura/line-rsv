@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { format as formatTz } from 'date-fns-tz';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -21,10 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type {
-  User,
-  ReservationMenuSimple,
   ReservationData,
+  ReservationMenuSimple,
+  User,
 } from '@/lib/supabase';
+import { format as formatTz } from 'date-fns-tz';
+import { useEffect, useState } from 'react';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -32,6 +32,7 @@ interface ReservationModalProps {
   preselectedDateTime: string;
   availableUsers: User[];
   reservationMenu: ReservationMenuSimple | null;
+  selectedStaffId?: string;
   onCreateReservation: (reservationData: ReservationData) => Promise<void>;
 }
 
@@ -41,6 +42,7 @@ export function ReservationModal({
   preselectedDateTime,
   availableUsers,
   reservationMenu,
+  selectedStaffId,
   onCreateReservation,
 }: ReservationModalProps) {
   const [name, setName] = useState('');
@@ -128,6 +130,7 @@ export function ReservationModal({
         admin_note: adminNote.trim() || null,
         is_admin_mode: true,
         reservation_menu_id: reservationMenu?.id || null,
+        staff_member_id: selectedStaffId || null,
       };
 
       await onCreateReservation(reservationData);
@@ -166,7 +169,9 @@ export function ReservationModal({
             <Label className="text-sm font-medium">お客様選択</Label>
             <RadioGroup
               value={userMode}
-              onValueChange={(value) => handleUserModeChange(value as 'existing' | 'new')}
+              onValueChange={(value) =>
+                handleUserModeChange(value as 'existing' | 'new')
+              }
               className="flex space-x-4"
               disabled={submitting}
             >
@@ -197,7 +202,8 @@ export function ReservationModal({
                 <SelectContent>
                   {availableUsers.map((user) => (
                     <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.name} ({user.member_type === 'regular' ? '会員' : 'ゲスト'})
+                      {user.name} (
+                      {user.member_type === 'regular' ? '会員' : 'ゲスト'})
                     </SelectItem>
                   ))}
                 </SelectContent>

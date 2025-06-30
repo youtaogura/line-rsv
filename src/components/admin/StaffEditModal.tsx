@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import type { StaffMember, BusinessHourSimple } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Clock } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
+import { Clock, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { StaffMemberBusinessHourManager } from './StaffMemberBusinessHourManager';
 
 interface StaffEditModalProps {
@@ -66,7 +66,7 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
       );
       if (success) {
         // Keep modal open but show success feedback
-        console.log('Staff member updated successfully');
+        alert('スタッフ情報が更新されました');
       }
     } catch (error) {
       console.error('Error updating staff member:', error);

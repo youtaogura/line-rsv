@@ -133,50 +133,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Left side - Navigation */}
+          {/* Left side - Back button and title */}
           <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">メニューを開く</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>管理画面メニュー</SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <h2 className="text-lg font-semibold">管理画面</h2>
-                    {tenant && (
-                      <p className="text-sm text-muted-foreground">
-                        {tenant.name}
-                      </p>
-                    )}
-                  </div>
-                  <Separator />
-                  <nav className="flex flex-col space-y-2">
-                    {navigationItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setIsSheetOpen(false)}
-                          className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
-
             {/* Back button */}
             {showBackButton && (
               <Button
@@ -201,47 +159,95 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             </div>
           </div>
 
-          {/* Right side - User menu */}
+          {/* Right side - Mobile menu and user dropdown */}
           <div className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-9 w-9 rounded-full"
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="text-xs">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
+            {/* Mobile menu button */}
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">メニューを開く</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.name || user?.username || '管理者'}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {UI_TEXT.LOGGED_IN_AS}
-                    </p>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>管理画面メニュー</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col h-full">
+                  <div className="flex flex-col space-y-2 p-6 pb-4">
+                    <h2 className="text-lg font-semibold">管理画面</h2>
+                    {tenant && (
+                      <p className="text-sm text-muted-foreground">
+                        {tenant.name}
+                      </p>
+                    )}
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsPasswordModalOpen(true)}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>パスワード変更</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{UI_TEXT.LOGOUT}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Separator />
+                  <nav className="flex flex-col space-y-2 p-6 pt-4 flex-1">
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsSheetOpen(false)}
+                          className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                  
+                  {/* User section in drawer */}
+                  <div className="mt-auto">
+                    <Separator />
+                    <div className="p-6">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback className="text-xs">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <p className="text-sm font-medium leading-none">
+                            {user?.name || user?.username || '管理者'}
+                          </p>
+                          <p className="text-xs leading-none text-muted-foreground mt-1">
+                            {UI_TEXT.LOGGED_IN_AS}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-1">
+                        <Button
+                          variant="ghost"
+                          className="justify-start h-10 px-3"
+                          onClick={() => {
+                            setIsPasswordModalOpen(true);
+                            setIsSheetOpen(false);
+                          }}
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>パスワード変更</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="justify-start h-10 px-3 text-red-600 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            handleLogout();
+                            setIsSheetOpen(false);
+                          }}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>{UI_TEXT.LOGOUT}</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

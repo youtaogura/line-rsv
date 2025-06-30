@@ -98,9 +98,7 @@ function ReservationsContent() {
       session?.user?.tenant_id &&
       viewMode === 'calendar'
     ) {
-      console.log(currentMonth);
       const currentDate = new Date(currentMonth);
-      console.log(currentDate);
       availabilityApi
         .getMonthlyAvailability(
           session.user.tenant_id,

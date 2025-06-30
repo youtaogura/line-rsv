@@ -394,6 +394,7 @@ export function AdminReservationCalendar({
         preselectedDateTime={selectedDateTime}
         availableUsers={availableUsers}
         reservationMenu={reservationMenu}
+        selectedStaffId={selectedStaffId}
         onCreateReservation={async (reservationData) => {
           await onCreateReservationData(reservationData);
           if (onCreateReservation) {
