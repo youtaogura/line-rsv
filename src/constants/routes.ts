@@ -3,7 +3,7 @@ export const ROUTES = {
   HOME: '/',
   RESERVE: '/reserve',
   ERROR: '/error',
-  
+
   // Admin routes
   ADMIN: {
     ROOT: '/admin',
@@ -13,7 +13,7 @@ export const ROUTES = {
     STAFF: '/admin/staff',
     USERS: '/admin/users',
   },
-  
+
   // API routes
   API: {
     AUTH: '/api/auth',

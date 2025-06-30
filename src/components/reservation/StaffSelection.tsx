@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import type { StaffMember } from "@/lib/supabase";
+import type { StaffMember } from '@/lib/supabase';
 
 interface StaffSelectionProps {
   staffMembers: StaffMember[];
@@ -28,7 +28,7 @@ export function StaffSelection({
             type="radio"
             name="staff"
             value=""
-            checked={selectedStaffId === ""}
+            checked={selectedStaffId === ''}
             onChange={(e) => onStaffSelect(e.target.value)}
             className="mr-3"
           />

@@ -1,12 +1,12 @@
-import { NextRequest } from "next/server";
+import { NextRequest } from 'next/server';
 import {
   createApiResponse,
   createUnauthorizedResponse,
   createValidationErrorResponse,
-} from "@/utils/api";
+} from '@/utils/api';
 
 export async function GET(request: NextRequest) {
-  const lineUser = request.cookies.get("line_user")?.value;
+  const lineUser = request.cookies.get('line_user')?.value;
 
   if (!lineUser) {
     return createUnauthorizedResponse();
@@ -16,6 +16,6 @@ export async function GET(request: NextRequest) {
     const userData = JSON.parse(lineUser);
     return createApiResponse(userData);
   } catch (_error) {
-    return createValidationErrorResponse({ user_data: "Invalid user data" });
+    return createValidationErrorResponse({ user_data: 'Invalid user data' });
   }
 }

@@ -14,8 +14,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   variant = 'primary',
   className = '',
 }) => {
-  const baseClasses = 'w-full py-3 px-4 rounded-lg transition-colors text-center block font-medium';
-  
+  const baseClasses =
+    'w-full py-3 px-4 rounded-lg transition-colors text-center block font-medium';
+
   const variantClasses = {
     primary: 'bg-primary text-white hover:bg-primary/90',
     secondary: 'bg-secondary text-white hover:bg-secondary/90',

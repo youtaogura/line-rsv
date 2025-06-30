@@ -10,34 +10,37 @@ interface PasswordChangeData {
   confirmPassword: string;
 }
 
-function validatePasswordChange(data: PasswordChangeData): { isValid: boolean; error?: string } {
+function validatePasswordChange(data: PasswordChangeData): {
+  isValid: boolean;
+  error?: string;
+} {
   if (!data.currentPassword) {
     return { isValid: false, error: '現在のパスワードを入力してください' };
   }
-  
+
   if (!data.newPassword) {
     return { isValid: false, error: '新しいパスワードを入力してください' };
   }
-  
+
   if (data.newPassword.length < 8) {
     return { isValid: false, error: 'パスワードは8文字以上で入力してください' };
   }
-  
+
   if (!data.confirmPassword) {
     return { isValid: false, error: 'パスワードの確認を入力してください' };
   }
-  
+
   if (data.newPassword !== data.confirmPassword) {
     return { isValid: false, error: 'パスワードが一致しません' };
   }
-  
+
   return { isValid: true };
 }
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.username) {
       return NextResponse.json(
         { error: 'ログインが必要です' },
@@ -47,12 +50,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const validation = validatePasswordChange(body);
-    
+
     if (!validation.isValid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     const { data: admin, error: adminError } = await supabase
@@ -103,12 +103,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'パスワードが正常に変更されました'
+      message: 'パスワードが正常に変更されました',
     });
-
   } catch (error) {
     console.error('Password change error:', error);
-    
+
     return NextResponse.json(
       { error: 'パスワード変更に失敗しました' },
       { status: 500 }

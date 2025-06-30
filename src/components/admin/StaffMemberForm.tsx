@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 interface StaffMemberFormProps {
   onCreateStaffMember: (name: string) => Promise<boolean>;
@@ -7,7 +7,7 @@ interface StaffMemberFormProps {
 export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
   onCreateStaffMember,
 }) => {
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +17,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
     setIsSubmitting(true);
     const success = await onCreateStaffMember(name.trim());
     if (success) {
-      setName("");
+      setName('');
     }
     setIsSubmitting(false);
   };
@@ -50,7 +50,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
           disabled={!name.trim() || isSubmitting}
           className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
-          {isSubmitting ? "追加中..." : "スタッフを追加"}
+          {isSubmitting ? '追加中...' : 'スタッフを追加'}
         </button>
       </form>
     </div>

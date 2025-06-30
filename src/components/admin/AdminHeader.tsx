@@ -4,29 +4,29 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { 
-  Menu, 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  Users, 
+import {
+  Menu,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Users,
   UserCheck,
   Settings,
   LogOut,
-  Building
+  Building,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 
@@ -74,12 +74,12 @@ const navigationItems = [
   },
 ];
 
-export const AdminHeader: React.FC<AdminHeaderProps> = ({ 
-  title, 
-  user, 
-  tenant, 
-  showBackButton = false, 
-  backUrl 
+export const AdminHeader: React.FC<AdminHeaderProps> = ({
+  title,
+  user,
+  tenant,
+  showBackButton = false,
+  backUrl,
 }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -89,7 +89,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     await signOut({ callbackUrl: ROUTES.ADMIN.LOGIN });
   };
 
-  const handlePasswordChange = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+  const handlePasswordChange = async (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
     const response = await fetch('/api/admin/password', {
       method: 'POST',
       headers: {
@@ -172,8 +176,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
             {/* Back button */}
             {showBackButton && (
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={handleBack}
                 className="shrink-0"
@@ -198,7 +202,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <div className="flex items-center space-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className="text-xs">
                       {getUserInitials()}
@@ -223,7 +230,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   <span>パスワード変更</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{UI_TEXT.LOGOUT}</span>
                 </DropdownMenuItem>

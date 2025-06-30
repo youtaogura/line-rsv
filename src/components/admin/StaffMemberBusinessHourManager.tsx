@@ -1,13 +1,19 @@
-import React, { useState } from "react";
-import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
-import { LoadingSpinner } from "@/components/common";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Trash2, Plus, AlertTriangle } from "lucide-react";
-import { DAYS_OF_WEEK } from "@/constants/time";
+import React, { useState } from 'react';
+import type { StaffMember, BusinessHourSimple } from '@/lib/supabase';
+import { LoadingSpinner } from '@/components/common';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Clock, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { DAYS_OF_WEEK } from '@/constants/time';
 
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
@@ -15,11 +21,18 @@ interface StaffMemberBusinessHourManagerProps {
   businessHours: BusinessHourSimple[];
   tenantBusinessHours: BusinessHourSimple[];
   loading: boolean;
-  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
+  onCreateBusinessHour: (
+    staffMemberId: string,
+    dayOfWeek: number,
+    startTime: string,
+    endTime: string
+  ) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
-export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourManagerProps> = ({
+export const StaffMemberBusinessHourManager: React.FC<
+  StaffMemberBusinessHourManagerProps
+> = ({
   staffMember,
   onClose: _onClose,
   businessHours,
@@ -28,17 +41,15 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
   onCreateBusinessHour,
   onDeleteBusinessHour,
 }) => {
-
   const [dayOfWeek, setDayOfWeek] = useState(1); // 月曜日
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("18:00");
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('18:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [_errorMessage, setErrorMessage] = useState("");
-
+  const [_errorMessage, setErrorMessage] = useState('');
 
   // テナントの営業時間を取得する関数
   const getTenantBusinessHoursForDay = (day: number) => {
-    return tenantBusinessHours.filter(hour => hour.day_of_week === day);
+    return tenantBusinessHours.filter((hour) => hour.day_of_week === day);
   };
 
   // 選択された曜日のテナント営業時間があるかチェック
@@ -47,17 +58,17 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage("");
-    
+    setErrorMessage('');
+
     setIsSubmitting(true);
     try {
       await onCreateBusinessHour(staffMember.id, dayOfWeek, startTime, endTime);
       setDayOfWeek(1);
-      setStartTime("09:00");
-      setEndTime("18:00");
+      setStartTime('09:00');
+      setEndTime('18:00');
     } catch (error) {
-      console.error("Failed to create business hour:", error);
-      setErrorMessage("営業時間の追加に失敗しました");
+      console.error('Failed to create business hour:', error);
+      setErrorMessage('営業時間の追加に失敗しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -67,8 +78,8 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
     try {
       await onDeleteBusinessHour(id);
     } catch (error) {
-      console.error("Failed to delete business hour:", error);
-      alert("営業時間の削除に失敗しました");
+      console.error('Failed to delete business hour:', error);
+      alert('営業時間の削除に失敗しました');
     }
   };
 
@@ -89,8 +100,8 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dayOfWeek">曜日</Label>
-                <Select 
-                  value={dayOfWeek.toString()} 
+                <Select
+                  value={dayOfWeek.toString()}
                   onValueChange={(value) => setDayOfWeek(Number(value))}
                 >
                   <SelectTrigger>
@@ -98,14 +109,21 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                   </SelectTrigger>
                   <SelectContent>
                     {DAYS_OF_WEEK.map((day, index) => {
-                      const dayTenantHours = getTenantBusinessHoursForDay(index);
+                      const dayTenantHours =
+                        getTenantBusinessHoursForDay(index);
                       const hasOperatingHours = dayTenantHours.length > 0;
                       return (
-                        <SelectItem key={index} value={index.toString()} disabled={!hasOperatingHours}>
+                        <SelectItem
+                          key={index}
+                          value={index.toString()}
+                          disabled={!hasOperatingHours}
+                        >
                           <div className="flex items-center justify-between w-full">
                             <span>{day}</span>
                             {!hasOperatingHours && (
-                              <span className="text-xs text-muted-foreground ml-2">(営業日ではありません)</span>
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (営業日ではありません)
+                              </span>
                             )}
                           </div>
                         </SelectItem>
@@ -137,19 +155,21 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                 />
               </div>
             </div>
-            
+
             {/* テナント営業時間の情報表示 */}
             {isDayAvailable && selectedDayTenantHours.length > 0 && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium">テナント営業時間: {DAYS_OF_WEEK[dayOfWeek]}</p>
+                    <p className="font-medium">
+                      テナント営業時間: {DAYS_OF_WEEK[dayOfWeek]}
+                    </p>
                     <div className="mt-1">
                       {selectedDayTenantHours.map((hour, index) => (
                         <span key={hour.id} className="font-mono">
                           {hour.start_time} - {hour.end_time}
-                          {index < selectedDayTenantHours.length - 1 && ", "}
+                          {index < selectedDayTenantHours.length - 1 && ', '}
                         </span>
                       ))}
                     </div>
@@ -166,7 +186,9 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
                   <div className="text-sm text-amber-800">
-                    <p className="font-medium">{DAYS_OF_WEEK[dayOfWeek]}はテナントの営業日ではありません</p>
+                    <p className="font-medium">
+                      {DAYS_OF_WEEK[dayOfWeek]}はテナントの営業日ではありません
+                    </p>
                     <p className="mt-1 text-xs">
                       まずテナントの営業時間を設定してください
                     </p>
@@ -182,7 +204,7 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                 className="flex items-center space-x-2"
               >
                 <Plus className="h-4 w-4" />
-                <span>{isSubmitting ? "追加中..." : "営業時間を追加"}</span>
+                <span>{isSubmitting ? '追加中...' : '営業時間を追加'}</span>
               </Button>
             </div>
           </form>
@@ -195,7 +217,7 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
           <Clock className="h-5 w-5" />
           <span>現在の営業時間</span>
         </h3>
-        
+
         {businessHours.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">
@@ -207,23 +229,28 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
             <div className="space-y-3">
               {(() => {
                 // 曜日ごとにグループ化
-                const groupedByDay = businessHours.reduce((acc, hour) => {
-                  const dayKey = hour.day_of_week;
-                  if (!acc[dayKey]) {
-                    acc[dayKey] = [];
-                  }
-                  acc[dayKey].push(hour);
-                  return acc;
-                }, {} as Record<number, typeof businessHours>);
+                const groupedByDay = businessHours.reduce(
+                  (acc, hour) => {
+                    const dayKey = hour.day_of_week;
+                    if (!acc[dayKey]) {
+                      acc[dayKey] = [];
+                    }
+                    acc[dayKey].push(hour);
+                    return acc;
+                  },
+                  {} as Record<number, typeof businessHours>
+                );
 
                 // 各曜日の営業時間を開始時間順にソート
-                Object.keys(groupedByDay).forEach(dayKey => {
-                  groupedByDay[parseInt(dayKey)].sort((a, b) => a.start_time.localeCompare(b.start_time));
+                Object.keys(groupedByDay).forEach((dayKey) => {
+                  groupedByDay[parseInt(dayKey)].sort((a, b) =>
+                    a.start_time.localeCompare(b.start_time)
+                  );
                 });
 
                 // 曜日順にソート
                 const sortedDayKeys = Object.keys(groupedByDay)
-                  .map(key => parseInt(key))
+                  .map((key) => parseInt(key))
                   .sort((a, b) => a - b);
 
                 return sortedDayKeys.map((dayOfWeek) => {
@@ -238,7 +265,10 @@ export const StaffMemberBusinessHourManager: React.FC<StaffMemberBusinessHourMan
                             </div>
                             <div className="mt-2 space-y-2">
                               {dayHours.map((hour) => (
-                                <div key={hour.id} className="flex items-center justify-between">
+                                <div
+                                  key={hour.id}
+                                  className="flex items-center justify-between"
+                                >
                                   <div className="flex items-center space-x-2">
                                     <Clock className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm text-muted-foreground">

@@ -25,7 +25,9 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
     >
       <div className="flex items-center">
         <div className="flex-shrink-0">
-          <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
+          <div
+            className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}
+          >
             {icon}
           </div>
         </div>

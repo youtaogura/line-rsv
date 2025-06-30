@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from "react";
-import type { User } from "@/lib/supabase";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState, useEffect } from 'react';
+import type { User } from '@/lib/supabase';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -13,7 +24,7 @@ interface UserEditModalProps {
   onUpdateUser: (updateData: {
     name: string;
     phone: string;
-    member_type: "regular" | "guest";
+    member_type: 'regular' | 'guest';
   }) => Promise<boolean>;
 }
 
@@ -24,9 +35,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   onUpdateUser,
 }) => {
   const [editFormData, setEditFormData] = useState({
-    name: "",
-    phone: "",
-    member_type: "guest" as "regular" | "guest",
+    name: '',
+    phone: '',
+    member_type: 'guest' as 'regular' | 'guest',
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -34,7 +45,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     if (user) {
       setEditFormData({
         name: user.name,
-        phone: user.phone || "",
+        phone: user.phone || '',
         member_type: user.member_type,
       });
     }
@@ -49,7 +60,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     try {
       await onUpdateUser(editFormData);
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error('Error updating user:', error);
     } finally {
       setIsUpdating(false);
     }
@@ -57,9 +68,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
   const handleClose = () => {
     setEditFormData({
-      name: "",
-      phone: "",
-      member_type: "guest",
+      name: '',
+      phone: '',
+      member_type: 'guest',
     });
     onClose();
   };
@@ -107,7 +118,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
               onValueChange={(value) =>
                 setEditFormData({
                   ...editFormData,
-                  member_type: value as "regular" | "guest",
+                  member_type: value as 'regular' | 'guest',
                 })
               }
             >
@@ -134,7 +145,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
               type="submit"
               disabled={isUpdating || !editFormData.name.trim()}
             >
-              {isUpdating ? "更新中..." : "更新"}
+              {isUpdating ? '更新中...' : '更新'}
             </Button>
           </div>
         </form>

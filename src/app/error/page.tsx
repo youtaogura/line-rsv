@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { LoadingSpinner, PageLayout, ErrorIcon } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
 
 function ErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const error = searchParams.get('error');
 
   const getErrorMessage = () => {
     switch (error) {
-      case "missing_tenant":
+      case 'missing_tenant':
         return {
-          title: "テナントIDが必要です",
+          title: 'テナントIDが必要です',
           message:
-            "このサービスを利用するには、有効なテナントIDをクエリパラメータとして指定してください。",
-          detail: "例: https://yourapp.com/?tenantId=your-tenant-id",
+            'このサービスを利用するには、有効なテナントIDをクエリパラメータとして指定してください。',
+          detail: '例: https://yourapp.com/?tenantId=your-tenant-id',
         };
-      case "invalid_tenant":
+      case 'invalid_tenant':
         return {
-          title: "テナントが見つかりません",
+          title: 'テナントが見つかりません',
           message:
-            "指定されたテナントIDは無効であるか、アクティブではありません。",
-          detail: "テナントIDを確認して再度お試しください。",
+            '指定されたテナントIDは無効であるか、アクティブではありません。',
+          detail: 'テナントIDを確認して再度お試しください。',
         };
-      case "server_error":
+      case 'server_error':
         return {
-          title: "サーバーエラー",
-          message: "予約システムで問題が発生しました。",
-          detail: "しばらくしてから再度お試しください。",
+          title: 'サーバーエラー',
+          message: '予約システムで問題が発生しました。',
+          detail: 'しばらくしてから再度お試しください。',
         };
       default:
         return {
           title: UI_TEXT.ERROR_OCCURRED,
-          message: "アクセスに問題があります。",
+          message: 'アクセスに問題があります。',
           detail: UI_TEXT.TRY_AGAIN,
         };
     }

@@ -12,7 +12,7 @@ import {
   UserCheck,
   Settings,
   LogOut,
-  Home
+  Home,
 } from 'lucide-react';
 
 import {
@@ -88,7 +88,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
     await signOut({ callbackUrl: ROUTES.ADMIN.LOGIN });
   };
 
-  const handlePasswordChange = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+  const handlePasswordChange = async (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
     const response = await fetch('/api/admin/password', {
       method: 'POST',
       headers: {
@@ -142,7 +146,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                
+
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={isActive}>
@@ -197,7 +201,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
                   <span>パスワード変更</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{UI_TEXT.LOGOUT}</span>
                 </DropdownMenuItem>
@@ -208,7 +215,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
       </SidebarFooter>
 
       <SidebarRail />
-      
+
       <PasswordChangeModal
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}

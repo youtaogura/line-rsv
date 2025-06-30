@@ -1,6 +1,10 @@
-import CredentialsProvider from "next-auth/providers/credentials";
-import { supabase } from "@/lib/supabase";
-import { AUTH_CONFIG, type JwtCallbackParams, type SessionCallbackParams } from "./config";
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { supabase } from '@/lib/supabase';
+import {
+  AUTH_CONFIG,
+  type JwtCallbackParams,
+  type SessionCallbackParams,
+} from './config';
 
 type AuthUser = {
   id: string;
@@ -11,25 +15,25 @@ type AuthUser = {
 
 async function getAdminUser(
   username: string,
-  password: string,
+  password: string
 ): Promise<AuthUser | null> {
   try {
     // NOTE: この実装は簡易的なものです。
     // 本番環境では適切なパスワードハッシュ化を実装してください。
     const { data, error } = await supabase
-      .from("admin_users")
-      .select("id, username, name, tenant_id")
-      .eq("username", username)
-      .eq("password", password) // 実際にはハッシュ化されたパスワードとの比較
+      .from('admin_users')
+      .select('id, username, name, tenant_id')
+      .eq('username', username)
+      .eq('password', password) // 実際にはハッシュ化されたパスワードとの比較
       .single();
 
     if (error) {
-      console.log("Admin user query error:", error);
+      console.log('Admin user query error:', error);
       return null;
     }
 
     if (!data) {
-      console.log("Admin user not found");
+      console.log('Admin user not found');
       return null;
     }
 
@@ -40,7 +44,7 @@ async function getAdminUser(
       tenant_id: data.tenant_id,
     };
   } catch (error) {
-    console.error("Auth error:", error);
+    console.error('Auth error:', error);
     return null;
   }
 }
@@ -48,10 +52,10 @@ async function getAdminUser(
 export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        username: { label: 'Username', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
@@ -60,7 +64,7 @@ export const authOptions = {
 
         const user = await getAdminUser(
           credentials.username,
-          credentials.password,
+          credentials.password
         );
         return user;
       },
@@ -88,7 +92,7 @@ export const authOptions = {
     },
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: 'jwt' as const,
     maxAge: AUTH_CONFIG.JWT_MAX_AGE_HOURS * 60 * 60,
   },
   pages: {

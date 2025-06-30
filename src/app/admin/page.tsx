@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect } from 'react';
 import {
   useAdminSession,
   useTenant,
   useRecentReservations,
   useUnassignedReservations,
   useStaffMembers,
-} from "@/hooks/useAdminData";
-import { buildApiUrl } from "@/lib/tenant-helpers";
+} from '@/hooks/useAdminData';
+import { buildApiUrl } from '@/lib/tenant-helpers';
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
@@ -19,16 +19,21 @@ import { ROUTES } from '@/constants/routes';
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const { tenant, fetchTenant } = useTenant();
-  const { recentReservations, fetchRecentReservations } = useRecentReservations();
-  const { unassignedReservations, fetchUnassignedReservations } = useUnassignedReservations();
+  const { recentReservations, fetchRecentReservations } =
+    useRecentReservations();
+  const { unassignedReservations, fetchUnassignedReservations } =
+    useUnassignedReservations();
   const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const [loading, setLoading] = useState(true);
 
   const handleAssignStaff = async (reservationId: string, staffId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
-    
+
     const response = await fetch(
-      buildApiUrl(`/api/reservations?id=${reservationId}`, session.user.tenant_id),
+      buildApiUrl(
+        `/api/reservations?id=${reservationId}`,
+        session.user.tenant_id
+      ),
       {
         method: 'PUT',
         headers: {
@@ -48,9 +53,12 @@ function AdminContent() {
 
   const handleRemoveStaff = async (reservationId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
-    
+
     const response = await fetch(
-      buildApiUrl(`/api/reservations?id=${reservationId}`, session.user.tenant_id),
+      buildApiUrl(
+        `/api/reservations?id=${reservationId}`,
+        session.user.tenant_id
+      ),
       {
         method: 'PUT',
         headers: {
@@ -95,10 +103,7 @@ function AdminContent() {
   }
 
   return (
-    <AuthGuard
-      isLoading={isLoading}
-      isAuthenticated={isAuthenticated}
-    >
+    <AuthGuard isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <AdminLayout
         title={UI_TEXT.ADMIN_DASHBOARD}
         description={UI_TEXT.SYSTEM_ACCESS_DESCRIPTION}
@@ -108,7 +113,7 @@ function AdminContent() {
         <DashboardGrid />
         {unassignedReservations.length > 0 && (
           <div className="mt-8">
-            <UnassignedReservations 
+            <UnassignedReservations
               reservations={unassignedReservations}
               staffMembers={staffMembers}
               tenantId={session?.user?.tenant_id || ''}
@@ -170,9 +175,9 @@ function DashboardGrid() {
       ),
     },
     {
-      href: "/admin/staff",
-      title: "スタッフ管理",
-      description: "スタッフの追加・編集・削除と対応時間の設定",
+      href: '/admin/staff',
+      title: 'スタッフ管理',
+      description: 'スタッフの追加・編集・削除と対応時間の設定',
       borderColor: 'border-info',
       bgColor: 'bg-info',
       icon: (

@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import React, { useMemo } from "react";
-import { CalendarView } from "./Calendar/CalendarView";
-import { TimeSlotList } from "./TimeSlot/TimeSlotList";
-import type { ReservationMenu } from "@/lib/supabase";
-import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
+import React, { useMemo } from 'react';
+import { CalendarView } from './Calendar/CalendarView';
+import { TimeSlotList } from './TimeSlot/TimeSlotList';
+import type { ReservationMenu } from '@/lib/supabase';
+import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
 
 interface ReservationCalendarProps {
   reservationMenu: ReservationMenu | null;
@@ -39,7 +39,7 @@ export function ReservationCalendar({
       const staffAvailability = monthlyAvailability.staffMembers.find(
         (staff) => staff.id === selectedStaffId
       );
-      return staffAvailability?.timeSlots ?? []
+      return staffAvailability?.timeSlots ?? [];
     }
 
     return monthlyAvailability.tenant.timeSlots;
@@ -66,7 +66,7 @@ export function ReservationCalendar({
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <TimeSlotList
             selectedDate={selectedDate}
-            availableSlots={timeSlots.filter(slot => slot.isAvailable)}
+            availableSlots={timeSlots.filter((slot) => slot.isAvailable)}
             selectedDateTime={selectedDateTime}
             onTimeSelect={handleTimeSelect}
             reservationMenu={reservationMenu}

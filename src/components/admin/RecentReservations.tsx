@@ -32,7 +32,6 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
   const displayedReservations = reservations.slice(0, maxDisplay);
   const hasMoreReservations = reservations.length > maxDisplay;
 
-
   return (
     <div className="mt-8 bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
@@ -52,15 +51,21 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-medium">{reservation.users?.name || "ユーザー名が取得できませんでした"}</span>
+                    <span className="font-medium">
+                      {reservation.users?.name ||
+                        'ユーザー名が取得できませんでした'}
+                    </span>
                     <MemberTypeBadge memberType={reservation.member_type} />
                   </div>
                   <div className="text-sm text-gray-600 mt-1">
-                    担当: {reservation.staff_members?.name || "未指定"}
+                    担当: {reservation.staff_members?.name || '未指定'}
                   </div>
                 </div>
                 <div className="text-sm text-gray-500">
-                  <DateTimeDisplay datetime={reservation.datetime} format="short" />
+                  <DateTimeDisplay
+                    datetime={reservation.datetime}
+                    format="short"
+                  />
                 </div>
               </div>
             ))}

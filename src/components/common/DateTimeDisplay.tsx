@@ -22,11 +22,11 @@ export const DateTimeDisplay: React.FC<DateTimeDisplayProps> = ({
   };
 
   const formatString = formatMap[format];
-  const formattedDateTime = formatDateTimeWithTz(datetime, timeZone, formatString);
-
-  return (
-    <span className={className}>
-      {formattedDateTime}
-    </span>
+  const formattedDateTime = formatDateTimeWithTz(
+    datetime,
+    timeZone,
+    formatString
   );
+
+  return <span className={className}>{formattedDateTime}</span>;
 };

@@ -2,8 +2,8 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  className = "min-h-screen flex items-center justify-center"
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  className = 'min-h-screen flex items-center justify-center',
 }) => {
   return (
     <div className={className}>

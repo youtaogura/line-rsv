@@ -1,39 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         username,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("ユーザー名またはパスワードが正しくありません");
+        setError('ユーザー名またはパスワードが正しくありません');
       } else {
         // セッション取得を確認してからリダイレクト
         const session = await getSession();
         if (session) {
-          router.push("/admin");
+          router.push('/admin');
         }
       }
     } catch (_error) {
-      setError("ログインでエラーが発生しました");
+      setError('ログインでエラーが発生しました');
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function AdminLogin() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "ログイン中..." : "ログイン"}
+              {loading ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
         </form>

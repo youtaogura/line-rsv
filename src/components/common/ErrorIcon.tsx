@@ -2,8 +2,8 @@ interface ErrorIconProps {
   className?: string;
 }
 
-export const ErrorIcon: React.FC<ErrorIconProps> = ({ 
-  className = "mx-auto h-12 w-12 text-error"
+export const ErrorIcon: React.FC<ErrorIconProps> = ({
+  className = 'mx-auto h-12 w-12 text-error',
 }) => {
   return (
     <div className={className}>

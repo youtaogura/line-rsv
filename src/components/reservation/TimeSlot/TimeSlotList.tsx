@@ -1,8 +1,8 @@
-import { TimeSlotItem } from "./TimeSlotItem";
-import { TimeSlotContainer } from "./TimeSlotContainer";
-import { TimeSlot } from "../types";
-import type { ReservationMenu } from "@/lib/supabase";
-import { format } from "date-fns";
+import { TimeSlotItem } from './TimeSlotItem';
+import { TimeSlotContainer } from './TimeSlotContainer';
+import { TimeSlot } from '../types';
+import type { ReservationMenu } from '@/lib/supabase';
+import { format } from 'date-fns';
 
 interface TimeSlotListProps {
   selectedDate: Date | null;
@@ -24,7 +24,7 @@ export function TimeSlotList({
   }
 
   const formatSelectedDate = (date: Date) => {
-    return format(date, "yyyy年M月d日");
+    return format(date, 'yyyy年M月d日');
   };
 
   const title = `${formatSelectedDate(selectedDate)}の予約可能時間`;

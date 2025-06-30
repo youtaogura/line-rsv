@@ -1,10 +1,10 @@
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { Tenant } from "./supabase";
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { Tenant } from './supabase';
 
 export function useTenantId(): string | null {
   const searchParams = useSearchParams();
-  return searchParams.get("tenantId");
+  return searchParams.get('tenantId');
 }
 
 export function useTenant() {
@@ -17,7 +17,7 @@ export function useTenant() {
   useEffect(() => {
     const fetchTenant = async () => {
       if (!tenantId) {
-        router.push("/error?error=missing_tenant");
+        router.push('/error?error=missing_tenant');
         return;
       }
 
@@ -26,9 +26,9 @@ export function useTenant() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            router.push("/error?error=invalid_tenant");
+            router.push('/error?error=invalid_tenant');
           } else {
-            throw new Error("Failed to fetch tenant");
+            throw new Error('Failed to fetch tenant');
           }
           return;
         }
@@ -37,9 +37,9 @@ export function useTenant() {
         setTenant(tenantData);
         setError(null);
       } catch (err) {
-        console.error("Error fetching tenant:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
-        router.push("/error?error=invalid_tenant");
+        console.error('Error fetching tenant:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        router.push('/error?error=invalid_tenant');
       } finally {
         setLoading(false);
       }
@@ -53,21 +53,21 @@ export function useTenant() {
 
 export function buildUrlWithTenantId(
   path: string,
-  tenantId: string | null,
+  tenantId: string | null
 ): string {
   if (!tenantId) {
     return path;
   }
 
   const url = new URL(path, window.location.origin);
-  url.searchParams.set("tenantId", tenantId);
+  url.searchParams.set('tenantId', tenantId);
   return url.pathname + url.search;
 }
 
 export function redirectToError(
-  errorType: "missing_tenant" | "invalid_tenant",
+  errorType: 'missing_tenant' | 'invalid_tenant'
 ) {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     window.location.href = `/error?error=${errorType}`;
   }
 }
@@ -75,10 +75,10 @@ export function redirectToError(
 // APIコール用のヘルパー
 export function buildApiUrl(endpoint: string, tenantId: string | null): string {
   if (!tenantId) {
-    throw new Error("Tenant ID is required for API calls");
+    throw new Error('Tenant ID is required for API calls');
   }
 
   const url = new URL(endpoint, window.location.origin);
-  url.searchParams.set("tenantId", tenantId);
+  url.searchParams.set('tenantId', tenantId);
   return url.toString();
 }

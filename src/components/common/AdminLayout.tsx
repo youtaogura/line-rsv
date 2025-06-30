@@ -45,7 +45,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* Mobile layout with header */}
       <div className="lg:hidden">
         <div className="min-h-screen bg-background">
-          <AdminHeader 
+          <AdminHeader
             title={title}
             user={user}
             tenant={tenant}

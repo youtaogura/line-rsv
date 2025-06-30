@@ -1,9 +1,9 @@
-import React from "react";
-import type { BusinessHour } from "@/lib/supabase";
-import { getDayName } from "@/lib/admin-types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Trash2 } from "lucide-react";
+import React from 'react';
+import type { BusinessHour } from '@/lib/supabase';
+import { getDayName } from '@/lib/admin-types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock, Trash2 } from 'lucide-react';
 
 interface BusinessHourListProps {
   businessHours: BusinessHour[];
@@ -15,23 +15,28 @@ export const BusinessHourList: React.FC<BusinessHourListProps> = ({
   onDeleteBusinessHour,
 }) => {
   // 曜日ごとにグループ化
-  const groupedByDay = businessHours.reduce((acc, hour) => {
-    const dayKey = hour.day_of_week;
-    if (!acc[dayKey]) {
-      acc[dayKey] = [];
-    }
-    acc[dayKey].push(hour);
-    return acc;
-  }, {} as Record<number, BusinessHour[]>);
+  const groupedByDay = businessHours.reduce(
+    (acc, hour) => {
+      const dayKey = hour.day_of_week;
+      if (!acc[dayKey]) {
+        acc[dayKey] = [];
+      }
+      acc[dayKey].push(hour);
+      return acc;
+    },
+    {} as Record<number, BusinessHour[]>
+  );
 
   // 各曜日の営業時間を開始時間順にソート
-  Object.keys(groupedByDay).forEach(dayKey => {
-    groupedByDay[parseInt(dayKey)].sort((a, b) => a.start_time.localeCompare(b.start_time));
+  Object.keys(groupedByDay).forEach((dayKey) => {
+    groupedByDay[parseInt(dayKey)].sort((a, b) =>
+      a.start_time.localeCompare(b.start_time)
+    );
   });
 
   // 曜日順にソート（0=日曜日から6=土曜日）
   const sortedDayKeys = Object.keys(groupedByDay)
-    .map(key => parseInt(key))
+    .map((key) => parseInt(key))
     .sort((a, b) => a - b);
 
   return (
@@ -62,17 +67,23 @@ export const BusinessHourList: React.FC<BusinessHourListProps> = ({
                         </h3>
                         <div className="mt-2 space-y-2">
                           {dayHours.map((businessHour) => (
-                            <div key={businessHour.id} className="flex items-center justify-between">
+                            <div
+                              key={businessHour.id}
+                              className="flex items-center justify-between"
+                            >
                               <div className="flex items-center space-x-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                                 <span className="text-sm">
-                                  {businessHour.start_time} - {businessHour.end_time}
+                                  {businessHour.start_time} -{' '}
+                                  {businessHour.end_time}
                                 </span>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onDeleteBusinessHour(businessHour.id)}
+                                onClick={() =>
+                                  onDeleteBusinessHour(businessHour.id)
+                                }
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
                                 <Trash2 className="h-4 w-4" />

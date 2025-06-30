@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { generateTimeOptions } from "@/lib/admin-types";
+import React, { useState } from 'react';
+import { generateTimeOptions } from '@/lib/admin-types';
 
 interface BusinessHourFormProps {
   onCreateBusinessHour: (businessHour: {
@@ -14,8 +14,8 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
 }) => {
   const [newBusinessHour, setNewBusinessHour] = useState({
     day_of_week: 1,
-    start_time: "09:00",
-    end_time: "18:00",
+    start_time: '09:00',
+    end_time: '18:00',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,8 +25,8 @@ export const BusinessHourForm: React.FC<BusinessHourFormProps> = ({
     if (success) {
       setNewBusinessHour({
         day_of_week: 1,
-        start_time: "09:00",
-        end_time: "18:00",
+        start_time: '09:00',
+        end_time: '18:00',
       });
     }
   };

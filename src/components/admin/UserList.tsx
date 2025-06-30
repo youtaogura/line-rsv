@@ -1,11 +1,11 @@
-import React from "react";
-import type { User } from "@/lib/supabase";
-import { MemberTypeBadge } from "@/components/common";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Phone } from "lucide-react";
-import { UI_TEXT } from "@/constants/ui";
+import React from 'react';
+import type { User } from '@/lib/supabase';
+import { MemberTypeBadge } from '@/components/common';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Phone } from 'lucide-react';
+import { UI_TEXT } from '@/constants/ui';
 
 type UserFilter = 'all' | 'regular' | 'guest';
 
@@ -19,14 +19,14 @@ interface UserListProps {
   onNameFilterChange: (name: string) => void;
 }
 
-export const UserList: React.FC<UserListProps> = ({ 
-  users, 
-  userFilter, 
-  nameFilter, 
+export const UserList: React.FC<UserListProps> = ({
+  users,
+  userFilter,
+  nameFilter,
   onEditUser,
   onMergeUser,
-  onUserFilterChange, 
-  onNameFilterChange 
+  onUserFilterChange,
+  onNameFilterChange,
 }) => {
   return (
     <Card>
@@ -35,10 +35,13 @@ export const UserList: React.FC<UserListProps> = ({
         <p className="text-sm text-muted-foreground">
           登録ユーザーの会員種別を管理できます
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
           <div className="flex-1">
-            <label htmlFor="name-filter" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="name-filter"
+              className="block text-sm font-medium mb-1"
+            >
               名前で検索
             </label>
             <input
@@ -50,11 +53,9 @@ export const UserList: React.FC<UserListProps> = ({
               className="w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium mb-1">
-              会員種別
-            </label>
+            <label className="block text-sm font-medium mb-1">会員種別</label>
             <div className="flex gap-4">
               <label className="flex items-center">
                 <input
@@ -62,7 +63,9 @@ export const UserList: React.FC<UserListProps> = ({
                   name="userFilter"
                   value="all"
                   checked={userFilter === 'all'}
-                  onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
+                  onChange={(e) =>
+                    onUserFilterChange(e.target.value as UserFilter)
+                  }
                   className="mr-2"
                 />
                 <span className="text-sm">全て</span>
@@ -73,7 +76,9 @@ export const UserList: React.FC<UserListProps> = ({
                   name="userFilter"
                   value="regular"
                   checked={userFilter === 'regular'}
-                  onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
+                  onChange={(e) =>
+                    onUserFilterChange(e.target.value as UserFilter)
+                  }
                   className="mr-2"
                 />
                 <span className="text-sm">会員</span>
@@ -84,7 +89,9 @@ export const UserList: React.FC<UserListProps> = ({
                   name="userFilter"
                   value="guest"
                   checked={userFilter === 'guest'}
-                  onChange={(e) => onUserFilterChange(e.target.value as UserFilter)}
+                  onChange={(e) =>
+                    onUserFilterChange(e.target.value as UserFilter)
+                  }
                   className="mr-2"
                 />
                 <span className="text-sm">ゲスト</span>
@@ -93,7 +100,7 @@ export const UserList: React.FC<UserListProps> = ({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {/* Card View */}
         <div className="space-y-4">
@@ -138,8 +145,10 @@ export const UserList: React.FC<UserListProps> = ({
                     <>
                       <Separator className="my-3" />
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">電話番号</span>
-                        <a 
+                        <span className="text-sm font-medium text-muted-foreground">
+                          電話番号
+                        </span>
+                        <a
                           href={`tel:${user.phone}`}
                           className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
                         >

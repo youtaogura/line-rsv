@@ -1,12 +1,18 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { CalendarView } from "./Calendar/CalendarView";
-import { ReservationModal } from "./ReservationModal";
-import { Switch } from "@/components/ui/switch";
-import { startOfMonth, format, addMinutes, isSameDay } from "date-fns";
-import type { TimeSlot } from "./types";
-import type { Reservation, User, ReservationMenuSimple, ReservationData } from "@/lib/supabase";
+import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
+import { Switch } from '@/components/ui/switch';
+import type {
+  Reservation,
+  ReservationData,
+  ReservationMenuSimple,
+  User,
+} from '@/lib/supabase';
+import { addMinutes, format, isSameDay } from 'date-fns';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CalendarView } from './Calendar/CalendarView';
+import { ReservationModal } from './ReservationModal';
+import type { TimeSlot } from './types';
 
 interface ReservationWithUser extends Reservation {
   users?: {
@@ -14,12 +20,11 @@ interface ReservationWithUser extends Reservation {
     name: string;
   } | null;
 }
-import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
 
 interface AdminReservationCalendarProps {
   tenantId: string | null;
   reservations: ReservationWithUser[];
-  onDeleteReservation: (tenantId:string, id: string) => void;
+  onDeleteReservation: (tenantId: string, id: string) => void;
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
   selectedStaffId: string;
@@ -27,6 +32,7 @@ interface AdminReservationCalendarProps {
   monthlyAvailability: MonthlyAvailability | null;
   reservationMenu: ReservationMenuSimple | null;
   onCreateReservationData: (reservationData: ReservationData) => Promise<void>;
+  onMonthChange: (month: string) => void;
 }
 
 interface DayReservations {
@@ -43,7 +49,7 @@ interface TimeSlotWithReservation {
 // タイムスロットを統合する関数
 function consolidateTimeSlots(
   timeSlots: TimeSlot[],
-  reservations: ReservationWithUser[],
+  reservations: ReservationWithUser[]
 ): TimeSlotWithReservation[] {
   const consolidatedSlots: TimeSlotWithReservation[] = [];
   const processedSlots = new Set<string>();
@@ -53,7 +59,7 @@ function consolidateTimeSlots(
 
     // このスロットに対応する予約を探す
     const reservation = reservations.find(
-      (r) => format(new Date(r.datetime), "HH:mm") === slot.time,
+      (r) => format(new Date(r.datetime), 'HH:mm') === slot.time
     );
 
     if (reservation) {
@@ -62,8 +68,8 @@ function consolidateTimeSlots(
       const reservationDuration = reservation.duration_minutes || 30;
       const reservationEnd = addMinutes(reservationStart, reservationDuration);
 
-      const startTime = format(reservationStart, "HH:mm");
-      const endTime = format(reservationEnd, "HH:mm");
+      const startTime = format(reservationStart, 'HH:mm');
+      const endTime = format(reservationEnd, 'HH:mm');
 
       consolidatedSlots.push({
         startTime,
@@ -90,23 +96,25 @@ function consolidateTimeSlots(
   });
 
   return consolidatedSlots.sort((a, b) =>
-    a.startTime.localeCompare(b.startTime),
+    a.startTime.localeCompare(b.startTime)
   );
 }
 
 function reservationOnlyTimeSlots(
-  currentDayReservations: ReservationWithUser[],
+  currentDayReservations: ReservationWithUser[]
 ): TimeSlotWithReservation[] {
   return currentDayReservations
-    .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
-    .map(reservation => {
+    .sort(
+      (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+    )
+    .map((reservation) => {
       const reservationStart = new Date(reservation.datetime);
       const reservationDuration = reservation.duration_minutes || 30;
       const reservationEnd = addMinutes(reservationStart, reservationDuration);
-      
+
       return {
-        startTime: format(reservationStart, "HH:mm"),
-        endTime: format(reservationEnd, "HH:mm"),
+        startTime: format(reservationStart, 'HH:mm'),
+        endTime: format(reservationEnd, 'HH:mm'),
         datetime: reservation.datetime,
         reservation,
       };
@@ -124,41 +132,44 @@ export function AdminReservationCalendar({
   monthlyAvailability,
   reservationMenu,
   onCreateReservationData,
+  onMonthChange,
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [, setCurrentMonth] = useState<Date>(
-    startOfMonth(new Date()),
-  );
   const [dayReservations, setDayReservations] = useState<DayReservations>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDateTime, setSelectedDateTime] = useState<string>("");
-  const [reservationsOnlySelected, setReservationsOnlySelected] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState<string>('');
+  const [reservationsOnlySelected, setReservationsOnlySelected] =
+    useState(false);
 
   const timeSlots = useMemo(() => {
+    console.log('monthlyAvailability:', monthlyAvailability);
     if (!monthlyAvailability) return [];
-    if (selectedStaffId === "all" || selectedStaffId === "unassigned") {
+    if (selectedStaffId === 'all' || selectedStaffId === 'unassigned') {
       return monthlyAvailability.tenant.timeSlots;
     }
     if (selectedStaffId) {
       const staffAvailability = monthlyAvailability.staffMembers.find(
         (staff) => staff.id === selectedStaffId
       );
-      return staffAvailability?.timeSlots ?? []
+      return staffAvailability?.timeSlots ?? [];
     }
 
     return monthlyAvailability.tenant.timeSlots;
   }, [monthlyAvailability, selectedStaffId]);
 
   const showReservationsOnly = useMemo(() => {
-    return selectedStaffId === "all" || selectedStaffId === "unassigned" || reservationsOnlySelected;
+    return (
+      selectedStaffId === 'all' ||
+      selectedStaffId === 'unassigned' ||
+      reservationsOnlySelected
+    );
   }, [selectedStaffId, reservationsOnlySelected]);
-
 
   // 予約データを日付ごとにグループ化
   useEffect(() => {
     const grouped: DayReservations = {};
     reservations.forEach((reservation) => {
-      const date = format(new Date(reservation.datetime), "yyyy-MM-dd");
+      const date = format(new Date(reservation.datetime), 'yyyy-MM-dd');
       if (!grouped[date]) {
         grouped[date] = [];
       }
@@ -172,66 +183,79 @@ export function AdminReservationCalendar({
   }, []);
 
   const handleMonthChange = useCallback((activeStartDate: Date) => {
-    setCurrentMonth(startOfMonth(activeStartDate));
+    onMonthChange(format(activeStartDate, 'yyyy-MM'));
     setSelectedDate(null);
   }, []);
 
   const selectedDateString = selectedDate
-    ? format(selectedDate, "yyyy-MM-dd")
+    ? format(selectedDate, 'yyyy-MM-dd')
     : null;
   const selectedDayTimeSlots = useMemo(() => {
     if (!monthlyAvailability || !selectedDate) return [];
-    
+
     // 「全員」「担当なし」選択時、または「予約だけ表示」がONの場合は空き情報を表示しない
-    if (selectedStaffId === "all" || selectedStaffId === "unassigned" || reservationsOnlySelected) {
+    if (
+      selectedStaffId === 'all' ||
+      selectedStaffId === 'unassigned' ||
+      reservationsOnlySelected
+    ) {
       return [];
     }
-    
-    return monthlyAvailability.staffMembers.find(
-      (staff) => staff.id === selectedStaffId
-    )?.timeSlots.filter(
-      slot => isSameDay(new Date(slot.datetime), selectedDate),
-    ) ?? [];
-  }, [monthlyAvailability, selectedDate, selectedStaffId, reservationsOnlySelected])
+
+    return (
+      monthlyAvailability.staffMembers
+        .find((staff) => staff.id === selectedStaffId)
+        ?.timeSlots.filter((slot) =>
+          isSameDay(new Date(slot.datetime), selectedDate)
+        ) ?? []
+    );
+  }, [
+    monthlyAvailability,
+    selectedDate,
+    selectedStaffId,
+    reservationsOnlySelected,
+  ]);
 
   // 統合されたタイムスロットを計算
   const timeSlotsWithReservation = useMemo(() => {
     const currentDayReservations = selectedDateString
       ? dayReservations[selectedDateString] || []
       : [];
-    
+
     // 「全員」「担当なし」選択時、または「予約だけ表示」がONの場合は予約情報のみを表示（空き情報は表示しない）
     if (showReservationsOnly) {
-      return reservationOnlyTimeSlots(currentDayReservations)
+      return reservationOnlyTimeSlots(currentDayReservations);
     }
-    return consolidateTimeSlots(
-      selectedDayTimeSlots,
-      currentDayReservations,
-    );
-  }, [selectedDayTimeSlots, selectedDateString, dayReservations, showReservationsOnly]);
+    return consolidateTimeSlots(selectedDayTimeSlots, currentDayReservations);
+  }, [
+    selectedDayTimeSlots,
+    selectedDateString,
+    dayReservations,
+    showReservationsOnly,
+  ]);
 
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">
-            予約カレンダー
-          </h3>
-          {selectedStaffId && selectedStaffId !== "all" && selectedStaffId !== "unassigned" && (
-            <div className="flex items-center space-x-3">
-              <Switch
-                checked={reservationsOnlySelected}
-                onCheckedChange={setReservationsOnlySelected}
-                id="reservations-only-toggle"
-              />
-              <label 
-                htmlFor="reservations-only-toggle"
-                className="text-sm font-medium text-gray-700 cursor-pointer"
-              >
-                予約だけ表示
-              </label>
-            </div>
-          )}
+          <h3 className="text-lg font-medium text-gray-900">予約カレンダー</h3>
+          {selectedStaffId &&
+            selectedStaffId !== 'all' &&
+            selectedStaffId !== 'unassigned' && (
+              <div className="flex items-center space-x-3">
+                <Switch
+                  checked={reservationsOnlySelected}
+                  onCheckedChange={setReservationsOnlySelected}
+                  id="reservations-only-toggle"
+                />
+                <label
+                  htmlFor="reservations-only-toggle"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  予約だけ表示
+                </label>
+              </div>
+            )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -252,8 +276,8 @@ export function AdminReservationCalendar({
           <div className="flex flex-col min-h-[400px] lg:min-h-96">
             <h4 className="text-md font-medium text-gray-900 mb-3">
               {selectedDate
-                ? format(selectedDate, "M月d日の予約")
-                : "日付を選択してください"}
+                ? format(selectedDate, 'M月d日の予約')
+                : '日付を選択してください'}
             </h4>
 
             {selectedDate ? (
@@ -271,8 +295,8 @@ export function AdminReservationCalendar({
                           key={`${slot.startTime}-${index}`}
                           className={`border rounded-lg p-3 ${
                             slot.reservation
-                              ? "border-orange-200 bg-orange-50"
-                              : "border-green-200 bg-green-50"
+                              ? 'border-orange-200 bg-orange-50'
+                              : 'border-green-200 bg-green-50'
                           }`}
                         >
                           <div className="flex justify-between items-center">
@@ -284,30 +308,31 @@ export function AdminReservationCalendar({
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                     slot.reservation
-                                      ? "bg-red-100 text-orange-800"
-                                      : "bg-green-100 text-green-800"
+                                      ? 'bg-red-100 text-orange-800'
+                                      : 'bg-green-100 text-green-800'
                                   }`}
                                 >
-                                  {slot.reservation ? "予約済み" : "空き"}
+                                  {slot.reservation ? '予約済み' : '空き'}
                                 </span>
 
                                 {slot.reservation && (
                                   <>
                                     <span className="text-sm font-medium text-gray-700">
-                                      {slot.reservation!.users?.name || "ユーザー名が取得できませんでした"}
+                                      {slot.reservation!.users?.name ||
+                                        'ユーザー名が取得できませんでした'}
                                     </span>
                                     <span
                                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                         slot.reservation!.member_type ===
-                                        "regular"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : "bg-yellow-100 text-yellow-800"
+                                        'regular'
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : 'bg-yellow-100 text-yellow-800'
                                       }`}
                                     >
                                       {slot.reservation!.member_type ===
-                                      "regular"
-                                        ? "会員"
-                                        : "ゲスト"}
+                                      'regular'
+                                        ? '会員'
+                                        : 'ゲスト'}
                                     </span>
                                   </>
                                 )}
@@ -322,9 +347,15 @@ export function AdminReservationCalendar({
 
                             {slot.reservation ? (
                               <button
-                                onClick={() =>{
-                                  if (!tenantId) throw new Error("テナントIDが見つかりません");
-                                  onDeleteReservation(tenantId, slot.reservation!.id)
+                                onClick={() => {
+                                  if (!tenantId)
+                                    throw new Error(
+                                      'テナントIDが見つかりません'
+                                    );
+                                  onDeleteReservation(
+                                    tenantId,
+                                    slot.reservation!.id
+                                  );
                                 }}
                                 className="text-red-600 hover:text-red-900 text-sm ml-2"
                               >

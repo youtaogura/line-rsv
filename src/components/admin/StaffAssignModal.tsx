@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 
 interface StaffAssignModalProps {
@@ -63,16 +68,18 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
         <DialogHeader>
           <DialogTitle>担当スタッフの設定</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">予約情報</h3>
             <div className="bg-gray-50 p-3 rounded-md">
               <p className="text-sm">
-                <span className="font-medium">お客様:</span> {reservation.users?.name || '名前不明'}
+                <span className="font-medium">お客様:</span>{' '}
+                {reservation.users?.name || '名前不明'}
               </p>
               <p className="text-sm">
-                <span className="font-medium">日時:</span> {new Date(reservation.datetime).toLocaleString('ja-JP')}
+                <span className="font-medium">日時:</span>{' '}
+                {new Date(reservation.datetime).toLocaleString('ja-JP')}
               </p>
               <p className="text-sm">
                 <span className="font-medium">現在の担当:</span>{' '}
@@ -83,7 +90,10 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="staff-select" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="staff-select"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 担当スタッフを選択
               </label>
               <select
@@ -113,7 +123,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                   担当解除
                 </button>
               )}
-              
+
               <div className="flex space-x-3 ml-auto">
                 <button
                   type="button"

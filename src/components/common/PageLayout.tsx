@@ -13,7 +13,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
 }) => {
   const baseClasses = 'min-h-screen bg-gray-50';
   const centerClasses = centerContent ? 'flex items-center justify-center' : '';
-  
+
   return (
     <div className={`${baseClasses} ${centerClasses} ${className}`}>
       {children}

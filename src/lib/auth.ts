@@ -1,14 +1,14 @@
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { supabase } from "@/lib/supabase";
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import { supabase } from '@/lib/supabase';
 
 export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        username: { label: 'Username', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
@@ -17,9 +17,9 @@ export const authOptions = {
 
         try {
           const { data: admin, error } = await supabase
-            .from("admins")
-            .select("*")
-            .eq("username", credentials.username)
+            .from('admins')
+            .select('*')
+            .eq('username', credentials.username)
             .single();
 
           if (error || !admin) {
@@ -28,7 +28,7 @@ export const authOptions = {
 
           const isValidPassword = await bcrypt.compare(
             credentials.password,
-            admin.password_hash,
+            admin.password_hash
           );
 
           if (!isValidPassword) {
@@ -42,14 +42,14 @@ export const authOptions = {
             tenant_id: admin.tenant_id,
           };
         } catch (error) {
-          console.error("Auth error:", error);
+          console.error('Auth error:', error);
           return null;
         }
       },
     }),
   ],
   session: {
-    strategy: "jwt" as const,
+    strategy: 'jwt' as const,
   },
   jwt: {
     maxAge: 60 * 60 * 8, // 8 hours
@@ -73,6 +73,6 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: "/admin/login",
+    signIn: '/admin/login',
   },
 };

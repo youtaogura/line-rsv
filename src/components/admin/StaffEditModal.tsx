@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Clock } from "lucide-react";
-import { StaffMemberBusinessHourManager } from "./StaffMemberBusinessHourManager";
+import React, { useState, useEffect } from 'react';
+import type { StaffMember, BusinessHourSimple } from '@/lib/supabase';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { User, Clock } from 'lucide-react';
+import { StaffMemberBusinessHourManager } from './StaffMemberBusinessHourManager';
 
 interface StaffEditModalProps {
   isOpen: boolean;
@@ -17,7 +22,12 @@ interface StaffEditModalProps {
   businessHours: BusinessHourSimple[];
   tenantBusinessHours: BusinessHourSimple[];
   businessHoursLoading: boolean;
-  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
+  onCreateBusinessHour: (
+    staffMemberId: string,
+    dayOfWeek: number,
+    startTime: string,
+    endTime: string
+  ) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
@@ -32,8 +42,8 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
   onCreateBusinessHour,
   onDeleteBusinessHour,
 }) => {
-  const [activeTab, setActiveTab] = useState("info");
-  const [staffName, setStaffName] = useState("");
+  const [activeTab, setActiveTab] = useState('info');
+  const [staffName, setStaffName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -41,7 +51,7 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
       setStaffName(staffMember.name);
     }
     // Reset to info tab when modal opens
-    setActiveTab("info");
+    setActiveTab('info');
   }, [staffMember]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,21 +60,24 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
 
     setIsUpdating(true);
     try {
-      const success = await onUpdateStaffMember(staffMember.id, staffName.trim());
+      const success = await onUpdateStaffMember(
+        staffMember.id,
+        staffName.trim()
+      );
       if (success) {
         // Keep modal open but show success feedback
-        console.log("Staff member updated successfully");
+        console.log('Staff member updated successfully');
       }
     } catch (error) {
-      console.error("Error updating staff member:", error);
+      console.error('Error updating staff member:', error);
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleClose = () => {
-    setStaffName("");
-    setActiveTab("info");
+    setStaffName('');
+    setActiveTab('info');
     onClose();
   };
 
@@ -86,7 +99,10 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
               <User className="h-4 w-4" />
               <span>基本情報</span>
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="schedule"
+              className="flex items-center space-x-2"
+            >
               <Clock className="h-4 w-4" />
               <span>対応時間設定</span>
             </TabsTrigger>
@@ -116,13 +132,16 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
                   <div className="space-y-2">
                     <Label>作成日時</Label>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(staffMember.created_at).toLocaleDateString('ja-JP', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {new Date(staffMember.created_at).toLocaleDateString(
+                        'ja-JP',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }
+                      )}
                     </div>
                   </div>
 
@@ -136,9 +155,13 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
                     </Button>
                     <Button
                       type="submit"
-                      disabled={isUpdating || !staffName.trim() || staffName === staffMember.name}
+                      disabled={
+                        isUpdating ||
+                        !staffName.trim() ||
+                        staffName === staffMember.name
+                      }
                     >
-                      {isUpdating ? "更新中..." : "更新"}
+                      {isUpdating ? '更新中...' : '更新'}
                     </Button>
                   </div>
                 </form>

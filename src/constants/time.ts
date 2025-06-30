@@ -7,7 +7,7 @@ export const TIME_CONFIG = {
 
 export const DAY_NAMES_JP = [
   '日曜日',
-  '月曜日', 
+  '月曜日',
   '火曜日',
   '水曜日',
   '木曜日',
@@ -18,7 +18,7 @@ export const DAY_NAMES_JP = [
 export const DAY_NAMES_SHORT_JP = [
   '日',
   '月',
-  '火', 
+  '火',
   '水',
   '木',
   '金',

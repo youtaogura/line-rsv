@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
-import { createApiResponse } from "@/utils/api";
+import { NextRequest } from 'next/server';
+import { createApiResponse } from '@/utils/api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,20 +7,20 @@ export async function POST(request: NextRequest) {
 
     const token = process.env.LINE_NOTIFY_TOKEN;
     if (!token) {
-      console.error("LINE_NOTIFY_TOKEN not configured");
+      console.error('LINE_NOTIFY_TOKEN not configured');
       return createApiResponse({ success: false });
     }
 
     const date = new Date(datetime);
-    const formattedDate = date.toLocaleString("ja-JP", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    const formattedDate = date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
 
-    const memberTypeText = memberType === "regular" ? "会員" : "ゲスト";
+    const memberTypeText = memberType === 'regular' ? '会員' : 'ゲスト';
 
     let message = `新規予約が入りました！\n\n`;
     message += `名前: ${name}（${memberTypeText}）\n`;
@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
       message += `メモ: ${note}\n`;
     }
 
-    const response = await fetch("https://notify-api.line.me/api/notify", {
-      method: "POST",
+    const response = await fetch('https://notify-api.line.me/api/notify', {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
         message,
@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
     if (response.ok) {
       return createApiResponse({ success: true });
     } else {
-      console.error("LINE Notify error:", await response.text());
+      console.error('LINE Notify error:', await response.text());
       return createApiResponse({ success: false });
     }
   } catch (error) {
-    console.error("Notify API error:", error);
+    console.error('Notify API error:', error);
     return createApiResponse({ success: false });
   }
 }

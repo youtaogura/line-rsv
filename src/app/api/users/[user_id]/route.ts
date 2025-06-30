@@ -1,19 +1,19 @@
-import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { NextRequest } from 'next/server';
+import { supabase } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
-} from "@/lib/tenant-validation";
+} from '@/lib/tenant-validation';
 import {
   createApiResponse,
   createErrorResponse,
   createValidationErrorResponse,
   createNotFoundResponse,
-} from "@/utils/api";
+} from '@/utils/api';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> },
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
     // テナント検証
@@ -30,35 +30,35 @@ export async function GET(
     const { user_id } = await params;
 
     if (!user_id) {
-      return createValidationErrorResponse({ user_id: "User ID is required" });
+      return createValidationErrorResponse({ user_id: 'User ID is required' });
     }
 
     const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("tenant_id", tenant.id)
-      .eq("user_id", user_id)
+      .from('users')
+      .select('*')
+      .eq('tenant_id', tenant.id)
+      .eq('user_id', user_id)
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
+      if (error.code === 'PGRST116') {
         // No rows found
         return createApiResponse(null);
       }
-      console.error("Error fetching user:", error);
-      return createErrorResponse("Failed to fetch user");
+      console.error('Error fetching user:', error);
+      return createErrorResponse('Failed to fetch user');
     }
 
     return createApiResponse(data);
   } catch (error) {
-    console.error("Unexpected error:", error);
-    return createErrorResponse("Internal server error");
+    console.error('Unexpected error:', error);
+    return createErrorResponse('Internal server error');
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> },
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
     // テナント検証
@@ -77,19 +77,19 @@ export async function POST(
     const { name, phone } = body;
 
     if (!user_id) {
-      return createValidationErrorResponse({ user_id: "User ID is required" });
+      return createValidationErrorResponse({ user_id: 'User ID is required' });
     }
 
     if (!name) {
-      return createValidationErrorResponse({ name: "Name is required" });
+      return createValidationErrorResponse({ name: 'Name is required' });
     }
 
     // Check if user already exists
     const { data: existingUser } = await supabase
-      .from("users")
-      .select("*")
-      .eq("tenant_id", tenant.id)
-      .eq("user_id", user_id)
+      .from('users')
+      .select('*')
+      .eq('tenant_id', tenant.id)
+      .eq('user_id', user_id)
       .single();
 
     if (existingUser) {
@@ -98,32 +98,32 @@ export async function POST(
 
     // Create new guest user
     const { data, error } = await supabase
-      .from("users")
+      .from('users')
       .insert({
         tenant_id: tenant.id,
         user_id,
         name,
         phone: phone || null,
-        member_type: "guest",
+        member_type: 'guest',
       })
       .select()
       .single();
 
     if (error) {
-      console.error("Error creating user:", error);
-      return createErrorResponse("Failed to create user");
+      console.error('Error creating user:', error);
+      return createErrorResponse('Failed to create user');
     }
 
     return createApiResponse(data);
   } catch (error) {
-    console.error("Unexpected error:", error);
-    return createErrorResponse("Internal server error");
+    console.error('Unexpected error:', error);
+    return createErrorResponse('Internal server error');
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> },
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
     // テナント検証
@@ -142,54 +142,56 @@ export async function PUT(
     const { name, phone, member_type } = body;
 
     if (!user_id) {
-      return createValidationErrorResponse({ user_id: "User ID is required" });
+      return createValidationErrorResponse({ user_id: 'User ID is required' });
     }
 
-    if (member_type && !["regular", "guest"].includes(member_type)) {
-      return createValidationErrorResponse({ member_type: 'Invalid member_type. Must be "regular" or "guest"' });
+    if (member_type && !['regular', 'guest'].includes(member_type)) {
+      return createValidationErrorResponse({
+        member_type: 'Invalid member_type. Must be "regular" or "guest"',
+      });
     }
 
     // Check if user exists
     const { error: fetchError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("tenant_id", tenant.id)
-      .eq("user_id", user_id)
+      .from('users')
+      .select('*')
+      .eq('tenant_id', tenant.id)
+      .eq('user_id', user_id)
       .single();
 
-    if (fetchError && fetchError.code === "PGRST116") {
-      return createNotFoundResponse("User");
+    if (fetchError && fetchError.code === 'PGRST116') {
+      return createNotFoundResponse('User');
     } else if (fetchError) {
-      console.error("Error fetching user:", fetchError);
-      return createErrorResponse("Failed to fetch user");
+      console.error('Error fetching user:', fetchError);
+      return createErrorResponse('Failed to fetch user');
     }
 
     // Update user
     const updateData: {
       name?: string;
       phone?: string;
-      member_type?: "regular" | "guest";
+      member_type?: 'regular' | 'guest';
     } = {};
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
     if (member_type !== undefined) updateData.member_type = member_type;
 
     const { data, error } = await supabase
-      .from("users")
+      .from('users')
       .update(updateData)
-      .eq("tenant_id", tenant.id)
-      .eq("user_id", user_id)
+      .eq('tenant_id', tenant.id)
+      .eq('user_id', user_id)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating user:", error);
-      return createErrorResponse("Failed to update user");
+      console.error('Error updating user:', error);
+      return createErrorResponse('Failed to update user');
     }
 
     return createApiResponse(data);
   } catch (error) {
-    console.error("Unexpected error:", error);
-    return createErrorResponse("Internal server error");
+    console.error('Unexpected error:', error);
+    return createErrorResponse('Internal server error');
   }
 }

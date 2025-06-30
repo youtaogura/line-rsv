@@ -4,7 +4,11 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { AdminSidebar } from './AdminSidebar';
@@ -48,19 +52,19 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
       <div className="flex min-h-screen w-full">
         {/* Desktop Sidebar */}
         <AdminSidebar user={user} tenant={tenant} />
-        
+
         {/* Main Content */}
         <SidebarInset className="flex-1">
           {/* Header */}
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            
+
             {/* Back button for mobile or when explicitly requested */}
             {showBackButton && (
               <>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={handleBack}
                   className="shrink-0 lg:hidden"
@@ -68,7 +72,10 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
                   <ArrowLeft className="h-4 w-4" />
                   <span className="sr-only">戻る</span>
                 </Button>
-                <Separator orientation="vertical" className="mr-2 h-4 lg:hidden" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 h-4 lg:hidden"
+                />
               </>
             )}
 

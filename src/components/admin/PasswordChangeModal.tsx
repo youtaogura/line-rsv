@@ -17,7 +17,11 @@ import {
 interface PasswordChangeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => Promise<void>;
+  onSubmit: (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => Promise<void>;
 }
 
 export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
@@ -36,39 +40,44 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors: Record<string, string> = {};
-    
+
     if (!currentPassword) {
       newErrors.currentPassword = '現在のパスワードを入力してください';
     }
-    
+
     if (!newPassword) {
       newErrors.newPassword = '新しいパスワードを入力してください';
     } else if (newPassword.length < 8) {
       newErrors.newPassword = 'パスワードは8文字以上で入力してください';
     }
-    
+
     if (!confirmPassword) {
       newErrors.confirmPassword = 'パスワードの確認を入力してください';
     } else if (newPassword !== confirmPassword) {
       newErrors.confirmPassword = 'パスワードが一致しません';
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setIsSubmitting(true);
     setErrors({});
-    
+
     try {
       await onSubmit({ currentPassword, newPassword, confirmPassword });
       handleClose();
     } catch (error) {
       console.error('Password change error:', error);
-      setErrors({ general: error instanceof Error ? error.message : 'パスワード変更に失敗しました' });
+      setErrors({
+        general:
+          error instanceof Error
+            ? error.message
+            : 'パスワード変更に失敗しました',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -129,7 +138,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 <p className="text-sm text-red-500">{errors.currentPassword}</p>
               )}
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="newPassword">新しいパスワード</Label>
               <div className="relative">
@@ -158,7 +167,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 <p className="text-sm text-red-500">{errors.newPassword}</p>
               )}
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="confirmPassword">新しいパスワード（確認）</Label>
               <div className="relative">
@@ -189,7 +198,12 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
               キャンセル
             </Button>
             <Button type="submit" disabled={isSubmitting}>

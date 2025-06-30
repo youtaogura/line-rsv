@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, Suspense, useEffect } from "react";
-import { useAdminSession, useBusinessHours } from "@/hooks/useAdminData";
-import { BusinessHourForm } from "@/components/admin/BusinessHourForm";
-import { BusinessHourList } from "@/components/admin/BusinessHourList";
+import { useState, Suspense, useEffect } from 'react';
+import { useAdminSession, useBusinessHours } from '@/hooks/useAdminData';
+import { BusinessHourForm } from '@/components/admin/BusinessHourForm';
+import { BusinessHourList } from '@/components/admin/BusinessHourList';
 import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
 
@@ -32,10 +32,7 @@ function BusinessHoursContent() {
   }
 
   return (
-    <AuthGuard
-      isLoading={isLoading}
-      isAuthenticated={isAuthenticated}
-    >
+    <AuthGuard isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <AdminLayout
         title={UI_TEXT.BUSINESS_HOURS_MANAGEMENT}
         description="営業時間の設定と管理ができます"

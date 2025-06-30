@@ -1,11 +1,11 @@
-import React, { useCallback, useMemo } from "react";
-import Calendar from "react-calendar";
-import { CalendarTile } from "./CalendarTile";
-import { isBefore, isSameDay, startOfDay, format } from "date-fns";
-import "react-calendar/dist/Calendar.css";
-import "./calendar-styles.css";
-import { TimeSlot } from "../types";
-import type { Reservation } from "@/lib/supabase";
+import React, { useCallback, useMemo } from 'react';
+import Calendar from 'react-calendar';
+import { CalendarTile } from './CalendarTile';
+import { isBefore, isSameDay, startOfDay, format } from 'date-fns';
+import 'react-calendar/dist/Calendar.css';
+import './calendar-styles.css';
+import { TimeSlot } from '../types';
+import type { Reservation } from '@/lib/supabase';
 
 interface CalendarViewProps {
   selectedDate: Date | null;
@@ -34,16 +34,18 @@ export const CalendarView = React.memo(function CalendarView({
   );
 
   const hasEmptySlot = useCallback(
-    (date: Date) => timeSlots.some(
-        (slot) => isSameDay(new Date(slot.datetime), date) && slot.isAvailable,
+    (date: Date) =>
+      timeSlots.some(
+        (slot) => isSameDay(new Date(slot.datetime), date) && slot.isAvailable
       ),
-    [timeSlots]);
+    [timeSlots]
+  );
 
   // 各日付の予約数を計算
   const dailyReservationCounts = useMemo(() => {
     const counts: { [date: string]: number } = {};
     reservations.forEach((reservation) => {
-      const dateString = format(new Date(reservation.datetime), "yyyy-MM-dd");
+      const dateString = format(new Date(reservation.datetime), 'yyyy-MM-dd');
       counts[dateString] = (counts[dateString] || 0) + 1;
     });
     return counts;
@@ -54,7 +56,7 @@ export const CalendarView = React.memo(function CalendarView({
       const isBusinessDay = businessDaysSet?.has(date.getDay());
       // 「全員」「担当なし」選択時、または「予約だけ表示」がONの場合は全ての日付を選択可能にする
       if (showReservationsOnly) {
-        return !isPastDate(date)  && isBusinessDay;
+        return !isPastDate(date) && isBusinessDay;
       }
       return !isPastDate(date) && isBusinessDay;
     },
@@ -63,58 +65,60 @@ export const CalendarView = React.memo(function CalendarView({
 
   const getTileClassName = useCallback(
     ({ date, view }: { date: Date; view: string }) => {
-      if (view !== "month") return "";
+      if (view !== 'month') return '';
 
-      let classes = "relative ";
+      let classes = 'relative ';
       const isAvailable = isTileAvailable({ date });
 
       if (!isAvailable) {
-        classes += "bg-gray-200 text-gray-400 cursor-not-allowed ";
+        classes += 'bg-gray-200 text-gray-400 cursor-not-allowed ';
       } else {
-        classes += "bg-white hover:bg-blue-50 cursor-pointer ";
+        classes += 'bg-white hover:bg-blue-50 cursor-pointer ';
       }
 
-      const isSelected = selectedDate && isSameDay(selectedDate, date)
+      const isSelected = selectedDate && isSameDay(selectedDate, date);
 
       if (isSelected && isAvailable) {
-        classes += "bg-blue-500 text-white hover:bg-blue-600 ";
+        classes += 'bg-blue-500 text-white hover:bg-blue-600 ';
       }
 
       return classes.trim();
     },
-    [selectedDate, isTileAvailable],
+    [selectedDate, isTileAvailable]
   );
 
   const getTileDisabled = ({ date, view }: { date: Date; view: string }) => {
-    if (view !== "month") return false;
+    if (view !== 'month') return false;
 
     return !isTileAvailable({ date });
   };
 
   const getTileContent = ({ date, view }: { date: Date; view: string }) => {
-    if (view !== "month") return null;
+    if (view !== 'month') return null;
 
     const isBusinessDay = businessDaysSet?.has(date.getDay());
     const isPast = isPastDate(date);
     const hasEmpty = hasEmptySlot(date);
-    const dateString = format(date, "yyyy-MM-dd");
+    const dateString = format(date, 'yyyy-MM-dd');
     const reservationCount = dailyReservationCounts[dateString] || 0;
 
     return (
       <CalendarTile
         isAvailable={hasEmpty}
-        reservationCount={showReservationsOnly && reservationCount > 0 ? reservationCount : 0}
+        reservationCount={
+          showReservationsOnly && reservationCount > 0 ? reservationCount : 0
+        }
         showNothing={
-          showReservationsOnly && reservationCount === 0
-          || !isBusinessDay
-          || isPast
+          (showReservationsOnly && reservationCount === 0) ||
+          !isBusinessDay ||
+          isPast
         }
       />
     );
   };
 
   const handleDateClick = (
-    value: Date | Date[] | null | [Date | null, Date | null],
+    value: Date | Date[] | null | [Date | null, Date | null]
   ) => {
     if (value && !Array.isArray(value)) {
       if (isTileAvailable({ date: value })) {

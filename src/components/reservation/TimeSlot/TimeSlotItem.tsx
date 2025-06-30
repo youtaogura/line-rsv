@@ -1,6 +1,6 @@
-import { format as formatTz } from "date-fns-tz";
-import { addMinutes } from "date-fns";
-import type { ReservationMenu } from "@/lib/supabase";
+import { format as formatTz } from 'date-fns-tz';
+import { addMinutes } from 'date-fns';
+import type { ReservationMenu } from '@/lib/supabase';
 
 interface TimeSlotItemProps {
   datetime: string;
@@ -20,8 +20,8 @@ export function TimeSlotItem({
     const duration = reservationMenu?.duration_minutes || 30;
     const endTime = addMinutes(startTime, duration);
 
-    const startStr = formatTz(startTime, "HH:mm", { timeZone: "Asia/Tokyo" });
-    const endStr = formatTz(endTime, "HH:mm", { timeZone: "Asia/Tokyo" });
+    const startStr = formatTz(startTime, 'HH:mm', { timeZone: 'Asia/Tokyo' });
+    const endStr = formatTz(endTime, 'HH:mm', { timeZone: 'Asia/Tokyo' });
 
     return `${startStr} - ${endStr}`;
   };
@@ -33,8 +33,8 @@ export function TimeSlotItem({
         w-full px-4 py-3 text-left rounded-md border transition-colors
         ${
           isSelected
-            ? "bg-blue-500 text-white border-blue-500 shadow-md"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300"
+            ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300'
         }
       `}
     >

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface MonthNavigationProps {
   currentMonth: string; // YYYY-MM format
@@ -9,18 +9,18 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   currentMonth,
   onMonthChange,
 }) => {
-  const currentDate = new Date(currentMonth + "-01");
-  
+  const currentDate = new Date(currentMonth + '-01');
+
   const previousMonth = new Date(currentDate);
   previousMonth.setMonth(previousMonth.getMonth() - 1);
   const previousMonthStr = previousMonth.toISOString().substring(0, 7);
-  
+
   const nextMonth = new Date(currentDate);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
   const nextMonthStr = nextMonth.toISOString().substring(0, 7);
-  
+
   const formatMonth = (monthStr: string) => {
-    const date = new Date(monthStr + "-01");
+    const date = new Date(monthStr + '-01');
     return `${date.getFullYear()}年${date.getMonth() + 1}月`;
   };
 
@@ -45,11 +45,11 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
         </svg>
         {formatMonth(previousMonthStr)}
       </button>
-      
+
       <h2 className="text-lg font-semibold text-gray-900">
         {formatMonth(currentMonth)}
       </h2>
-      
+
       <button
         onClick={() => onMonthChange(nextMonthStr)}
         className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"

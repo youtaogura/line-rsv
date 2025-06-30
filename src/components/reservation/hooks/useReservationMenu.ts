@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import type { ReservationMenu } from "@/lib/supabase";
-import { buildApiUrl } from "@/lib/tenant-helpers";
+import { useState, useEffect, useCallback } from 'react';
+import type { ReservationMenu } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/tenant-helpers';
 
 interface UseReservationMenuReturn {
   reservationMenu: ReservationMenu | null;
@@ -10,7 +10,7 @@ interface UseReservationMenuReturn {
 }
 
 export function useReservationMenu(
-  tenantId: string | null,
+  tenantId: string | null
 ): UseReservationMenuReturn {
   const [reservationMenu, setReservationMenu] =
     useState<ReservationMenu | null>(null);
@@ -28,7 +28,7 @@ export function useReservationMenu(
 
     try {
       const response = await fetch(
-        buildApiUrl("/api/reservation-menu", tenantId),
+        buildApiUrl('/api/reservation-menu', tenantId)
       );
 
       if (!response.ok) {
@@ -38,14 +38,14 @@ export function useReservationMenu(
           return;
         }
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch reservation menu");
+        throw new Error(errorData.error || 'Failed to fetch reservation menu');
       }
 
       const data = await response.json();
       setReservationMenu(data);
     } catch (err) {
-      console.error("Error fetching reservation menu:", err);
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      console.error('Error fetching reservation menu:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
       setReservationMenu(null);
     } finally {
       setLoading(false);

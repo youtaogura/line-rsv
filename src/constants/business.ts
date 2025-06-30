@@ -16,5 +16,6 @@ export const RESERVATION_STATUS = {
   PENDING: 'pending',
 } as const;
 
-export type MemberType = typeof MEMBER_TYPES[keyof typeof MEMBER_TYPES];
-export type ReservationStatus = typeof RESERVATION_STATUS[keyof typeof RESERVATION_STATUS];
+export type MemberType = (typeof MEMBER_TYPES)[keyof typeof MEMBER_TYPES];
+export type ReservationStatus =
+  (typeof RESERVATION_STATUS)[keyof typeof RESERVATION_STATUS];

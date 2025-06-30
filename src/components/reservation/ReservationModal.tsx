@@ -1,9 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 // import { X } from 'lucide-react'
-import { format as formatTz } from "date-fns-tz";
-import type { User, ReservationMenuSimple, ReservationData } from "@/lib/supabase";
+import { format as formatTz } from 'date-fns-tz';
+import type {
+  User,
+  ReservationMenuSimple,
+  ReservationData,
+} from '@/lib/supabase';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -22,14 +26,13 @@ export function ReservationModal({
   reservationMenu,
   onCreateReservation,
 }: ReservationModalProps) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [note, setNote] = useState("");
-  const [adminNote, setAdminNote] = useState("");
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [note, setNote] = useState('');
+  const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [userMode, setUserMode] = useState<"existing" | "new">("existing");
-  const [selectedUserId, setSelectedUserId] = useState("");
-
+  const [userMode, setUserMode] = useState<'existing' | 'new'>('existing');
+  const [selectedUserId, setSelectedUserId] = useState('');
 
   // モーダルが開いたときの初期化
   useEffect(() => {
@@ -38,16 +41,16 @@ export function ReservationModal({
         const firstUser = availableUsers[0];
         setSelectedUserId(firstUser.user_id);
         setName(firstUser.name);
-        setPhone(firstUser.phone || "");
+        setPhone(firstUser.phone || '');
       }
     } else {
       // モーダルが閉じたときのリセット
-      setName("");
-      setPhone("");
-      setNote("");
-      setAdminNote("");
-      setUserMode("existing");
-      setSelectedUserId("");
+      setName('');
+      setPhone('');
+      setNote('');
+      setAdminNote('');
+      setUserMode('existing');
+      setSelectedUserId('');
     }
   }, [isOpen, availableUsers]);
 
@@ -56,16 +59,16 @@ export function ReservationModal({
     const user = availableUsers.find((u) => u.user_id === userId);
     if (user) {
       setName(user.name);
-      setPhone(user.phone || "");
+      setPhone(user.phone || '');
     }
   };
 
-  const handleUserModeChange = (mode: "existing" | "new") => {
+  const handleUserModeChange = (mode: 'existing' | 'new') => {
     setUserMode(mode);
-    if (mode === "new") {
-      setSelectedUserId("");
-      setName("");
-      setPhone("");
+    if (mode === 'new') {
+      setSelectedUserId('');
+      setName('');
+      setPhone('');
     } else if (availableUsers.length > 0) {
       handleExistingUserSelect(availableUsers[0].user_id);
     }
@@ -79,19 +82,19 @@ export function ReservationModal({
     e.preventDefault();
 
     if (!name.trim()) {
-      alert("お客様の名前を入力してください。");
+      alert('お客様の名前を入力してください。');
       return;
     }
 
-    let finalUserId = "";
-    if (userMode === "existing") {
+    let finalUserId = '';
+    if (userMode === 'existing') {
       finalUserId = selectedUserId;
     } else {
       finalUserId = generateUserId();
     }
 
     if (!finalUserId) {
-      alert("ユーザー情報が不正です。");
+      alert('ユーザー情報が不正です。');
       return;
     }
 
@@ -103,19 +106,19 @@ export function ReservationModal({
         name: name.trim(),
         datetime: preselectedDateTime,
         note: note.trim() || null,
-        member_type: userMode === "new" ? "guest" : "regular",
-        phone: userMode === "new" ? phone.trim() || null : undefined,
+        member_type: userMode === 'new' ? 'guest' : 'regular',
+        phone: userMode === 'new' ? phone.trim() || null : undefined,
         admin_note: adminNote.trim() || null,
         is_admin_mode: true,
         reservation_menu_id: reservationMenu?.id || null,
       };
 
       await onCreateReservation(reservationData);
-      alert("予約を登録しました！");
+      alert('予約を登録しました！');
       onClose();
     } catch (error) {
-      console.error("Reservation error:", error);
-      alert("予約処理でエラーが発生しました。");
+      console.error('Reservation error:', error);
+      alert('予約処理でエラーが発生しました。');
     } finally {
       setSubmitting(false);
     }
@@ -124,10 +127,10 @@ export function ReservationModal({
   if (!isOpen) return null;
 
   const formattedDateTime = preselectedDateTime
-    ? formatTz(new Date(preselectedDateTime), "yyyy年M月d日 HH:mm", {
-        timeZone: "Asia/Tokyo",
+    ? formatTz(new Date(preselectedDateTime), 'yyyy年M月d日 HH:mm', {
+        timeZone: 'Asia/Tokyo',
       })
-    : "";
+    : '';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -163,9 +166,9 @@ export function ReservationModal({
                   <input
                     type="radio"
                     value="existing"
-                    checked={userMode === "existing"}
+                    checked={userMode === 'existing'}
                     onChange={(e) =>
-                      handleUserModeChange(e.target.value as "existing")
+                      handleUserModeChange(e.target.value as 'existing')
                     }
                     className="mr-2"
                     disabled={submitting}
@@ -176,9 +179,9 @@ export function ReservationModal({
                   <input
                     type="radio"
                     value="new"
-                    checked={userMode === "new"}
+                    checked={userMode === 'new'}
                     onChange={(e) =>
-                      handleUserModeChange(e.target.value as "new")
+                      handleUserModeChange(e.target.value as 'new')
                     }
                     className="mr-2"
                     disabled={submitting}
@@ -189,7 +192,7 @@ export function ReservationModal({
             </div>
 
             {/* 既存ユーザー選択 */}
-            {userMode === "existing" && (
+            {userMode === 'existing' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   お客様を選択
@@ -205,7 +208,7 @@ export function ReservationModal({
                   {availableUsers.map((user) => (
                     <option key={user.user_id} value={user.user_id}>
                       {user.name} (
-                      {user.member_type === "regular" ? "会員" : "ゲスト"})
+                      {user.member_type === 'regular' ? '会員' : 'ゲスト'})
                     </option>
                   ))}
                 </select>
@@ -222,13 +225,13 @@ export function ReservationModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={submitting || userMode === "existing"}
+                disabled={submitting || userMode === 'existing'}
                 required
               />
             </div>
 
             {/* 電話番号入力 */}
-            {userMode === "new" && (
+            {userMode === 'new' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   電話番号
@@ -286,7 +289,7 @@ export function ReservationModal({
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 disabled={submitting}
               >
-                {submitting ? "登録中..." : "予約登録"}
+                {submitting ? '登録中...' : '予約登録'}
               </button>
             </div>
           </form>

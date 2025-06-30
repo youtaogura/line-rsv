@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
 
@@ -9,12 +9,12 @@ function DevReserveContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const userId = searchParams.get("userId");
-    const displayName = searchParams.get("displayName");
-    const tenantId = searchParams.get("tenantId");
+    const userId = searchParams.get('userId');
+    const displayName = searchParams.get('displayName');
+    const tenantId = searchParams.get('tenantId');
 
     if (!userId || !displayName) {
-      alert("必要なパラメータ（userId, displayName）が不足しています。");
+      alert('必要なパラメータ（userId, displayName）が不足しています。');
       return;
     }
 
@@ -24,10 +24,10 @@ function DevReserveContent() {
       displayName,
       ...(tenantId && { tenantId }),
     };
-    sessionStorage.setItem("reserveParams", JSON.stringify(userData));
+    sessionStorage.setItem('reserveParams', JSON.stringify(userData));
 
     // /reserve画面にリダイレクト
-    window.location.href = "/reserve";
+    window.location.href = '/reserve';
   }, [searchParams]);
 
   return (

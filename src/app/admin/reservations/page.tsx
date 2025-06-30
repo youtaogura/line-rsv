@@ -1,22 +1,27 @@
-"use client";
+'use client';
 
-import { useState, Suspense, useEffect, useMemo } from "react";
+import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
+import { ReservationList } from '@/components/admin/ReservationList';
 import {
-  useReservations,
-  useAdminSession,
-  useUsers,
-  useStaffMembers,
-  useBusinessHours,
-  useStaffMemberBusinessHours,
-} from "@/hooks/useAdminData";
-import { availabilityApi } from "@/lib/api/availability";
-import { buildApiUrl } from "@/lib/tenant-helpers";
-import { MonthlyAvailability } from "@/app/api/availability/monthly/route";
-import type { ReservationMenuSimple, ReservationData } from "@/lib/supabase";
-import { AdminReservationCalendar } from "@/components/reservation/AdminReservationCalendar";
-import { ReservationList } from "@/components/admin/ReservationList";
-import { AuthGuard, AdminLayout, LoadingSpinner, ViewModeToggle } from '@/components/common';
+  AdminLayout,
+  AuthGuard,
+  LoadingSpinner,
+  ViewModeToggle,
+} from '@/components/common';
+import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar';
 import { UI_TEXT } from '@/constants/ui';
+import {
+  useAdminSession,
+  useBusinessHours,
+  useReservations,
+  useStaffMemberBusinessHours,
+  useStaffMembers,
+  useUsers,
+} from '@/hooks/useAdminData';
+import { availabilityApi } from '@/lib/api/availability';
+import type { ReservationData, ReservationMenuSimple } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/tenant-helpers';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
@@ -25,44 +30,52 @@ function ReservationsContent() {
   const { users, fetchUsers } = useUsers();
   const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const { businessHours, fetchBusinessHours } = useBusinessHours();
-  const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } = useStaffMemberBusinessHours();
-  const [viewMode, setViewMode] = useState<"calendar" | "table">("calendar");
-  const [monthlyAvailability, setMonthlyAvailability] = useState<MonthlyAvailability | null>(null);
+  const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } =
+    useStaffMemberBusinessHours();
+  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
+  const [monthlyAvailability, setMonthlyAvailability] =
+    useState<MonthlyAvailability | null>(null);
   const [reservationMenu] = useState<ReservationMenuSimple | null>(null);
-  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [currentMonth, setCurrentMonth] = useState<string>(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
   const selectedStaffReservations = useMemo(() => {
-    if (selectedStaffId === "all") {
+    if (selectedStaffId === 'all') {
       return reservations;
     }
-    if (selectedStaffId === "unassigned") {
+    if (selectedStaffId === 'unassigned') {
       return reservations.filter((reservation) => !reservation.staff_member_id);
     }
-    return reservations.filter((reservation) => reservation.staff_member_id === selectedStaffId);
+    return reservations.filter(
+      (reservation) => reservation.staff_member_id === selectedStaffId
+    );
   }, [reservations, selectedStaffId]);
 
   const businessDaysSet = useMemo(() => {
-    if (selectedStaffId === "all" || selectedStaffId === "unassigned") {
+    if (selectedStaffId === 'all' || selectedStaffId === 'unassigned') {
       return new Set(businessHours.map((hour) => hour.day_of_week));
     }
     return new Set(staffBusinessHours.map((hour) => hour.day_of_week));
   }, [selectedStaffId, businessHours, staffBusinessHours]);
 
   useEffect(() => {
-    if (selectedStaffId && selectedStaffId !== "all" && selectedStaffId !== "unassigned") {
+    if (
+      selectedStaffId &&
+      selectedStaffId !== 'all' &&
+      selectedStaffId !== 'unassigned'
+    ) {
       fetchStaffMemberBusinessHours(selectedStaffId);
     }
   }, [selectedStaffId, fetchStaffMemberBusinessHours]);
 
   useEffect(() => {
     if (staffMembers.length > 0) {
-      setSelectedStaffId(staffMembers.length > 1 ? "all" : staffMembers[0].id);
+      setSelectedStaffId(staffMembers.length > 1 ? 'all' : staffMembers[0].id);
     }
-  }, [staffMembers])
+  }, [staffMembers]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -70,40 +83,67 @@ function ReservationsContent() {
       fetchStaffMembers();
       fetchBusinessHours();
     }
-  }, [isAuthenticated, session, fetchUsers, fetchStaffMembers, fetchBusinessHours]);
+  }, [
+    isAuthenticated,
+    session,
+    fetchUsers,
+    fetchStaffMembers,
+    fetchBusinessHours,
+  ]);
 
   // 月間カレンダー用の利用可能性データを取得
   useEffect(() => {
-    if (isAuthenticated && session?.user?.tenant_id && viewMode === "calendar") {
-      const currentDate = new Date();
-      availabilityApi.getMonthlyAvailability(
-        session.user.tenant_id, 
-        currentDate.getFullYear(), 
-        currentDate.getMonth()
-      ).then((response) => {
-        setMonthlyAvailability(response.data ?? null);
-      }).catch(console.error);
+    if (
+      isAuthenticated &&
+      session?.user?.tenant_id &&
+      viewMode === 'calendar'
+    ) {
+      console.log(currentMonth);
+      const currentDate = new Date(currentMonth);
+      console.log(currentDate);
+      availabilityApi
+        .getMonthlyAvailability(
+          session.user.tenant_id,
+          currentDate.getFullYear(),
+          currentDate.getMonth()
+        )
+        .then((response) => {
+          setMonthlyAvailability(response.data ?? null);
+        })
+        .catch(console.error);
     }
-  }, [isAuthenticated, session, viewMode]);
+  }, [isAuthenticated, session, viewMode, currentMonth]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const staffIdForApi =
-        selectedStaffId === "all" || selectedStaffId === "unassigned"
-          ? "all"
+        selectedStaffId === 'all' || selectedStaffId === 'unassigned'
+          ? 'all'
           : selectedStaffId;
-      if (viewMode === "table") {
+      if (viewMode === 'table') {
         // 月の開始と終了日を計算
         const monthStart = `${currentMonth}-01T00:00:00`;
-        const nextMonth = new Date(currentMonth + "-01");
+        const nextMonth = new Date(currentMonth + '-01');
         nextMonth.setMonth(nextMonth.getMonth() + 1);
-        const monthEnd = nextMonth.toISOString().substring(0, 10) + "T23:59:59";
-        fetchReservations(session.user.tenant_id, staffIdForApi, monthStart, monthEnd);
+        const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
+        fetchReservations(
+          session.user.tenant_id,
+          staffIdForApi,
+          monthStart,
+          monthEnd
+        );
       } else {
         fetchReservations(session.user.tenant_id, staffIdForApi);
       }
     }
-  }, [isAuthenticated, session, selectedStaffId, currentMonth, viewMode, fetchReservations]);
+  }, [
+    isAuthenticated,
+    session,
+    selectedStaffId,
+    currentMonth,
+    viewMode,
+    fetchReservations,
+  ]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -111,28 +151,41 @@ function ReservationsContent() {
 
   const handleCreateReservation = () => {
     // 予約作成後はリストを再取得
-    const staffIdForApi = selectedStaffId === "all" || selectedStaffId === "unassigned" ? "all" : selectedStaffId;
-    if (viewMode === "table") {
+    const staffIdForApi =
+      selectedStaffId === 'all' || selectedStaffId === 'unassigned'
+        ? 'all'
+        : selectedStaffId;
+    if (viewMode === 'table') {
       const monthStart = `${currentMonth}-01T00:00:00`;
-      const nextMonth = new Date(currentMonth + "-01");
+      const nextMonth = new Date(currentMonth + '-01');
       nextMonth.setMonth(nextMonth.getMonth() + 1);
-      const monthEnd = nextMonth.toISOString().substring(0, 10) + "T23:59:59";
-      fetchReservations(session.user.tenant_id, staffIdForApi, monthStart, monthEnd);
+      const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
+      fetchReservations(
+        session.user.tenant_id,
+        staffIdForApi,
+        monthStart,
+        monthEnd
+      );
     } else {
       fetchReservations(session.user.tenant_id, staffIdForApi);
     }
   };
 
-  const handleCreateReservationData = async (reservationData: ReservationData) => {
+  const handleCreateReservationData = async (
+    reservationData: ReservationData
+  ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
-    
-    const response = await fetch(buildApiUrl('/api/reservations', session.user.tenant_id), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(reservationData),
-    });
+
+    const response = await fetch(
+      buildApiUrl('/api/reservations', session.user.tenant_id),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reservationData),
+      }
+    );
 
     const result = await response.json();
 
@@ -153,10 +206,7 @@ function ReservationsContent() {
   ];
 
   return (
-    <AuthGuard
-      isLoading={isLoading}
-      isAuthenticated={isAuthenticated}
-    >
+    <AuthGuard isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <AdminLayout
         title={UI_TEXT.RESERVATION_MANAGEMENT}
         description="予約の確認と管理ができます"
@@ -168,15 +218,18 @@ function ReservationsContent() {
             <ViewModeToggle
               currentMode={viewMode}
               modes={viewModes}
-              onModeChange={(mode) => setViewMode(mode as "calendar" | "table")}
+              onModeChange={(mode) => setViewMode(mode as 'calendar' | 'table')}
             />
           </div>
-          
+
           {/* スタッフフィルタ */}
           {staffMembers && staffMembers.length > 0 && (
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="flex items-center space-x-4">
-                <label htmlFor="staff-filter" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="staff-filter"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   担当スタッフでフィルタ:
                 </label>
                 <select
@@ -200,10 +253,9 @@ function ReservationsContent() {
               </div>
             </div>
           )}
-
         </div>
 
-        {viewMode === "calendar" && (
+        {viewMode === 'calendar' && (
           <AdminReservationCalendar
             tenantId={session?.user?.tenant_id || null}
             reservations={selectedStaffReservations}
@@ -215,10 +267,11 @@ function ReservationsContent() {
             monthlyAvailability={monthlyAvailability}
             reservationMenu={reservationMenu}
             onCreateReservationData={handleCreateReservationData}
+            onMonthChange={handleMonthChange}
           />
         )}
 
-        {viewMode === "table" && (
+        {viewMode === 'table' && (
           <ReservationList
             tenantId={session?.user?.tenant_id || null}
             reservations={reservations}

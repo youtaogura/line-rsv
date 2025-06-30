@@ -18,7 +18,8 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   onAssignStaff,
   onRemoveStaff,
 }) => {
-  const [selectedReservation, setSelectedReservation] = useState<ReservationSimple | null>(null);
+  const [selectedReservation, setSelectedReservation] =
+    useState<ReservationSimple | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAssignStaff = (reservation: ReservationSimple) => {
@@ -70,7 +71,10 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-medium text-gray-900">{reservation.users?.name || "ユーザー名が取得できませんでした"}</span>
+                    <span className="font-medium text-gray-900">
+                      {reservation.users?.name ||
+                        'ユーザー名が取得できませんでした'}
+                    </span>
                     <MemberTypeBadge memberType={reservation.member_type} />
                   </div>
                   <div className="text-sm text-red-600 mt-1 font-medium">
@@ -79,7 +83,10 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="text-sm text-gray-600">
-                    <DateTimeDisplay datetime={reservation.datetime} format="short" />
+                    <DateTimeDisplay
+                      datetime={reservation.datetime}
+                      format="short"
+                    />
                   </div>
                   <button
                     onClick={() => handleAssignStaff(reservation)}
@@ -93,7 +100,7 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
           </div>
         )}
       </div>
-      
+
       <StaffAssignModal
         isOpen={isModalOpen}
         onClose={handleModalClose}

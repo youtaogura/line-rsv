@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import {
   useTenant,
   buildUrlWithTenantId,
   useTenantId,
-} from "@/lib/tenant-helpers";
-import { Suspense } from "react";
+} from '@/lib/tenant-helpers';
+import { Suspense } from 'react';
 import { LoadingSpinner, PageLayout, ActionButton } from '@/components/common';
 
 function HomeContent() {
@@ -37,14 +37,14 @@ function HomeContent() {
 
         <div className="space-y-4">
           <ActionButton
-            href={buildUrlWithTenantId("/login", tenantId)}
+            href={buildUrlWithTenantId('/login', tenantId)}
             variant="success"
           >
             予約を取る
           </ActionButton>
 
           <ActionButton
-            href={buildUrlWithTenantId("/admin", tenantId)}
+            href={buildUrlWithTenantId('/admin', tenantId)}
             variant="secondary"
           >
             管理画面

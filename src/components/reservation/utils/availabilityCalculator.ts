@@ -1,12 +1,12 @@
-import { format, addMinutes, isSameDay, isBefore, isAfter } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
+import { format, addMinutes, isSameDay, isBefore, isAfter } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import type {
   BusinessHour,
   Reservation,
   ReservationMenu,
   StaffMemberBusinessHour,
-} from "@/lib/supabase";
-import type { DayAvailabilityInfo, TimeSlot } from "../types";
+} from '@/lib/supabase';
+import type { DayAvailabilityInfo, TimeSlot } from '../types';
 
 /**
  * 指定した日の営業時間と予約メニューからタイムスロットを生成
@@ -14,13 +14,13 @@ import type { DayAvailabilityInfo, TimeSlot } from "../types";
 export function generateTimeSlots(
   date: Date,
   businessHours: BusinessHour[],
-  reservationMenu?: ReservationMenu,
+  reservationMenu?: ReservationMenu
 ): TimeSlot[] {
   const dayOfWeek = date.getDay();
 
   // その日の営業時間を取得
   const dayBusinessHours = businessHours.filter(
-    (bh) => bh.day_of_week === dayOfWeek,
+    (bh) => bh.day_of_week === dayOfWeek
   );
 
   if (dayBusinessHours.length === 0) {
@@ -36,9 +36,9 @@ export function generateTimeSlots(
   // 各営業時間枠でタイムスロットを生成
   dayBusinessHours.forEach((businessHour) => {
     const [startHour, startMinute] = businessHour.start_time
-      .split(":")
+      .split(':')
       .map(Number);
-    const [endHour, endMinute] = businessHour.end_time.split(":").map(Number);
+    const [endHour, endMinute] = businessHour.end_time.split(':').map(Number);
 
     const businessStartTime = new Date(date);
     businessStartTime.setHours(startHour, startMinute, 0, 0);
@@ -63,9 +63,9 @@ export function generateTimeSlots(
           !isBefore(slotStartTime, businessStartTime) &&
           !isAfter(slotEndTime, businessEndTime)
         ) {
-          const timeStr = format(slotStartTime, "HH:mm");
+          const timeStr = format(slotStartTime, 'HH:mm');
           // 日本時間からUTCに変換してからISO文字列に変換
-          const utcDateTime = fromZonedTime(slotStartTime, "Asia/Tokyo");
+          const utcDateTime = fromZonedTime(slotStartTime, 'Asia/Tokyo');
           const datetimeStr = utcDateTime.toISOString();
 
           timeSlots.push({
@@ -88,7 +88,7 @@ export function generateTimeSlots(
 export function updateSlotsWithReservations(
   timeSlots: TimeSlot[],
   reservations: Reservation[],
-  reservationMenu?: ReservationMenu,
+  reservationMenu?: ReservationMenu
 ): TimeSlot[] {
   const menuDuration = reservationMenu?.duration_minutes || 30;
 
@@ -101,7 +101,7 @@ export function updateSlotsWithReservations(
       const reservationDuration = reservation.duration_minutes || 30;
       const reservationEndTime = addMinutes(
         reservationStartTime,
-        reservationDuration,
+        reservationDuration
       );
 
       const overlaps =
@@ -128,13 +128,13 @@ export function calculateDayAvailability(
   businessHours: BusinessHour[],
   reservations: Reservation[],
   reservationMenu?: ReservationMenu,
-  staffBusinessHours?: StaffMemberBusinessHour[],
+  staffBusinessHours?: StaffMemberBusinessHour[]
 ): DayAvailabilityInfo {
-  const dateStr = format(date, "yyyy-MM-dd");
+  const dateStr = format(date, 'yyyy-MM-dd');
 
   // その日の予約を抽出
   const dayReservations = reservations.filter((reservation) =>
-    isSameDay(new Date(reservation.datetime), date),
+    isSameDay(new Date(reservation.datetime), date)
   );
 
   // スタッフ営業時間が提供されている場合は新しいロジックを使用
@@ -145,7 +145,7 @@ export function calculateDayAvailability(
       businessHours,
       staffBusinessHours,
       dayReservations,
-      reservationMenu,
+      reservationMenu
     );
   } else {
     // タイムスロットを生成
@@ -155,7 +155,7 @@ export function calculateDayAvailability(
     timeSlots = updateSlotsWithReservations(
       timeSlots,
       dayReservations,
-      reservationMenu,
+      reservationMenu
     );
   }
 
@@ -180,13 +180,17 @@ export function calculateAvailabilityWithoutStaffSelection(
   generalBusinessHours: BusinessHour[],
   staffBusinessHours: StaffMemberBusinessHour[],
   reservations: Reservation[],
-  reservationMenu?: ReservationMenu,
+  reservationMenu?: ReservationMenu
 ): TimeSlot[] {
   const dayOfWeek = date.getDay();
 
   // テナント全体の営業時間でベースとなる時間枠を生成
-  const baseTimeSlots = generateTimeSlots(date, generalBusinessHours, reservationMenu);
-  
+  const baseTimeSlots = generateTimeSlots(
+    date,
+    generalBusinessHours,
+    reservationMenu
+  );
+
   if (baseTimeSlots.length === 0) {
     return [];
   }
@@ -199,22 +203,27 @@ export function calculateAvailabilityWithoutStaffSelection(
   // 各時間スロットについて、利用可能なスタッフがいるかチェック
   return baseTimeSlots.map((slot) => {
     const slotStartTime = new Date(slot.datetime);
-    const slotEndTime = addMinutes(slotStartTime, reservationMenu?.duration_minutes || 30);
+    const slotEndTime = addMinutes(
+      slotStartTime,
+      reservationMenu?.duration_minutes || 30
+    );
 
     // 少なくとも一人のスタッフが利用可能かチェック
     const hasAvailableStaff = dayStaffBusinessHours.some((staffBH) => {
       // スタッフの営業時間内かチェック
-      const [startHour, startMinute] = staffBH.start_time.split(":").map(Number);
-      const [endHour, endMinute] = staffBH.end_time.split(":").map(Number);
+      const [startHour, startMinute] = staffBH.start_time
+        .split(':')
+        .map(Number);
+      const [endHour, endMinute] = staffBH.end_time.split(':').map(Number);
 
       const staffStartTime = new Date(date);
       staffStartTime.setHours(startHour, startMinute, 0, 0);
-      
+
       const staffEndTime = new Date(date);
       staffEndTime.setHours(endHour, endMinute, 0, 0);
 
       // スロットがスタッフの営業時間内に収まるかチェック
-      const isWithinStaffHours = 
+      const isWithinStaffHours =
         !isBefore(slotStartTime, staffStartTime) &&
         !isAfter(slotEndTime, staffEndTime);
 
@@ -224,7 +233,7 @@ export function calculateAvailabilityWithoutStaffSelection(
 
       // そのスタッフに既存の予約がないかチェック
       const staffReservations = reservations.filter(
-        (reservation) => 
+        (reservation) =>
           reservation.staff_member_id === staffBH.staff_member_id &&
           isSameDay(new Date(reservation.datetime), date)
       );
@@ -232,7 +241,10 @@ export function calculateAvailabilityWithoutStaffSelection(
       const isStaffReserved = staffReservations.some((reservation) => {
         const reservationStartTime = new Date(reservation.datetime);
         const reservationDuration = reservation.duration_minutes || 30;
-        const reservationEndTime = addMinutes(reservationStartTime, reservationDuration);
+        const reservationEndTime = addMinutes(
+          reservationStartTime,
+          reservationDuration
+        );
 
         const overlaps =
           slotStartTime < reservationEndTime &&

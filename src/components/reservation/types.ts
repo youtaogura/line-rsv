@@ -49,7 +49,7 @@ export interface DbUser {
   user_id: string;
   name: string;
   phone?: string;
-  member_type: "regular" | "guest";
+  member_type: 'regular' | 'guest';
   display_name?: string;
   created_at: string;
   tenant_id: string;

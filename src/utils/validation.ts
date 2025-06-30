@@ -8,7 +8,10 @@ export function validatePhone(phone: string): boolean {
   return phoneRegex.test(phone) && phone.length >= 10;
 }
 
-export function validateRequired(value: unknown, fieldName: string): string | null {
+export function validateRequired(
+  value: unknown,
+  fieldName: string
+): string | null {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
     return `${fieldName} is required`;
   }
@@ -16,9 +19,9 @@ export function validateRequired(value: unknown, fieldName: string): string | nu
 }
 
 export function validateStringLength(
-  value: string, 
-  fieldName: string, 
-  min?: number, 
+  value: string,
+  fieldName: string,
+  min?: number,
   max?: number
 ): string | null {
   if (min && value.length < min) {
@@ -30,7 +33,10 @@ export function validateStringLength(
   return null;
 }
 
-export function validateDate(dateString: string, fieldName: string): string | null {
+export function validateDate(
+  dateString: string,
+  fieldName: string
+): string | null {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     return `${fieldName} must be a valid date`;
@@ -38,15 +44,17 @@ export function validateDate(dateString: string, fieldName: string): string | nu
   return null;
 }
 
-export function collectValidationErrors(validators: Array<() => string | null>): Record<string, string> {
+export function collectValidationErrors(
+  validators: Array<() => string | null>
+): Record<string, string> {
   const errors: Record<string, string> = {};
-  
+
   validators.forEach((validator, index) => {
     const error = validator();
     if (error) {
       errors[`field_${index}`] = error;
     }
   });
-  
+
   return errors;
 }

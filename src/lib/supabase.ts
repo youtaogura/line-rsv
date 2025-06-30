@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -18,7 +18,7 @@ export type User = {
   tenant_id: string;
   name: string;
   phone?: string;
-  member_type: "regular" | "guest";
+  member_type: 'regular' | 'guest';
   created_at: string;
 };
 
@@ -40,7 +40,7 @@ export type Reservation = {
   datetime: string;
   note?: string;
   admin_note?: string;
-  member_type: "regular" | "guest";
+  member_type: 'regular' | 'guest';
   reservation_menu_id?: string;
   duration_minutes?: number;
   staff_member_id?: string;
@@ -97,9 +97,15 @@ export interface ReservationData {
 
 // コンポーネントで使用される簡略版の型
 export type ReservationMenuSimple = Pick<ReservationMenu, 'id' | 'name'>;
-export type BusinessHourSimple = Pick<BusinessHour, 'id' | 'day_of_week' | 'start_time' | 'end_time'>;
+export type BusinessHourSimple = Pick<
+  BusinessHour,
+  'id' | 'day_of_week' | 'start_time' | 'end_time'
+>;
 export type StaffMemberSimple = Pick<StaffMember, 'id' | 'name'>;
-export type ReservationSimple = Pick<Reservation, 'id' | 'name' | 'member_type' | 'datetime'> & {
+export type ReservationSimple = Pick<
+  Reservation,
+  'id' | 'name' | 'member_type' | 'datetime'
+> & {
   users?: {
     user_id: string;
     name: string;

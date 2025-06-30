@@ -27,18 +27,24 @@ export function useUserSelection({
   const [userMode, setUserMode] = useState<UserMode>('existing');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const handleUserModeChange = useCallback((mode: UserMode) => {
-    setUserMode(mode);
-    setSelectedUser(null);
-    onUserModeChange?.(mode);
-    onUserSelect?.(null);
-  }, [onUserModeChange, onUserSelect]);
+  const handleUserModeChange = useCallback(
+    (mode: UserMode) => {
+      setUserMode(mode);
+      setSelectedUser(null);
+      onUserModeChange?.(mode);
+      onUserSelect?.(null);
+    },
+    [onUserModeChange, onUserSelect]
+  );
 
-  const handleUserSelect = useCallback((userId: string) => {
-    const user = availableUsers.find(u => u.user_id === userId) || null;
-    setSelectedUser(user);
-    onUserSelect?.(user);
-  }, [availableUsers, onUserSelect]);
+  const handleUserSelect = useCallback(
+    (userId: string) => {
+      const user = availableUsers.find((u) => u.user_id === userId) || null;
+      setSelectedUser(user);
+      onUserSelect?.(user);
+    },
+    [availableUsers, onUserSelect]
+  );
 
   const resetSelection = useCallback(() => {
     setUserMode('existing');

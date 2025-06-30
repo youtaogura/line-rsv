@@ -1,12 +1,12 @@
-import type { ApiResponse } from "./types";
-import { fetchApi, buildTenantApiUrl } from "./base";
+import type { ApiResponse } from './types';
+import { fetchApi, buildTenantApiUrl } from './base';
 
 interface CreateReservationData {
   user_id: string;
   name: string;
   datetime: string;
   note?: string;
-  member_type: "regular" | "guest";
+  member_type: 'regular' | 'guest';
   phone?: string;
   reservation_menu_id?: string;
   staff_member_id?: string;
@@ -18,7 +18,7 @@ interface ReservationResponse {
   name: string;
   datetime: string;
   note?: string;
-  member_type: "regular" | "guest";
+  member_type: 'regular' | 'guest';
   phone?: string;
   reservation_menu_id?: string;
   staff_member_id?: string;
@@ -31,12 +31,12 @@ export const reservationApi = {
     reservationData: CreateReservationData,
     tenantId: string
   ): Promise<ApiResponse<ReservationResponse>> {
-    const url = buildTenantApiUrl("/api/reservations", tenantId);
-    
+    const url = buildTenantApiUrl('/api/reservations', tenantId);
+
     return fetchApi(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         ...reservationData,

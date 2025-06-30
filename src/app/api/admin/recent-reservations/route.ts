@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { NextRequest } from 'next/server';
+import { supabase } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
-} from "@/lib/tenant-validation";
+} from '@/lib/tenant-validation';
 import {
   createApiResponse,
   createErrorResponse,
   createValidationErrorResponse,
-} from "@/utils/api";
+} from '@/utils/api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,15 +23,16 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "5"), 20); // 最大20件に制限
+    const limit = Math.min(parseInt(searchParams.get('limit') || '5'), 20); // 最大20件に制限
 
     // 現在時刻を取得
     const now = new Date().toISOString();
 
     // 現在時刻より前の予約（過去の予約）を取得
     const { data: pastReservations, error: pastError } = await supabase
-      .from("reservations")
-      .select(`
+      .from('reservations')
+      .select(
+        `
         id,
         user_id,
         name,
@@ -51,21 +52,23 @@ export async function GET(request: NextRequest) {
           user_id,
           name
         )
-      `)
-      .eq("tenant_id", tenant.id)
-      .lt("datetime", now)
-      .order("datetime", { ascending: false })
+      `
+      )
+      .eq('tenant_id', tenant.id)
+      .lt('datetime', now)
+      .order('datetime', { ascending: false })
       .limit(Math.ceil(limit / 2));
 
     if (pastError) {
-      console.error("Past reservations fetch error:", pastError);
-      return createErrorResponse("Failed to fetch past reservations");
+      console.error('Past reservations fetch error:', pastError);
+      return createErrorResponse('Failed to fetch past reservations');
     }
 
     // 現在時刻より後の予約（未来の予約）を取得
     const { data: futureReservations, error: futureError } = await supabase
-      .from("reservations")
-      .select(`
+      .from('reservations')
+      .select(
+        `
         id,
         user_id,
         name,
@@ -85,19 +88,23 @@ export async function GET(request: NextRequest) {
           user_id,
           name
         )
-      `)
-      .eq("tenant_id", tenant.id)
-      .gte("datetime", now)
-      .order("datetime", { ascending: true })
+      `
+      )
+      .eq('tenant_id', tenant.id)
+      .gte('datetime', now)
+      .order('datetime', { ascending: true })
       .limit(Math.ceil(limit / 2));
 
     if (futureError) {
-      console.error("Future reservations fetch error:", futureError);
-      return createErrorResponse("Failed to fetch future reservations");
+      console.error('Future reservations fetch error:', futureError);
+      return createErrorResponse('Failed to fetch future reservations');
     }
 
     // 過去と未来の予約を結合
-    const allReservations = [...(pastReservations || []), ...(futureReservations || [])];
+    const allReservations = [
+      ...(pastReservations || []),
+      ...(futureReservations || []),
+    ];
 
     // 現在時刻からの距離でソートして指定された件数に制限
     const nowTime = new Date(now).getTime();
@@ -111,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     return createApiResponse(sortedReservations);
   } catch (error) {
-    console.error("Unexpected error:", error);
-    return createErrorResponse("Internal server error");
+    console.error('Unexpected error:', error);
+    return createErrorResponse('Internal server error');
   }
 }

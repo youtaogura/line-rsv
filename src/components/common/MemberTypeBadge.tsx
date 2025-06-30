@@ -13,12 +13,13 @@ export const MemberTypeBadge: React.FC<MemberTypeBadgeProps> = ({
 }) => {
   const isRegular = memberType === MEMBER_TYPES.REGULAR;
   const text = isRegular ? UI_TEXT.MEMBER : UI_TEXT.GUEST;
-  
-  const baseClasses = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full';
-  const variantClasses = isRegular 
+
+  const baseClasses =
+    'inline-flex px-2 py-1 text-xs font-semibold rounded-full';
+  const variantClasses = isRegular
     ? 'bg-success/10 text-success'
     : 'bg-warning/10 text-warning';
-  
+
   return (
     <span className={`${baseClasses} ${variantClasses} ${className}`}>
       {text}
