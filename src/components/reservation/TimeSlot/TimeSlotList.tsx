@@ -20,6 +20,10 @@ export function TimeSlotList({
   onTimeSelect,
   reservationMenu,
 }: TimeSlotListProps) {
+  useEffect(() => {
+    console.log(availableSlots);
+  }, [availableSlots]);
+
   if (!selectedDate) {
     return null;
   }
@@ -29,10 +33,6 @@ export function TimeSlotList({
   };
 
   const title = `${formatSelectedDate(selectedDate)}の予約可能時間`;
-
-  useEffect(() => {
-    console.log(availableSlots);
-  }, [availableSlots]);
 
   if (availableSlots.length === 0) {
     return (

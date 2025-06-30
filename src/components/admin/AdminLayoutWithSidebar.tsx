@@ -35,7 +35,7 @@ interface AdminLayoutWithSidebarProps {
 export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
   children,
   title,
-  description,
+  description: _description,
   user,
   tenant,
   showBackButton = false,

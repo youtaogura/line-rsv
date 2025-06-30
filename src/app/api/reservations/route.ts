@@ -71,12 +71,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    let {
-      user_id,
-      name,
+    let user_id = body.user_id;
+    let name = body.name;
+    let member_type = body.member_type;
+    const {
       datetime,
       note,
-      member_type,
       phone,
       admin_note,
       is_admin_mode,

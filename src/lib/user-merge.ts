@@ -10,7 +10,7 @@ interface MergeUserResult {
   success: boolean;
   error?: string;
   mergedReservationsCount?: number;
-  updatedUser?: any;
+  updatedUser?: Record<string, unknown>;
 }
 
 /**
