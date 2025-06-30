@@ -1,10 +1,14 @@
-"use client";
+'use client';
 
-import { Suspense, useEffect } from "react";
-import { useAdminSession, useStaffMembers, useBusinessHours, useStaffMemberBusinessHours } from "@/hooks/useAdminData";
-import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
-import { StaffMemberList } from "@/components/admin/StaffMemberList";
-import { StaffMemberForm } from "@/components/admin/StaffMemberForm";
+import { StaffMemberForm } from '@/components/admin/StaffMemberForm';
+import { StaffMemberList } from '@/components/admin/StaffMemberList';
+import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
+import {
+  useAdminSession,
+  useBusinessHours,
+  useStaffMembers,
+} from '@/hooks/useAdminData';
+import { Suspense, useEffect } from 'react';
 
 function StaffContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
@@ -16,13 +20,8 @@ function StaffContent() {
     updateStaffMember,
     deleteStaffMember,
   } = useStaffMembers();
-  const { businessHours: tenantBusinessHours, fetchBusinessHours } = useBusinessHours();
-  const {
-    businessHours,
-    loading: businessHoursLoading,
-    createStaffMemberBusinessHour,
-    deleteStaffMemberBusinessHour,
-  } = useStaffMemberBusinessHours();
+  const { businessHours: tenantBusinessHours, fetchBusinessHours } =
+    useBusinessHours();
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -31,24 +30,12 @@ function StaffContent() {
     }
   }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours]);
 
-  const handleCreateBusinessHour = async (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => {
-    await createStaffMemberBusinessHour({
-      staff_member_id: staffMemberId,
-      day_of_week: dayOfWeek,
-      start_time: startTime,
-      end_time: endTime,
-    });
-  };
-
   if (loading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <AuthGuard
-      isLoading={isLoading}
-      isAuthenticated={isAuthenticated}
-    >
+    <AuthGuard isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <AdminLayout
         title="スタッフ管理"
         description="スタッフの追加・編集・削除ができます"
@@ -61,11 +48,7 @@ function StaffContent() {
             staffMembers={staffMembers}
             onUpdateStaffMember={updateStaffMember}
             onDeleteStaffMember={deleteStaffMember}
-            businessHours={businessHours}
             tenantBusinessHours={tenantBusinessHours}
-            businessHoursLoading={businessHoursLoading}
-            onCreateBusinessHour={handleCreateBusinessHour}
-            onDeleteBusinessHour={deleteStaffMemberBusinessHour}
           />
         </div>
       </AdminLayout>

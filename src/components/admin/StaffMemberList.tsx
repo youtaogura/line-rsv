@@ -1,34 +1,55 @@
-import React, { useState } from "react";
-import type { StaffMember, BusinessHourSimple } from "@/lib/supabase";
-import { DateTimeDisplay } from "@/components/common";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StaffEditModal } from "./StaffEditModal";
-import { UI_TEXT } from "@/constants/ui";
+import { DateTimeDisplay } from '@/components/common';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UI_TEXT } from '@/constants/ui';
+import { useStaffMemberBusinessHours } from '@/hooks/useAdminData';
+import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
+import React, { useEffect, useState } from 'react';
+import { StaffEditModal } from './StaffEditModal';
 
 interface StaffMemberListProps {
   staffMembers: StaffMember[];
   onUpdateStaffMember: (id: string, name: string) => Promise<boolean>;
   onDeleteStaffMember: (id: string) => Promise<void>;
-  businessHours: BusinessHourSimple[];
   tenantBusinessHours: BusinessHourSimple[];
-  businessHoursLoading: boolean;
-  onCreateBusinessHour: (staffMemberId: string, dayOfWeek: number, startTime: string, endTime: string) => Promise<void>;
-  onDeleteBusinessHour: (id: string) => Promise<void>;
 }
 
 export const StaffMemberList: React.FC<StaffMemberListProps> = ({
   staffMembers,
   onUpdateStaffMember,
   onDeleteStaffMember,
-  businessHours,
   tenantBusinessHours,
-  businessHoursLoading,
-  onCreateBusinessHour,
-  onDeleteBusinessHour,
 }) => {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const {
+    businessHours,
+    loading: businessHoursLoading,
+    fetchStaffMemberBusinessHours,
+    createStaffMemberBusinessHour,
+    deleteStaffMemberBusinessHour,
+  } = useStaffMemberBusinessHours();
+
+  useEffect(() => {
+    if (selectedStaff) {
+      fetchStaffMemberBusinessHours(selectedStaff.id);
+    }
+  }, [selectedStaff, fetchStaffMemberBusinessHours]);
+
+  const handleCreateBusinessHour = async (
+    staffMemberId: string,
+    dayOfWeek: number,
+    startTime: string,
+    endTime: string
+  ) => {
+    await createStaffMemberBusinessHour({
+      staff_member_id: staffMemberId,
+      day_of_week: dayOfWeek,
+      start_time: startTime,
+      end_time: endTime,
+    });
+  };
 
   const handleEditClick = (staff: StaffMember) => {
     setSelectedStaff(staff);
@@ -61,7 +82,11 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{staff.name}</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          作成日時: <DateTimeDisplay datetime={staff.created_at} format="short" />
+                          作成日時:{' '}
+                          <DateTimeDisplay
+                            datetime={staff.created_at}
+                            format="short"
+                          />
                         </p>
                       </div>
                       <div className="flex space-x-2 ml-4">
@@ -99,8 +124,8 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
         businessHours={businessHours}
         tenantBusinessHours={tenantBusinessHours}
         businessHoursLoading={businessHoursLoading}
-        onCreateBusinessHour={onCreateBusinessHour}
-        onDeleteBusinessHour={onDeleteBusinessHour}
+        onCreateBusinessHour={handleCreateBusinessHour}
+        onDeleteBusinessHour={deleteStaffMemberBusinessHour}
       />
     </>
   );
