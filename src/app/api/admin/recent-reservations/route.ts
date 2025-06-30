@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         reservation_menu_id,
         duration_minutes,
         staff_member_id,
+        is_created_by_user,
         created_at,
         staff_members (
           id,
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
         reservation_menu_id,
         duration_minutes,
         staff_member_id,
+        is_created_by_user,
         created_at,
         staff_members (
           id,

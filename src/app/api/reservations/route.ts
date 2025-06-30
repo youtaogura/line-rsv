@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { HTTP_STATUS } from '@/constants/api';
 import { supabase } from '@/lib/supabase';
 import {
   requireValidTenant,
@@ -7,10 +7,10 @@ import {
 import {
   createApiResponse,
   createErrorResponse,
-  createValidationErrorResponse,
   createNotFoundResponse,
+  createValidationErrorResponse,
 } from '@/utils/api';
-import { HTTP_STATUS } from '@/constants/api';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const { data: reservations, error } = await supabase
       .from('reservations')
       .select(
-        'id, user_id, name, datetime, note, member_type, reservation_menu_id, duration_minutes, created_at'
+        'id, user_id, name, datetime, note, member_type, reservation_menu_id, duration_minutes, is_created_by_user, created_at'
       )
       .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
@@ -222,6 +222,7 @@ export async function POST(request: NextRequest) {
         reservation_menu_id: reservationMenu?.id || null,
         duration_minutes: durationMinutes,
         staff_member_id: staff_member_id || null,
+        is_created_by_user: !is_admin_mode,
       })
       .select()
       .single();

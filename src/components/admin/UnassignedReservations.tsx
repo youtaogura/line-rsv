@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
 import { StaffAssignModal } from './StaffAssignModal';
+import { Badge } from '@/components/ui/badge';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 
 interface UnassignedReservationsProps {
@@ -75,6 +76,11 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
                       {reservation.users?.name ||
                         'ユーザー名が取得できませんでした'}
                     </span>
+                    {reservation.is_created_by_user && (
+                      <Badge variant="secondary" className="text-xs">
+                        LINE予約
+                      </Badge>
+                    )}
                     <MemberTypeBadge memberType={reservation.member_type} />
                   </div>
                   <div className="text-sm text-red-600 mt-1 font-medium">

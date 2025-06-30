@@ -5,6 +5,7 @@ import { MonthNavigation } from '@/components/admin/MonthNavigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { UI_TEXT } from '@/constants/ui';
 
 interface ReservationWithStaff extends Reservation {
@@ -66,10 +67,17 @@ export const ReservationList: React.FC<ReservationListProps> = ({
                 {/* ユーザー名と会員種別 */}
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">
-                      {reservation.users?.name ||
-                        'ユーザー名が取得できませんでした'}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">
+                        {reservation.users?.name ||
+                          'ユーザー名が取得できませんでした'}
+                      </h3>
+                      {reservation.is_created_by_user && (
+                        <Badge variant="secondary" className="text-xs">
+                          LINE予約
+                        </Badge>
+                      )}
+                    </div>
                     <div className="mt-1">
                       <MemberTypeBadge memberType={reservation.member_type} />
                     </div>

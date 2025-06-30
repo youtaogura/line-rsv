@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 
 interface StaffAssignModalProps {
@@ -73,9 +74,14 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">予約情報</h3>
             <div className="bg-gray-50 p-3 rounded-md">
-              <p className="text-sm">
+              <p className="text-sm flex items-center gap-2">
                 <span className="font-medium">お客様:</span>{' '}
                 {reservation.users?.name || '名前不明'}
+                {reservation.is_created_by_user && (
+                  <Badge variant="secondary" className="text-xs">
+                    LINE予約
+                  </Badge>
+                )}
               </p>
               <p className="text-sm">
                 <span className="font-medium">日時:</span>{' '}

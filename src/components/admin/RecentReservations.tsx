@@ -3,12 +3,14 @@ import React from 'react';
 import { UI_TEXT } from '@/constants/ui';
 import { ROUTES } from '@/constants/routes';
 import { MemberTypeBadge, DateTimeDisplay } from '@/components/common';
+import { Badge } from '@/components/ui/badge';
 
 interface Reservation {
   id: string;
   name: string;
   member_type: string;
   datetime: string;
+  is_created_by_user: boolean;
   users?: {
     user_id: string;
     name: string;
@@ -55,6 +57,11 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
                       {reservation.users?.name ||
                         'ユーザー名が取得できませんでした'}
                     </span>
+                    {reservation.is_created_by_user && (
+                      <Badge variant="secondary" className="text-xs">
+                        LINE予約
+                      </Badge>
+                    )}
                     <MemberTypeBadge memberType={reservation.member_type} />
                   </div>
                   <div className="text-sm text-gray-600 mt-1">

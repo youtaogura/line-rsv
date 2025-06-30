@@ -44,6 +44,7 @@ export type Reservation = {
   reservation_menu_id?: string;
   duration_minutes?: number;
   staff_member_id?: string;
+  is_created_by_user: boolean;
   created_at: string;
 };
 
@@ -104,7 +105,7 @@ export type BusinessHourSimple = Pick<
 export type StaffMemberSimple = Pick<StaffMember, 'id' | 'name'>;
 export type ReservationSimple = Pick<
   Reservation,
-  'id' | 'name' | 'member_type' | 'datetime'
+  'id' | 'name' | 'member_type' | 'datetime' | 'is_created_by_user'
 > & {
   users?: {
     user_id: string;

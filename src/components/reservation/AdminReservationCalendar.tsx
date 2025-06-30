@@ -2,6 +2,7 @@
 
 import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import type {
   Reservation,
   ReservationData,
@@ -316,10 +317,17 @@ export function AdminReservationCalendar({
 
                                 {slot.reservation && (
                                   <>
-                                    <span className="text-sm font-medium text-gray-700">
-                                      {slot.reservation!.users?.name ||
-                                        'ユーザー名が取得できませんでした'}
-                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {slot.reservation!.users?.name ||
+                                          'ユーザー名が取得できませんでした'}
+                                      </span>
+                                      {slot.reservation!.is_created_by_user && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          LINE予約
+                                        </Badge>
+                                      )}
+                                    </div>
                                     <span
                                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                         slot.reservation!.member_type ===
