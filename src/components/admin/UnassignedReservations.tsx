@@ -17,7 +17,6 @@ interface UnassignedReservationsProps {
 export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   reservations,
   staffMembers,
-  tenantId: _tenantId,
   onAssignStaff,
   onRemoveStaff,
 }) => {
@@ -51,48 +50,44 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
         </div>
       </div>
       <div className="px-6 py-4">
-        {reservations.length === 0 ? (
-          <p className="text-green-600">スタッフ未割り当ての予約はありません</p>
-        ) : (
-          <div className="space-y-2">
-            {reservations.map((reservation) => (
-              <div
-                key={reservation.id}
-                className="flex justify-between items-center py-3 px-4 bg-white border rounded-xs"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-gray-900">
-                      {reservation.users?.name ||
-                        'ユーザー名が取得できませんでした'}
-                    </span>
-                    {reservation.is_created_by_user && (
-                      <Badge variant="secondary" className="text-xs">
-                        LINE予約
-                      </Badge>
-                    )}
-                    <MemberTypeBadge memberType={reservation.member_type} />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="text-sm text-gray-600">
-                    <DateTimeDisplay
-                      datetime={reservation.datetime}
-                      format="short"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => handleAssignStaff(reservation)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    設定
-                  </Button>
+        <div className="space-y-2">
+          {reservations.map((reservation) => (
+            <div
+              key={reservation.id}
+              className="flex justify-between items-center py-3 px-4 bg-white border rounded-xs"
+            >
+              <div className="flex-1">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-gray-900">
+                    {reservation.users?.name ||
+                      'ユーザー名が取得できませんでした'}
+                  </span>
+                  {reservation.is_created_by_user && (
+                    <Badge variant="secondary" className="text-xs">
+                      LINE予約
+                    </Badge>
+                  )}
+                  <MemberTypeBadge memberType={reservation.member_type} />
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex items-center space-x-3">
+                <div className="text-sm text-gray-600">
+                  <DateTimeDisplay
+                    datetime={reservation.datetime}
+                    format="short"
+                  />
+                </div>
+                <Button
+                  onClick={() => handleAssignStaff(reservation)}
+                  variant="outline"
+                  size="sm"
+                >
+                  設定
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <StaffAssignModal
