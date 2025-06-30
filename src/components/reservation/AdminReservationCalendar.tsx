@@ -184,7 +184,7 @@ export function AdminReservationCalendar({
   const handleMonthChange = useCallback((activeStartDate: Date) => {
     onMonthChange(format(activeStartDate, 'yyyy-MM'));
     setSelectedDate(null);
-  }, []);
+  }, [onMonthChange]);
 
   const selectedDateString = selectedDate
     ? format(selectedDate, 'yyyy-MM-dd')

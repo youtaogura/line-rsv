@@ -221,7 +221,7 @@ function ReservationsContent() {
           </div>
 
           {/* スタッフフィルタ */}
-          {staffMembers && staffMembers.length > 0 && (
+          {staffMembers && staffMembers.length > 1 && (
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="flex items-center space-x-4">
                 <label
