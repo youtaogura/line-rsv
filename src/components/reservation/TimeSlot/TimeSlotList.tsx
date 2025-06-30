@@ -1,8 +1,9 @@
-import { TimeSlotItem } from './TimeSlotItem';
-import { TimeSlotContainer } from './TimeSlotContainer';
-import { TimeSlot } from '../types';
 import type { ReservationMenu } from '@/lib/supabase';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
+import { TimeSlot } from '../types';
+import { TimeSlotContainer } from './TimeSlotContainer';
+import { TimeSlotItem } from './TimeSlotItem';
 
 interface TimeSlotListProps {
   selectedDate: Date | null;
@@ -28,6 +29,10 @@ export function TimeSlotList({
   };
 
   const title = `${formatSelectedDate(selectedDate)}の予約可能時間`;
+
+  useEffect(() => {
+    console.log(availableSlots);
+  }, [availableSlots]);
 
   if (availableSlots.length === 0) {
     return (

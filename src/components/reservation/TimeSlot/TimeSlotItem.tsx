@@ -1,6 +1,6 @@
-import { format as formatTz } from 'date-fns-tz';
-import { addMinutes } from 'date-fns';
 import type { ReservationMenu } from '@/lib/supabase';
+import { addMinutes } from 'date-fns';
+import { format as formatTz } from 'date-fns-tz';
 
 interface TimeSlotItemProps {
   datetime: string;

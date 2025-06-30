@@ -2,6 +2,7 @@
 
 import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
 import type { ReservationMenu } from '@/lib/supabase';
+import { isSameDay } from 'date-fns';
 import { useMemo } from 'react';
 import { CalendarView } from './Calendar/CalendarView';
 import { TimeSlotList } from './TimeSlot/TimeSlotList';
@@ -66,7 +67,12 @@ export function ReservationCalendar({
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <TimeSlotList
             selectedDate={selectedDate}
-            availableSlots={timeSlots.filter((slot) => slot.isAvailable)}
+            availableSlots={timeSlots.filter((slot) => {
+              return (
+                slot.isAvailable &&
+                isSameDay(new Date(slot.datetime), selectedDate)
+              );
+            })}
             selectedDateTime={selectedDateTime}
             onTimeSelect={handleTimeSelect}
             reservationMenu={reservationMenu}

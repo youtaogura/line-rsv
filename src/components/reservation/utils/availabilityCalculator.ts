@@ -79,7 +79,7 @@ export function generateTimeSlots(
     }
   });
 
-  return timeSlots.sort((a, b) => a.time.localeCompare(b.time));
+  return timeSlots.sort((a, b) => a.datetime.localeCompare(b.datetime));
 }
 
 /**
