@@ -142,7 +142,6 @@ export function AdminReservationCalendar({
     useState(false);
 
   const timeSlots = useMemo(() => {
-    console.log('monthlyAvailability:', monthlyAvailability);
     if (!monthlyAvailability) return [];
     if (selectedStaffId === 'all' || selectedStaffId === 'unassigned') {
       return monthlyAvailability.tenant.timeSlots;

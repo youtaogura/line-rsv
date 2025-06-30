@@ -1,8 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// import { X } from 'lucide-react'
 import { format as formatTz } from 'date-fns-tz';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type {
   User,
   ReservationMenuSimple,
@@ -124,8 +141,6 @@ export function ReservationModal({
     }
   };
 
-  if (!isOpen) return null;
-
   const formattedDateTime = preselectedDateTime
     ? formatTz(new Date(preselectedDateTime), 'yyyy年M月d日 HH:mm', {
         timeZone: 'Asia/Tokyo',
@@ -133,168 +148,131 @@ export function ReservationModal({
     : '';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">予約追加</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            disabled={submitting}
-          >
-            ✕
-          </button>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>予約追加</DialogTitle>
+        </DialogHeader>
+
+        {/* 予約日時表示 */}
+        <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 className="text-sm font-medium text-blue-900 mb-1">予約日時</h3>
+          <p className="text-blue-800">{formattedDateTime}</p>
         </div>
 
-        {/* コンテンツ */}
-        <div className="p-6">
-          {/* 予約日時表示 */}
-          <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="text-sm font-medium text-blue-900 mb-1">予約日時</h3>
-            <p className="text-blue-800">{formattedDateTime}</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* ユーザー選択 */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">お客様選択</Label>
+            <RadioGroup
+              value={userMode}
+              onValueChange={(value) => handleUserModeChange(value as 'existing' | 'new')}
+              className="flex space-x-4"
+              disabled={submitting}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="existing" id="existing" />
+                <Label htmlFor="existing">既存のお客様</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="new" id="new" />
+                <Label htmlFor="new">新規のお客様</Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ユーザー選択 */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
-                お客様選択
-              </label>
-              <div className="flex space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="existing"
-                    checked={userMode === 'existing'}
-                    onChange={(e) =>
-                      handleUserModeChange(e.target.value as 'existing')
-                    }
-                    className="mr-2"
-                    disabled={submitting}
-                  />
-                  既存のお客様
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="new"
-                    checked={userMode === 'new'}
-                    onChange={(e) =>
-                      handleUserModeChange(e.target.value as 'new')
-                    }
-                    className="mr-2"
-                    disabled={submitting}
-                  />
-                  新規のお客様
-                </label>
-              </div>
-            </div>
-
-            {/* 既存ユーザー選択 */}
-            {userMode === 'existing' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  お客様を選択
-                </label>
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => handleExistingUserSelect(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={submitting}
-                  required
-                >
-                  <option value="">選択してください</option>
-                  {availableUsers.map((user) => (
-                    <option key={user.user_id} value={user.user_id}>
-                      {user.name} (
-                      {user.member_type === 'regular' ? '会員' : 'ゲスト'})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* 名前入力 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                お名前 *
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={submitting || userMode === 'existing'}
+          {/* 既存ユーザー選択 */}
+          {userMode === 'existing' && (
+            <div className="space-y-2">
+              <Label htmlFor="user-select">お客様を選択</Label>
+              <Select
+                value={selectedUserId}
+                onValueChange={handleExistingUserSelect}
+                disabled={submitting}
                 required
-              />
-            </div>
-
-            {/* 電話番号入力 */}
-            {userMode === 'new' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  電話番号
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={submitting}
-                />
-              </div>
-            )}
-
-            {/* メモ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                お客様メモ
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={submitting}
-              />
-            </div>
-
-            {/* 管理者メモ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                管理者メモ
-              </label>
-              <textarea
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={submitting}
-              />
-            </div>
-
-            {/* 送信ボタン */}
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                disabled={submitting}
               >
-                キャンセル
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                disabled={submitting}
-              >
-                {submitting ? '登録中...' : '予約登録'}
-              </button>
+                <SelectTrigger>
+                  <SelectValue placeholder="選択してください" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUsers.map((user) => (
+                    <SelectItem key={user.user_id} value={user.user_id}>
+                      {user.name} ({user.member_type === 'regular' ? '会員' : 'ゲスト'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          )}
+
+          {/* 名前入力 */}
+          <div className="space-y-2">
+            <Label htmlFor="name">お名前 *</Label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={submitting || userMode === 'existing'}
+              required
+            />
+          </div>
+
+          {/* 電話番号入力 */}
+          {userMode === 'new' && (
+            <div className="space-y-2">
+              <Label htmlFor="phone">電話番号</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={submitting}
+              />
+            </div>
+          )}
+
+          {/* メモ */}
+          <div className="space-y-2">
+            <Label htmlFor="note">お客様メモ</Label>
+            <textarea
+              id="note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={submitting}
+            />
+          </div>
+
+          {/* 管理者メモ */}
+          <div className="space-y-2">
+            <Label htmlFor="admin-note">管理者メモ</Label>
+            <textarea
+              id="admin-note"
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={submitting}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              キャンセル
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? '登録中...' : '予約登録'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
