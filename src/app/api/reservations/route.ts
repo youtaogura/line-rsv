@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
+    let {
       user_id,
       name,
       datetime,
@@ -193,17 +193,87 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (!existingUser) {
-        const { error: userError } = await supabase.from('users').insert({
-          tenant_id: tenant.id,
-          user_id,
-          name,
-          phone,
-          member_type: 'guest',
-        });
+        // 電話番号が提供されている場合、同じ電話番号のユーザーがいるかチェック
+        if (phone && phone.trim()) {
+          const { findMergeableUserByPhone, mergeUsers } = await import(
+            '@/lib/user-merge'
+          );
 
-        if (userError) {
-          console.error('User creation error:', userError);
-          return createErrorResponse('Failed to create user');
+          const phoneUser = await findMergeableUserByPhone(
+            phone.trim(),
+            tenant.id
+          );
+
+          if (phoneUser) {
+            // 統合処理を実行
+            try {
+              // まずゲストユーザーを作成
+              const { error: guestUserError } = await supabase
+                .from('users')
+                .insert({
+                  tenant_id: tenant.id,
+                  user_id,
+                  name,
+                  phone,
+                  member_type: 'guest',
+                });
+
+              if (guestUserError) {
+                console.error('Guest user creation error:', guestUserError);
+                return createErrorResponse('Failed to create guest user');
+              }
+
+              // 統合処理を実行
+              const mergeResult = await mergeUsers({
+                sourceUserId: user_id,
+                targetUserId: phoneUser.user_id,
+                tenantId: tenant.id,
+              });
+
+              if (mergeResult.success) {
+                // 統合成功、正会員のIDで予約を作成
+                user_id = phoneUser.user_id;
+                member_type = phoneUser.member_type;
+                name = phoneUser.name;
+              } else {
+                console.error('User merge failed:', mergeResult.error);
+                return createErrorResponse(
+                  mergeResult.error || 'Failed to merge users'
+                );
+              }
+            } catch (mergeError) {
+              console.error('User merge error:', mergeError);
+              return createErrorResponse('Failed to merge users');
+            }
+          } else {
+            // 電話番号重複なし、通常通りゲストユーザーを作成
+            const { error: userError } = await supabase.from('users').insert({
+              tenant_id: tenant.id,
+              user_id,
+              name,
+              phone,
+              member_type: 'guest',
+            });
+
+            if (userError) {
+              console.error('User creation error:', userError);
+              return createErrorResponse('Failed to create user');
+            }
+          }
+        } else {
+          // 電話番号なしの場合、通常通りゲストユーザーを作成
+          const { error: userError } = await supabase.from('users').insert({
+            tenant_id: tenant.id,
+            user_id,
+            name,
+            phone,
+            member_type: 'guest',
+          });
+
+          if (userError) {
+            console.error('User creation error:', userError);
+            return createErrorResponse('Failed to create user');
+          }
         }
       }
     }
@@ -235,13 +305,15 @@ export async function POST(request: NextRequest) {
     // 通知を作成
     try {
       const memberTypeText = member_type === 'regular' ? '会員' : '新規';
-      const staffMemberName = staff_member_id ? 
-        (await supabase
-          .from('staff_members')
-          .select('name')
-          .eq('id', staff_member_id)
-          .single()
-        ).data?.name || '未指定' : '未指定';
+      const staffMemberName = staff_member_id
+        ? (
+            await supabase
+              .from('staff_members')
+              .select('name')
+              .eq('id', staff_member_id)
+              .single()
+          ).data?.name || '未指定'
+        : '未指定';
 
       const notificationTitle = `予約のお知らせ（${memberTypeText}）`;
       const notificationMessage = `新しい予約がありました。
@@ -251,17 +323,15 @@ ${name}（${memberTypeText}）
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       })}
 担当スタッフ：${staffMemberName}`;
 
-      await supabase
-        .from('notifications')
-        .insert({
-          tenant_id: tenant.id,
-          title: notificationTitle,
-          message: notificationMessage,
-        });
+      await supabase.from('notifications').insert({
+        tenant_id: tenant.id,
+        title: notificationTitle,
+        message: notificationMessage,
+      });
     } catch (notificationError) {
       console.error('Notification creation error:', notificationError);
     }

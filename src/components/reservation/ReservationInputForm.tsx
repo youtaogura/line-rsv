@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { format as formatTz } from 'date-fns-tz';
 import type { ReservationMenu } from '@/lib/supabase';
+import { format as formatTz } from 'date-fns-tz';
+import { useState } from 'react';
 
 export interface CreateReservationParams {
   user_id: string;
@@ -49,6 +49,11 @@ export function ReservationInputForm({
 
     if (!selectedDateTime || !name.trim()) {
       alert('必要な項目を入力してください。');
+      return;
+    }
+
+    if (initialUser.member_type === 'guest' && !phone.trim()) {
+      alert('電話番号を入力してください。');
       return;
     }
 
@@ -170,12 +175,15 @@ export function ReservationInputForm({
         {initialUser.member_type === 'guest' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              電話番号
+              電話番号（ハイフンなし、半角数字）
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               value={phone}
+              pattern="[0-9]*"
               onChange={(e) => setPhone(e.target.value)}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               placeholder="電話番号を入力してください"
             />
@@ -198,7 +206,12 @@ export function ReservationInputForm({
 
         <button
           type="submit"
-          disabled={submitting || !selectedDateTime || !name.trim()}
+          disabled={
+            submitting ||
+            !selectedDateTime ||
+            !name.trim() ||
+            (initialUser.member_type === 'guest' && !phone.trim())
+          }
           className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
           {submitting ? '登録中...' : '予約する'}

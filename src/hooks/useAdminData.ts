@@ -1,16 +1,16 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import type { AdminSession } from '@/lib/admin-types';
 import type {
-  Reservation,
   BusinessHour,
-  User,
+  Reservation,
   StaffMember,
   StaffMemberBusinessHour,
+  User,
 } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { buildApiUrl } from '@/lib/tenant-helpers';
-import type { AdminSession } from '@/lib/admin-types';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 export const useAdminSession = () => {
   const { data: session, status } = useSession();
@@ -275,13 +275,22 @@ export const useUsers = () => {
     }
   ) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      });
+      const tenantId = session?.user?.tenant_id;
+      if (!tenantId) {
+        alert('セッション情報が正しくありません');
+        return false;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/api/users/${userId}`, tenantId),
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
 
       if (response.ok) {
         const updatedUser = await response.json();
