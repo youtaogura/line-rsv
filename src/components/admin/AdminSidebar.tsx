@@ -19,12 +19,6 @@ import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -48,6 +42,7 @@ import {
 
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
+import { ContactModal } from '../common/ContactModal';
 
 interface AdminSidebarProps {
   user?: {
@@ -136,11 +131,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
             <Building className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold truncate">管理画面</h2>
             {tenant && (
-              <p className="text-xs text-muted-foreground truncate">
+              <h2 className="text-sm text-primary/90 truncate">
                 {tenant.name}
-              </p>
+              </h2>
             )}
           </div>
         </div>
@@ -222,15 +216,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
         </SidebarMenu>
 
         <div className="px-3 py-2 mt-2 border-t">
-          <div className="text-xs text-muted-foreground text-center mb-2">
-            © 2024 株式会社プラスツーシステム
+          <div className="text-xs text-primary/80 text-center">
+            © {new Date().getFullYear()} 株式会社プラスツーシステム
           </div>
           <div className="text-center">
             <Button
               variant="link"
               size="sm"
               onClick={() => setIsContactDialogOpen(true)}
-              className="text-xs p-0 h-auto text-blue-600 hover:text-blue-800"
+              className="text-xs text-primary/80 p-0 h-auto"
             >
               お問合せはこちら
             </Button>
@@ -246,27 +240,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
         onSubmit={handlePasswordChange}
       />
 
-      <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>お問合せ</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <h3 className="font-semibold text-sm text-gray-700 mb-2">
-                電話番号
-              </h3>
-              <p className="text-lg">03-1234-5678</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-gray-700 mb-2">
-                メールアドレス
-              </h3>
-              <p className="text-lg">info@plus2system.co.jp</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ContactModal
+        open={isContactDialogOpen}
+        onClose={() => setIsContactDialogOpen(false)}
+      />
     </Sidebar>
   );
 };

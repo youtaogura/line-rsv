@@ -1,10 +1,14 @@
 'use client';
 
-import { BusinessHourForm } from '@/components/admin/BusinessHourForm';
+import { BusinessHourDialog } from '@/components/admin/BusinessHourDialog';
 import { BusinessHourList } from '@/components/admin/BusinessHourList';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
-import { useAdminSession, useBusinessHours, useTenant } from '@/hooks/useAdminData';
+import {
+  useAdminSession,
+  useBusinessHours,
+  useTenant,
+} from '@/hooks/useAdminData';
 import { Suspense, useEffect, useState } from 'react';
 
 function BusinessHoursContent() {
@@ -44,7 +48,12 @@ function BusinessHoursContent() {
         backUrl="/admin"
       >
         <div className="space-y-8">
-          <BusinessHourForm onCreateBusinessHour={createBusinessHour} />
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold">営業時間一覧</h2>
+            </div>
+            <BusinessHourDialog onCreateBusinessHour={createBusinessHour} />
+          </div>
           <BusinessHourList
             businessHours={businessHours}
             onDeleteBusinessHour={deleteBusinessHour}

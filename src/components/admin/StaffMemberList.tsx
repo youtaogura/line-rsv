@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { UI_TEXT } from '@/constants/ui';
 import { useStaffMemberBusinessHours } from '@/hooks/useAdminData';
 import { getDayName } from '@/lib/admin-types';
 import type {
@@ -8,7 +7,7 @@ import type {
   StaffMember,
   StaffMemberBusinessHour,
 } from '@/lib/supabase';
-import { Clock } from 'lucide-react';
+import { Clock, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { StaffEditModal } from './StaffEditModal';
 
@@ -112,15 +111,12 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
 
     return (
       <div className="mt-2">
-        <div className="text-sm text-muted-foreground mb-1">
-          <Clock className="h-4 w-4 inline mr-1" />
-          対応可能時間
-        </div>
         <div className="space-y-1">
           {sortedDayKeys.map((dayOfWeek) => {
             const dayHours = groupedByDay[dayOfWeek];
             return (
               <div key={dayOfWeek} className="text-sm">
+                <Clock className="h-4 w-4 inline mr-1" />
                 <span className="font-medium text-gray-700">
                   {getDayName(dayOfWeek)}:
                 </span>{' '}
@@ -149,22 +145,18 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
           </div>
         ) : (
           staffMembers.map((staff) => (
-            <Card key={staff.id} className="border">
-              <CardContent className="py-2 px-4">
-                <div className="flex items-start justify-between">
+            <Card
+              key={staff.id}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleEditClick(staff)}
+            >
+              <CardContent className="py-1 px-3">
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{staff.name}</h3>
+                    <h3 className="font-semibold text-md">{staff.name}</h3>
                     {renderStaffBusinessHours(staff.id)}
                   </div>
                   <div className="flex space-x-2 ml-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditClick(staff)}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      設定
-                    </Button>
                     {staffMembers.length > 1 && (
                       <Button
                         variant="ghost"
@@ -172,7 +164,7 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
                         onClick={() => onDeleteStaffMember(staff.id)}
                         className="text-red-600 hover:text-red-700"
                       >
-                        {UI_TEXT.DELETE}
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>

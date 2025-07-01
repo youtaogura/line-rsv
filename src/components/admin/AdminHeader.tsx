@@ -160,11 +160,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
             {/* Page title */}
             <div className="flex flex-col">
-              <h1 className="text-lg font-semibold md:text-xl">{title}</h1>
+              <h1 className="text-lg font-semibold md:text-xl">管理画面</h1>
               {tenant && (
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  {UI_TEXT.TENANT}: {tenant.name}
-                </p>
+                <p className="text-xs text-muted-foreground">{tenant.name}</p>
               )}
             </div>
           </div>

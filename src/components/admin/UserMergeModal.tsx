@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -12,8 +11,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import type { User } from '@/lib/supabase';
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Phone } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { MemberTypeBadge } from '../common';
 
 interface UserMergeModalProps {
   isOpen: boolean;
@@ -68,7 +68,7 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
       return;
     }
 
-    const confirmMessage = `${user.name}（ゲスト）を ${targetUser.name}（会員）に統合しますか？\n\n統合されるデータ：\n- 予約情報\n- 電話番号（統合先に登録されていない場合）\n\n統合元のユーザーは削除されます。`;
+    const confirmMessage = `ユーザーを統合します。\n\n統合されるデータ：\n- 予約情報\n- 電話番号（統合先に登録されていない場合）\n\n統合元のユーザーは削除されます。`;
 
     if (!confirm(confirmMessage)) {
       return;
@@ -101,23 +101,24 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
+        <p className="text-sm text-primary/90">
+          管理者用ページから予約登録したユーザーと、新たにLINEから予約登録したユーザーが同一のお客様の場合、統合機能を使って予約情報やユーザー情報を一つのユーザーにまとめることができます。
+        </p>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 統合元ユーザー表示 */}
           <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-4">
-              <h4 className="text-sm font-medium text-amber-800 mb-2">
+            <CardContent className="px-3 py-1">
+              <h4 className="text-sm font-semibold text-amber-800 mb-1">
                 統合元ユーザー
               </h4>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{user?.name}</p>
-                  {user?.phone && (
-                    <p className="text-sm text-muted-foreground">
-                      {user.phone}
-                    </p>
-                  )}
-                </div>
-                <Badge variant="outline">ゲスト</Badge>
+              <div>
+                <p className="font-medium">{user?.name}</p>
+                {user?.phone && (
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <Phone className="inline h-4 w-4 mr-1" />
+                    {user.phone}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -137,16 +138,10 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
           </div>
 
           {/* 統合先ユーザー選択 */}
-          <div className="space-y-3">
-            <Label>統合先ユーザー選択</Label>
-            <div className="max-h-60 overflow-y-auto border rounded-xs">
-              {targetUsers.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  {searchTerm
-                    ? '該当する会員が見つかりません'
-                    : '検索してください'}
-                </div>
-              ) : (
+          {searchTerm && targetUsers.length > 0 && (
+            <div className="space-y-3">
+              <Label>統合先ユーザー選択</Label>
+              <div className="max-h-60 overflow-y-auto border rounded-xs">
                 <RadioGroup
                   value={selectedTargetUserId}
                   onValueChange={setSelectedTargetUserId}
@@ -173,41 +168,31 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
                           )}
                         </div>
                       </label>
-                      <Badge>会員</Badge>
+                      <MemberTypeBadge memberType={targetUser.member_type} />
                     </div>
                   ))}
                 </RadioGroup>
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 統合プレビュー */}
           {selectedTargetUser && (
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-red-200 bg-red-50">
               <CardContent className="p-4">
-                <h4 className="text-sm font-medium text-blue-800 mb-3">
-                  統合プレビュー
-                </h4>
-
                 <div className="flex items-center justify-center space-x-4 mb-4">
                   <div className="text-center">
                     <p className="font-medium">{user?.name}</p>
-                    <Badge variant="outline" className="mt-1">
-                      ゲスト
-                    </Badge>
                   </div>
-
-                  <ArrowRight className="h-4 w-4 text-blue-600" />
-
+                  <ArrowRight className="h-4 w-4 text-primary" />
                   <div className="text-center">
                     <p className="font-medium">{selectedTargetUser.name}</p>
-                    <Badge className="mt-1">会員</Badge>
                   </div>
                 </div>
 
                 <Separator className="my-3" />
 
-                <div className="space-y-2 text-sm text-blue-700">
+                <div className="space-y-2 text-sm text-red-700">
                   <h5 className="font-medium">統合後の結果:</h5>
                   <ul className="space-y-1 list-disc list-inside">
                     <li>予約データが統合先に移行されます</li>
@@ -229,11 +214,7 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
             >
               キャンセル
             </Button>
-            <Button
-              type="submit"
-              disabled={isMerging || !selectedTargetUserId}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
+            <Button type="submit" disabled={isMerging || !selectedTargetUserId}>
               {isMerging ? '統合中...' : '統合実行'}
             </Button>
           </div>

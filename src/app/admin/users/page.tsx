@@ -110,21 +110,27 @@ function UsersContent() {
         showBackButton={true}
         backUrl="/admin"
       >
-        <UserList
-          users={filteredUsers}
-          userFilter={userFilter}
-          nameFilter={nameFilter}
-          onEditUser={handleEditUser}
-          onMergeUser={handleMergeUser}
-          onUserFilterChange={setUserFilter}
-          onNameFilterChange={setNameFilter}
-        />
+        <div className="flex flex-col space-y-2 mb-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">ユーザー管理</h2>
+          </div>
+          <UserList
+            users={filteredUsers}
+            userFilter={userFilter}
+            nameFilter={nameFilter}
+            onMergeUser={handleMergeUser}
+            onEditUser={handleEditUser}
+            onUserFilterChange={setUserFilter}
+            onNameFilterChange={setNameFilter}
+          />
+        </div>
 
         <UserEditModal
-          isOpen={isEditModalOpen}
+          isOpen={isEditModalOpen && !isMergeModalOpen}
           user={editingUser}
           onClose={handleCloseEditModal}
           onUpdateUser={handleUpdateUser}
+          onMergeUser={handleMergeUser}
         />
 
         <UserMergeModal

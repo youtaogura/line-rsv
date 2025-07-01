@@ -13,7 +13,7 @@ export const UI_TEXT = {
   GUEST: 'ゲスト',
 
   // Admin
-  ADMIN_DASHBOARD: '管理画面ダッシュボード',
+  ADMIN_DASHBOARD: '管理画面',
   BACK_TO_ADMIN: '管理画面に戻る',
   LOGOUT: 'ログアウト',
   AUTHENTICATION_REQUIRED: '認証が必要です',

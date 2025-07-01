@@ -1,7 +1,6 @@
 import { LoadingSpinner } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -14,6 +13,7 @@ import { DAYS_OF_WEEK } from '@/constants/time';
 import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
 import { AlertTriangle, Clock, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
+import { TimeSelector } from './TimeSelector';
 
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;
@@ -42,8 +42,10 @@ export const StaffMemberBusinessHourManager: React.FC<
   onDeleteBusinessHour,
 }) => {
   const [dayOfWeek, setDayOfWeek] = useState(1); // 月曜日
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('18:00');
+  const [startHour, setStartHour] = useState('09');
+  const [startMinute, setStartMinute] = useState('00');
+  const [endHour, setEndHour] = useState('18');
+  const [endMinute, setEndMinute] = useState('00');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_errorMessage, setErrorMessage] = useState('');
 
@@ -62,10 +64,14 @@ export const StaffMemberBusinessHourManager: React.FC<
 
     setIsSubmitting(true);
     try {
+      const startTime = `${startHour}:${startMinute}`;
+      const endTime = `${endHour}:${endMinute}`;
       await onCreateBusinessHour(staffMember.id, dayOfWeek, startTime, endTime);
       setDayOfWeek(1);
-      setStartTime('09:00');
-      setEndTime('18:00');
+      setStartHour('09');
+      setStartMinute('00');
+      setEndHour('18');
+      setEndMinute('00');
     } catch (error) {
       console.error('Failed to create business hour:', error);
       setErrorMessage('営業時間の追加に失敗しました');
@@ -88,14 +94,15 @@ export const StaffMemberBusinessHourManager: React.FC<
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* 営業時間追加フォーム */}
-      <Card className="border-dashed">
-        <CardContent className="p-6">
-          <h3 className="flex items-center space-x-2 text-lg font-medium mb-4">
-            <Plus className="h-5 w-5" />
-            <span>新しい営業時間を追加</span>
-          </h3>
+      <h3 className="flex items-center space-x-2 text-md font-medium mb-2">
+        <Plus className="h-4 w-4" />
+        <span>新しい営業時間を追加</span>
+      </h3>
+
+      <Card>
+        <CardContent className="px-3 py-1">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -132,33 +139,27 @@ export const StaffMemberBusinessHourManager: React.FC<
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="startTime">開始時間</Label>
-                <Input
-                  type="time"
-                  id="startTime"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  required
-                  disabled={!isDayAvailable}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endTime">終了時間</Label>
-                <Input
-                  type="time"
-                  id="endTime"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  required
-                  disabled={!isDayAvailable}
-                />
-              </div>
+              <TimeSelector
+                label="開始時間"
+                hour={startHour}
+                minute={startMinute}
+                onHourChange={setStartHour}
+                onMinuteChange={setStartMinute}
+                disabled={!isDayAvailable}
+              />
+              <TimeSelector
+                label="終了時間"
+                hour={endHour}
+                minute={endMinute}
+                onHourChange={setEndHour}
+                onMinuteChange={setEndMinute}
+                disabled={!isDayAvailable}
+              />
             </div>
 
             {/* テナント営業時間の情報表示 */}
             {isDayAvailable && selectedDayTenantHours.length > 0 && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xs">
+              <div className="p-2 bg-blue-50 border border-blue-200 rounded-xs">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
@@ -197,7 +198,7 @@ export const StaffMemberBusinessHourManager: React.FC<
               </div>
             )}
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-3">
               <Button
                 type="submit"
                 disabled={isSubmitting || !isDayAvailable}
@@ -213,14 +214,14 @@ export const StaffMemberBusinessHourManager: React.FC<
 
       {/* 現在の営業時間一覧 */}
       <div className="space-y-4">
-        <h3 className="flex items-center space-x-2 text-lg font-medium">
-          <Clock className="h-5 w-5" />
+        <h3 className="flex items-center space-x-2 text-md font-medium mt-4 mb-2">
+          <Clock className="h-4 w-4" />
           <span>現在の営業時間</span>
         </h3>
 
         {businessHours.length === 0 ? (
           <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
+            <CardContent className="p-2 text-center text-muted-foreground">
               営業時間が設定されていません
             </CardContent>
           </Card>

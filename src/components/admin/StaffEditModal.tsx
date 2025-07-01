@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -94,7 +93,7 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid grid-cols-2">
             <TabsTrigger value="info" className="flex items-center space-x-2">
               <User className="h-4 w-4" />
               <span>基本情報</span>
@@ -108,87 +107,52 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">基本情報</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="staff-name">
-                      スタッフ名 <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="staff-name"
-                      type="text"
-                      value={staffName}
-                      onChange={(e) => setStaffName(e.target.value)}
-                      required
-                      placeholder="スタッフ名を入力"
-                    />
-                  </div>
+          <TabsContent value="info" className="space-y-4 mt-2">
+            <h3 className="text-md font-semibold">基本情報</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="staff-name">
+                  スタッフ名 <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="staff-name"
+                  type="text"
+                  value={staffName}
+                  onChange={(e) => setStaffName(e.target.value)}
+                  required
+                  placeholder="スタッフ名を入力"
+                />
+              </div>
 
-                  <div className="space-y-2">
-                    <Label>作成日時</Label>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(staffMember.created_at).toLocaleDateString(
-                        'ja-JP',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClose}
-                    >
-                      閉じる
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={
-                        isUpdating ||
-                        !staffName.trim() ||
-                        staffName === staffMember.name
-                      }
-                    >
-                      {isUpdating ? '更新中...' : '更新'}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={handleClose}>
+                  閉じる
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    isUpdating ||
+                    !staffName.trim() ||
+                    staffName === staffMember.name
+                  }
+                >
+                  {isUpdating ? '更新中...' : '更新'}
+                </Button>
+              </div>
+            </form>
           </TabsContent>
 
-          <TabsContent value="schedule" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">対応時間設定</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {staffMember.name}の対応可能時間を設定できます
-                </p>
-              </CardHeader>
-              <CardContent>
-                <StaffMemberBusinessHourManager
-                  staffMember={staffMember}
-                  onClose={() => {}} // Don't close the entire modal, just stay on this tab
-                  businessHours={businessHours}
-                  tenantBusinessHours={tenantBusinessHours}
-                  loading={businessHoursLoading}
-                  onCreateBusinessHour={onCreateBusinessHour}
-                  onDeleteBusinessHour={onDeleteBusinessHour}
-                />
-              </CardContent>
-            </Card>
+          <TabsContent value="schedule" className="space-y-4 mt-2">
+            <h3 className="text-md font-semibold">対応時間設定</h3>
+            <StaffMemberBusinessHourManager
+              staffMember={staffMember}
+              onClose={() => {}} // Don't close the entire modal, just stay on this tab
+              businessHours={businessHours}
+              tenantBusinessHours={tenantBusinessHours}
+              loading={businessHoursLoading}
+              onCreateBusinessHour={onCreateBusinessHour}
+              onDeleteBusinessHour={onDeleteBusinessHour}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>

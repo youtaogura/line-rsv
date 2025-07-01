@@ -132,19 +132,20 @@ function ReservationsContent() {
   useEffect(() => {
     if (staffMembers.length > 0) {
       const savedStaffId = localStorage.getItem('selectedStaffId');
-      
+
       // 保存されたスタッフIDが有効かチェック
-      const isValidStaffId = savedStaffId && (
-        savedStaffId === 'all' || 
-        savedStaffId === 'unassigned' || 
-        staffMembers.some(staff => staff.id === savedStaffId)
-      );
-      
+      const isValidStaffId =
+        savedStaffId &&
+        (savedStaffId === 'all' ||
+          savedStaffId === 'unassigned' ||
+          staffMembers.some((staff) => staff.id === savedStaffId));
+
       if (isValidStaffId) {
         setSelectedStaffId(savedStaffId);
       } else {
         // 保存されたIDが無効な場合はデフォルトを設定
-        const defaultStaffId = staffMembers.length > 1 ? 'all' : staffMembers[0].id;
+        const defaultStaffId =
+          staffMembers.length > 1 ? 'all' : staffMembers[0].id;
         setSelectedStaffId(defaultStaffId);
         localStorage.setItem('selectedStaffId', defaultStaffId);
       }
@@ -297,64 +298,67 @@ function ReservationsContent() {
         backUrl="/admin"
       >
         <div className="mb-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <ViewModeToggle
-              currentMode={viewMode}
-              modes={viewModes}
-              onModeChange={(mode) => {
-                const newMode = mode as 'calendar' | 'table';
-                setViewMode(newMode);
-                localStorage.setItem('reservationViewMode', newMode);
-              }}
-            />
-          </div>
-
           <div className="flex flex-col space-y-2 mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              予約カレンダー
-            </h3>
-            <div className="flex items-center space-x-4">
-              <label className="text-sm font-medium text-gray-700">担当:</label>
-              <Select
-                value={selectedStaffId}
-                onValueChange={setSelectedStaffId}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="スタッフを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {staffMembers.length > 1 && (
-                    <>
-                      <SelectItem value="all">全員</SelectItem>
-                      <SelectItem value="unassigned">担当なし</SelectItem>
-                    </>
-                  )}
-                  {staffMembers.map((staff) => (
-                    <SelectItem key={staff.id} value={staff.id}>
-                      {staff.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-semibold">予約管理</h2>
+              </div>
+              <ViewModeToggle
+                currentMode={viewMode}
+                modes={viewModes}
+                onModeChange={(mode) => {
+                  const newMode = mode as 'calendar' | 'table';
+                  setViewMode(newMode);
+                  localStorage.setItem('reservationViewMode', newMode);
+                }}
+              />
             </div>
-            {viewMode === 'calendar' &&
-              selectedStaffId &&
-              selectedStaffId !== 'all' &&
-              selectedStaffId !== 'unassigned' && (
-                <div className="flex items-center space-x-3">
-                  <Switch
-                    checked={reservationsOnlySelected}
-                    onCheckedChange={setReservationsOnlySelected}
-                    id="reservations-only-toggle"
-                  />
-                  <label
-                    htmlFor="reservations-only-toggle"
-                    className="text-sm font-medium text-gray-700 cursor-pointer"
-                  >
-                    予約だけ表示
-                  </label>
-                </div>
-              )}
+            <div className="flex flex-col items-start gap-4 mt-4 justify-between md:flex-row md:items-center md:gap-0">
+              <div className="flex items-center space-x-4 ">
+                <label className="text-sm font-medium text-gray-700">
+                  担当:
+                </label>
+                <Select
+                  value={selectedStaffId}
+                  onValueChange={setSelectedStaffId}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="スタッフを選択" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffMembers.length > 1 && (
+                      <>
+                        <SelectItem value="all">全員</SelectItem>
+                        <SelectItem value="unassigned">担当なし</SelectItem>
+                      </>
+                    )}
+                    {staffMembers.map((staff) => (
+                      <SelectItem key={staff.id} value={staff.id}>
+                        {staff.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {viewMode === 'calendar' &&
+                selectedStaffId &&
+                selectedStaffId !== 'all' &&
+                selectedStaffId !== 'unassigned' && (
+                  <div className="flex items-center space-x-3">
+                    <Switch
+                      checked={reservationsOnlySelected}
+                      onCheckedChange={setReservationsOnlySelected}
+                      id="reservations-only-toggle"
+                    />
+                    <label
+                      htmlFor="reservations-only-toggle"
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      予約だけ表示
+                    </label>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
 

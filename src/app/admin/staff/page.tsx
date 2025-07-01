@@ -32,7 +32,13 @@ function StaffContent() {
       fetchBusinessHours();
       fetchTenant();
     }
-  }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours, fetchTenant]);
+  }, [
+    isAuthenticated,
+    session,
+    fetchStaffMembers,
+    fetchBusinessHours,
+    fetchTenant,
+  ]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -49,7 +55,8 @@ function StaffContent() {
         backUrl="/admin"
       >
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">スタッフ一覧</h1>
+          <h2 className="text-lg font-semibold">スタッフ管理</h2>
+
           <StaffMemberDialog onCreateStaffMember={createStaffMember} />
         </div>
         <StaffMemberList

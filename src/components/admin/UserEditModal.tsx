@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import type { User } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,6 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type { User } from '@/lib/supabase';
+import { Info } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -26,6 +33,7 @@ interface UserEditModalProps {
     phone: string;
     member_type: 'regular' | 'guest';
   }) => Promise<boolean>;
+  onMergeUser?: (user: User) => void;
 }
 
 export const UserEditModal: React.FC<UserEditModalProps> = ({
@@ -33,6 +41,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   user,
   onClose,
   onUpdateUser,
+  onMergeUser,
 }) => {
   const [editFormData, setEditFormData] = useState({
     name: '',
@@ -113,23 +122,51 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             <Label htmlFor="member_type">
               会員種別 <span className="text-red-500">*</span>
             </Label>
-            <Select
-              value={editFormData.member_type}
-              onValueChange={(value) =>
-                setEditFormData({
-                  ...editFormData,
-                  member_type: value as 'regular' | 'guest',
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="guest">ゲスト</SelectItem>
-                <SelectItem value="regular">会員</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex justify-between items-center">
+              <Select
+                value={editFormData.member_type}
+                onValueChange={(value) =>
+                  setEditFormData({
+                    ...editFormData,
+                    member_type: value as 'regular' | 'guest',
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="guest">ゲスト</SelectItem>
+                  <SelectItem value="regular">会員</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {editFormData.member_type === 'guest' && onMergeUser && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => user && onMergeUser(user)}
+                      >
+                        統合
+                        <Info />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-60">
+                        管理者用ページから予約登録したユーザーと、
+                        新たにLINEから予約登録したユーザーが同一のお客様の場合、
+                        統合機能を使って予約情報やユーザー情報を
+                        一つのユーザーにまとめることができます。
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
