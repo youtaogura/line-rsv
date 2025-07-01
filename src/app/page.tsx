@@ -8,7 +8,7 @@ function HomeContent() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/error?error=missing_tenant');
+    router.push('/error');
   }, [router]);
 
   return <></>;
