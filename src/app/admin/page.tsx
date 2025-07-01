@@ -77,7 +77,10 @@ function AdminContent() {
     }
   };
 
-  const handleAdminNoteUpdate = async (reservationId: string, adminNote: string) => {
+  const handleAdminNoteUpdate = async (
+    reservationId: string,
+    adminNote: string
+  ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
     const response = await fetch(
@@ -151,8 +154,8 @@ function AdminContent() {
             />
           </div>
         )}
-        <RecentReservations 
-          reservations={recentReservations} 
+        <RecentReservations
+          reservations={recentReservations}
           onAdminNoteUpdate={handleAdminNoteUpdate}
         />
       </AdminLayout>

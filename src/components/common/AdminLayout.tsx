@@ -11,6 +11,7 @@ interface AdminLayoutProps {
     username?: string | null;
   };
   tenant?: {
+    id?: string;
     name: string;
   } | null;
   showBackButton?: boolean;

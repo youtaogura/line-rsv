@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
 import { buildApiUrl } from '@/lib/tenant-helpers';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface Notification {
   id: string;
@@ -21,7 +21,7 @@ export const useNotifications = (tenantId: string | undefined) => {
 
     try {
       const response = await fetch(buildApiUrl('/api/notifications', tenantId));
-      
+
       if (response.ok) {
         const data = await response.json();
         setNotifications(data || []);
@@ -51,12 +51,17 @@ export const useNotifications = (tenantId: string | undefined) => {
 
       if (response.ok) {
         const updatedNotification = await response.json();
-        setNotifications(notifications.map(n => 
-          n.id === notificationId ? updatedNotification : n
-        ));
+        setNotifications(
+          notifications.map((n) =>
+            n.id === notificationId ? updatedNotification : n
+          )
+        );
         return true;
       } else {
-        console.error('Error marking notification as read:', response.statusText);
+        console.error(
+          'Error marking notification as read:',
+          response.statusText
+        );
         return false;
       }
     } catch (err) {
@@ -66,23 +71,23 @@ export const useNotifications = (tenantId: string | undefined) => {
   };
 
   const getUnreadCount = () => {
-    return notifications.filter(n => !n.read_at).length;
+    return notifications.filter((n) => !n.read_at).length;
   };
 
   const getUnreadNotifications = () => {
-    return notifications.filter(n => !n.read_at);
+    return notifications.filter((n) => !n.read_at);
   };
 
   const getReadNotifications = () => {
-    return notifications.filter(n => n.read_at);
+    return notifications.filter((n) => n.read_at);
   };
 
   useEffect(() => {
     if (tenantId) {
       fetchNotifications();
-      
+
       intervalRef.current = setInterval(fetchNotifications, 60000);
-      
+
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);

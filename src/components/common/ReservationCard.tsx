@@ -48,7 +48,6 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  console.log(reservation);
   // reservation.admin_noteが変更されたらローカルstateを更新
   React.useEffect(() => {
     setAdminNote(reservation.admin_note || '');

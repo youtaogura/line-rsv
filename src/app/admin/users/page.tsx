@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, Suspense, useEffect, useMemo } from 'react';
-import { useAdminSession, useUsers } from '@/hooks/useAdminData';
-import { UserList } from '@/components/admin/UserList';
 import { UserEditModal } from '@/components/admin/UserEditModal';
+import { UserList } from '@/components/admin/UserList';
 import { UserMergeModal } from '@/components/admin/UserMergeModal';
-import { AuthGuard, AdminLayout, LoadingSpinner } from '@/components/common';
-import { UI_TEXT } from '@/constants/ui';
+import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { MEMBER_TYPES } from '@/constants/business';
+import { UI_TEXT } from '@/constants/ui';
+import { useAdminSession, useTenant, useUsers } from '@/hooks/useAdminData';
 import type { User } from '@/lib/supabase';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 type UserFilter = 'all' | 'regular' | 'guest';
 
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
+  const { tenant, fetchTenant } = useTenant();
   const { users, fetchUsers, updateUser, mergeUser } = useUsers();
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -43,11 +44,12 @@ function UsersContent() {
     if (isAuthenticated && session?.user) {
       const fetchData = async () => {
         await fetchUsers();
+        await fetchTenant();
         setLoading(false);
       };
       fetchData();
     }
-  }, [isAuthenticated, session, fetchUsers]);
+  }, [isAuthenticated, session, fetchUsers, fetchTenant]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -104,7 +106,9 @@ function UsersContent() {
         title={UI_TEXT.USER_MANAGEMENT}
         description="登録ユーザーの管理ができます"
         user={session?.user}
+        tenant={tenant}
         showBackButton={true}
+        backUrl="/admin"
       >
         <UserList
           users={filteredUsers}

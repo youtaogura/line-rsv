@@ -7,11 +7,13 @@ import {
   useAdminSession,
   useBusinessHours,
   useStaffMembers,
+  useTenant,
 } from '@/hooks/useAdminData';
 import { Suspense, useEffect } from 'react';
 
 function StaffContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
+  const { tenant, fetchTenant } = useTenant();
   const {
     staffMembers,
     staffBusinessHours,
@@ -28,8 +30,9 @@ function StaffContent() {
     if (isAuthenticated && session?.user) {
       fetchStaffMembers({ withBusinessHours: true });
       fetchBusinessHours();
+      fetchTenant();
     }
-  }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours]);
+  }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours, fetchTenant]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -41,7 +44,9 @@ function StaffContent() {
         title="スタッフ管理"
         description="スタッフの追加・編集・削除ができます"
         user={session?.user}
+        tenant={tenant}
         showBackButton={true}
+        backUrl="/admin"
       >
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">スタッフ一覧</h1>

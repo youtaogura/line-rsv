@@ -24,6 +24,7 @@ import {
   useReservations,
   useStaffMemberBusinessHours,
   useStaffMembers,
+  useTenant,
   useUsers,
 } from '@/hooks/useAdminData';
 import { availabilityApi } from '@/lib/api/availability';
@@ -33,6 +34,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
+  const { tenant, fetchTenant } = useTenant();
   const { reservations, loading, fetchReservations, deleteReservation } =
     useReservations();
   const { users, fetchUsers } = useUsers();
@@ -42,7 +44,10 @@ function ReservationsContent() {
     useStaffMemberBusinessHours();
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('reservationViewMode') as 'calendar' | 'table') || 'calendar';
+      return (
+        (localStorage.getItem('reservationViewMode') as 'calendar' | 'table') ||
+        'calendar'
+      );
     }
     return 'calendar';
   });
@@ -57,7 +62,10 @@ function ReservationsContent() {
   const [reservationsOnlySelected, setReservationsOnlySelected] =
     useState(false);
 
-  const handleAdminNoteUpdate = async (reservationId: string, adminNote: string) => {
+  const handleAdminNoteUpdate = async (
+    reservationId: string,
+    adminNote: string
+  ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
     const response = await fetch(
@@ -127,6 +135,7 @@ function ReservationsContent() {
       fetchUsers();
       fetchStaffMembers();
       fetchBusinessHours();
+      fetchTenant();
     }
   }, [
     isAuthenticated,
@@ -134,6 +143,7 @@ function ReservationsContent() {
     fetchUsers,
     fetchStaffMembers,
     fetchBusinessHours,
+    fetchTenant,
   ]);
 
   // 月間カレンダー用の利用可能性データを取得
@@ -254,7 +264,9 @@ function ReservationsContent() {
         title={UI_TEXT.RESERVATION_MANAGEMENT}
         description="予約の確認と管理ができます"
         user={session?.user}
+        tenant={tenant}
         showBackButton={true}
+        backUrl="/admin"
       >
         <div className="mb-6 space-y-4">
           <div className="flex justify-between items-center">
