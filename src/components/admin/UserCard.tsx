@@ -6,10 +6,9 @@ import { Card, CardContent } from '../ui/card';
 interface Props {
   user: User;
   onEditUser: (user: User) => void;
-  onMergeUser?: (user: User) => void;
 }
 
-export function UserCard({ user, onEditUser, onMergeUser }: Props) {
+export function UserCard({ user, onEditUser }: Props) {
   return (
     <Card
       key={user.user_id}

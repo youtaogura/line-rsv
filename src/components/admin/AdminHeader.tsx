@@ -80,7 +80,7 @@ const navigationItems = [
 ];
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
-  title,
+  title: _title,
   user,
   tenant,
   showBackButton = false,

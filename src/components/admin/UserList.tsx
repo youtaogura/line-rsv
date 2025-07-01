@@ -82,12 +82,7 @@ export const UserList: React.FC<UserListProps> = ({
           </div>
         ) : (
           users.map((user) => (
-            <UserCard
-              key={user.user_id}
-              user={user}
-              onEditUser={onEditUser}
-              onMergeUser={onMergeUser}
-            />
+            <UserCard key={user.user_id} user={user} onEditUser={onEditUser} />
           ))
         )}
       </div>
