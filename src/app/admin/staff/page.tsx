@@ -1,7 +1,7 @@
 'use client';
 
 import { StaffMemberDialog } from '@/components/admin/StaffMemberDialog';
-import { StaffMemberList, type StaffBusinessHoursMap } from '@/components/admin/StaffMemberList';
+import { StaffMemberList } from '@/components/admin/StaffMemberList';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import {
   useAdminSession,

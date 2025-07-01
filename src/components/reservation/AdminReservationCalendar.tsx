@@ -238,9 +238,9 @@ export function AdminReservationCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* カレンダー部分 */}
-        <div className="w-full overflow-hidden shadow rounded-xs p-4">
+        <div className="w-full overflow-hidden shadow rounded-xs p-4 lg:col-span-2">
           <CalendarView
             selectedDate={selectedDate}
             onDateChange={handleDateChange}

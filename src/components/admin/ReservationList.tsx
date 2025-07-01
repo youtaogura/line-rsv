@@ -24,6 +24,7 @@ interface ReservationListProps {
   selectedStaffId: string;
   currentMonth: string;
   onMonthChange: (month: string) => void;
+  onAdminNoteUpdate?: (reservationId: string, adminNote: string) => Promise<void>;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
@@ -33,6 +34,7 @@ export const ReservationList: React.FC<ReservationListProps> = ({
   selectedStaffId,
   currentMonth,
   onMonthChange,
+  onAdminNoteUpdate,
 }) => {
   const filteredReservations = reservations.filter((reservation) => {
     if (selectedStaffId === 'all') {
@@ -64,6 +66,7 @@ export const ReservationList: React.FC<ReservationListProps> = ({
               key={reservation.id}
               reservation={reservation}
               variant="compact"
+              onAdminNoteUpdate={onAdminNoteUpdate}
               actions={
                 <Button
                   variant="ghost"

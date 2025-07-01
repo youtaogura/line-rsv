@@ -366,7 +366,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { staff_member_id } = body;
+    const { staff_member_id, admin_note } = body;
 
     // 予約が存在し、テナントに属していることを確認
     const { data: existingReservation, error: fetchError } = await supabase
@@ -397,9 +397,17 @@ export async function PUT(request: NextRequest) {
     }
 
     // 予約を更新
+    const updateData: Record<string, string | null> = {};
+    if (staff_member_id !== undefined) {
+      updateData.staff_member_id = staff_member_id || null;
+    }
+    if (admin_note !== undefined) {
+      updateData.admin_note = admin_note || null;
+    }
+
     const { data: reservation, error: updateError } = await supabase
       .from('reservations')
-      .update({ staff_member_id: staff_member_id || null })
+      .update(updateData)
       .eq('id', reservationId)
       .eq('tenant_id', tenant.id)
       .select()

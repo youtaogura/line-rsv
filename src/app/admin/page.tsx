@@ -77,6 +77,34 @@ function AdminContent() {
     }
   };
 
+  const handleAdminNoteUpdate = async (reservationId: string, adminNote: string) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+
+    const response = await fetch(
+      buildApiUrl(
+        `/api/reservations?id=${reservationId}`,
+        session.user.tenant_id
+      ),
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          admin_note: adminNote,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '管理者メモの更新に失敗しました');
+    }
+
+    // データを再取得して画面を更新
+    await fetchRecentReservations(5);
+  };
+
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const fetchData = async () => {
@@ -123,7 +151,10 @@ function AdminContent() {
             />
           </div>
         )}
-        <RecentReservations reservations={recentReservations} />
+        <RecentReservations 
+          reservations={recentReservations} 
+          onAdminNoteUpdate={handleAdminNoteUpdate}
+        />
       </AdminLayout>
     </AuthGuard>
   );

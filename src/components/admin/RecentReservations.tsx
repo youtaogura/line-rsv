@@ -10,6 +10,8 @@ interface Reservation {
   member_type: string;
   datetime: string;
   is_created_by_user: boolean;
+  note?: string;
+  admin_note?: string;
   users?: {
     user_id: string;
     name: string;
@@ -23,11 +25,13 @@ interface Reservation {
 interface RecentReservationsProps {
   reservations: Reservation[];
   maxDisplay?: number;
+  onAdminNoteUpdate?: (reservationId: string, adminNote: string) => Promise<void>;
 }
 
 export const RecentReservations: React.FC<RecentReservationsProps> = ({
   reservations,
   maxDisplay = 5,
+  onAdminNoteUpdate,
 }) => {
   // APIで既にソート済みなので、そのまま使用
   const displayedReservations = reservations.slice(0, maxDisplay);
@@ -50,6 +54,7 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
                 key={reservation.id}
                 reservation={reservation}
                 variant="compact"
+                onAdminNoteUpdate={onAdminNoteUpdate}
               />
             ))}
             {hasMoreReservations && (

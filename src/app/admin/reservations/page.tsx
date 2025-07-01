@@ -57,6 +57,36 @@ function ReservationsContent() {
   const [reservationsOnlySelected, setReservationsOnlySelected] =
     useState(false);
 
+  const handleAdminNoteUpdate = async (reservationId: string, adminNote: string) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+
+    const response = await fetch(
+      buildApiUrl(
+        `/api/reservations?id=${reservationId}`,
+        session.user.tenant_id
+      ),
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          admin_note: adminNote,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '管理者メモの更新に失敗しました');
+    }
+
+    // データを再取得して画面を更新
+    if (session?.user?.tenant_id) {
+      await fetchReservations(session.user.tenant_id);
+    }
+  };
+
   const selectedStaffReservations = useMemo(() => {
     if (selectedStaffId === 'all') {
       return reservations;
@@ -313,6 +343,7 @@ function ReservationsContent() {
             selectedStaffId={selectedStaffId}
             currentMonth={currentMonth}
             onMonthChange={handleMonthChange}
+            onAdminNoteUpdate={handleAdminNoteUpdate}
           />
         )}
       </AdminLayout>
