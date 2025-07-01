@@ -10,7 +10,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Separator } from '@/components/ui/separator';
-import { useNotifications, type Notification } from '@/hooks/useNotifications';
+import { useNotificationsContext, type Notification } from '@/contexts/NotificationsContext';
 import { Bell, Check, X } from 'lucide-react';
 import React from 'react';
 
@@ -85,7 +85,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     markAsRead,
     getUnreadNotifications,
     getReadNotifications,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsRead(notificationId);

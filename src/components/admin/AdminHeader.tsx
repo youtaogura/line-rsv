@@ -36,7 +36,7 @@ import { adminApi } from '@/lib/api';
 
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationsContext } from '@/contexts/NotificationsContext';
 
 interface AdminHeaderProps {
   title: string;
@@ -93,7 +93,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     useState(false);
   const router = useRouter();
 
-  const { getUnreadCount } = useNotifications();
+  const { getUnreadCount } = useNotificationsContext();
   const unreadCount = getUnreadCount();
 
   const handleLogout = async () => {

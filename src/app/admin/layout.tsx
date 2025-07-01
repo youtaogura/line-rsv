@@ -1,6 +1,7 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
+import { NotificationsProvider } from '@/contexts/NotificationsContext';
 
 export default function AdminLayout({
   children,
@@ -12,7 +13,9 @@ export default function AdminLayout({
       basePath="/api/auth"
       refetchInterval={5 * 60} // 5 minutes
     >
-      {children}
+      <NotificationsProvider>
+        {children}
+      </NotificationsProvider>
     </SessionProvider>
   );
 }

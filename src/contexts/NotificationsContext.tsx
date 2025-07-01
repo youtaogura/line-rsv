@@ -1,5 +1,7 @@
+'use client';
+
 import { buildAdminApiUrl } from '@/lib/api';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, createContext, useContext } from 'react';
 
 export interface Notification {
   id: string;
@@ -10,7 +12,32 @@ export interface Notification {
   updated_at: string;
 }
 
-export const useNotifications = () => {
+interface NotificationsContextType {
+  notifications: Notification[];
+  loading: boolean;
+  error: string | null;
+  fetchNotifications: () => Promise<void>;
+  markAsRead: (notificationId: string) => Promise<boolean>;
+  getUnreadCount: () => number;
+  getUnreadNotifications: () => Notification[];
+  getReadNotifications: () => Notification[];
+}
+
+const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
+
+export const useNotificationsContext = () => {
+  const context = useContext(NotificationsContext);
+  if (context === undefined) {
+    throw new Error('useNotificationsContext must be used within a NotificationsProvider');
+  }
+  return context;
+};
+
+interface NotificationsProviderProps {
+  children: React.ReactNode;
+}
+
+export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +127,7 @@ export const useNotifications = () => {
     };
   }, []);
 
-  return {
+  const value: NotificationsContextType = {
     notifications,
     loading,
     error,
@@ -110,4 +137,10 @@ export const useNotifications = () => {
     getUnreadNotifications,
     getReadNotifications,
   };
+
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
 };

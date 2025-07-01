@@ -12,7 +12,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationsContext } from '@/contexts/NotificationsContext';
 import { AdminSidebar } from './AdminSidebar';
 import { NotificationDrawer } from './NotificationDrawer';
 
@@ -45,7 +45,7 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] =
     useState(false);
 
-  const { getUnreadCount } = useNotifications();
+  const { getUnreadCount } = useNotificationsContext();
   const unreadCount = getUnreadCount();
 
   const handleBack = () => {
