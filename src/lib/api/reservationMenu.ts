@@ -1,12 +1,12 @@
 import type { ReservationMenu } from '@/lib/supabase';
+import { buildPublicApiUrl, fetchApi } from './base';
 import type { ApiResponse } from './types';
-import { fetchApi, buildTenantApiUrl } from './base';
 
 export const reservationMenuApi = {
   async getReservationMenu(
     tenantId: string
   ): Promise<ApiResponse<ReservationMenu | null>> {
-    const url = buildTenantApiUrl('/api/public/reservation-menu', tenantId);
+    const url = buildPublicApiUrl('/api/public/reservation-menu', tenantId);
     const result = await fetchApi<ReservationMenu>(url);
 
     // 404 is expected for optional reservation menu

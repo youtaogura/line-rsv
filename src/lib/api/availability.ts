@@ -1,7 +1,6 @@
 import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
-import { buildApiUrl } from '../tenant-helpers';
+import { buildPublicApiUrl, fetchApi } from './base';
 import { ApiResponse } from './types';
-import { fetchApi } from './base';
 
 export const availabilityApi = {
   async getMonthlyAvailability(
@@ -9,7 +8,7 @@ export const availabilityApi = {
     year: number,
     month: number
   ): Promise<ApiResponse<MonthlyAvailability>> {
-    const url = buildApiUrl(
+    const url = buildPublicApiUrl(
       `/api/public/availability/monthly?year=${year}&month=${month + 1}`,
       tenantId
     );

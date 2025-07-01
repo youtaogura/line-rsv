@@ -17,7 +17,6 @@ import React from 'react';
 interface NotificationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  tenantId: string | undefined;
 }
 
 const NotificationItem: React.FC<{
@@ -78,7 +77,6 @@ const NotificationItem: React.FC<{
 export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   isOpen,
   onClose,
-  tenantId,
 }) => {
   const {
     notifications,
@@ -87,7 +85,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     markAsRead,
     getUnreadNotifications,
     getReadNotifications,
-  } = useNotifications(tenantId);
+  } = useNotifications();
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsRead(notificationId);

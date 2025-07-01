@@ -32,6 +32,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Separator } from '@/components/ui/separator';
+import { adminApi } from '@/lib/api';
 
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
@@ -92,7 +93,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     useState(false);
   const router = useRouter();
 
-  const { getUnreadCount } = useNotifications(tenant?.id);
+  const { getUnreadCount } = useNotifications();
   const unreadCount = getUnreadCount();
 
   const handleLogout = async () => {
@@ -104,17 +105,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     newPassword: string;
     confirmPassword: string;
   }) => {
-    const response = await fetch('/api/admin/password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+    const result = await adminApi.changePassword({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
+    if (!result.success) {
       throw new Error(result.error || 'パスワード変更に失敗しました');
     }
 
@@ -298,7 +294,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       <NotificationDrawer
         isOpen={isNotificationDrawerOpen}
         onClose={() => setIsNotificationDrawerOpen(false)}
-        tenantId={tenant?.id}
       />
     </header>
   );

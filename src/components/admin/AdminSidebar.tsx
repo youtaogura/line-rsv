@@ -18,6 +18,7 @@ import React from 'react';
 import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { adminApi } from '@/lib/api';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,17 +97,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ user, tenant }) => {
     newPassword: string;
     confirmPassword: string;
   }) => {
-    const response = await fetch('/api/admin/password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+    const result = await adminApi.changePassword({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
+    if (!result.success) {
       throw new Error(result.error || 'パスワード変更に失敗しました');
     }
 

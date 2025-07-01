@@ -1,4 +1,4 @@
-import { buildApiUrl } from '@/lib/tenant-helpers';
+import { buildAdminApiUrl } from '@/lib/api';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface Notification {
@@ -10,17 +10,17 @@ export interface Notification {
   updated_at: string;
 }
 
-export const useNotifications = (tenantId: string | undefined) => {
+export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchNotifications = useCallback(async () => {
-    if (!tenantId) return;
-
     try {
-      const response = await fetch(buildApiUrl('/api/admin/notifications', tenantId));
+      const response = await fetch(
+        buildAdminApiUrl('/api/admin/notifications')
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -36,14 +36,12 @@ export const useNotifications = (tenantId: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  }, [tenantId]);
+  }, []);
 
   const markAsRead = async (notificationId: string) => {
-    if (!tenantId) return false;
-
     try {
       const response = await fetch(
-        buildApiUrl(`/api/admin/notifications?id=${notificationId}`, tenantId),
+        buildAdminApiUrl(`/api/admin/notifications?id=${notificationId}`),
         {
           method: 'PUT',
         }
@@ -83,18 +81,16 @@ export const useNotifications = (tenantId: string | undefined) => {
   };
 
   useEffect(() => {
-    if (tenantId) {
-      fetchNotifications();
+    fetchNotifications();
 
-      intervalRef.current = setInterval(fetchNotifications, 60000);
+    intervalRef.current = setInterval(fetchNotifications, 60000);
 
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
-    }
-  }, [tenantId, fetchNotifications]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [fetchNotifications]);
 
   useEffect(() => {
     return () => {

@@ -29,7 +29,7 @@ import {
 } from '@/hooks/useAdminData';
 import { availabilityApi } from '@/lib/api/availability';
 import type { ReservationData, ReservationMenuSimple } from '@/lib/supabase';
-import { buildApiUrl } from '@/lib/tenant-helpers';
+import { adminApi } from '@/lib/api';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 function ReservationsContent() {
@@ -73,30 +73,15 @@ function ReservationsContent() {
   ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const response = await fetch(
-      buildApiUrl(
-        `/api/admin/reservations?id=${reservationId}`,
-        session.user.tenant_id
-      ),
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          admin_note: adminNote,
-        }),
-      }
-    );
+    const result = await adminApi.updateReservationAdminNote(reservationId, adminNote);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || '管理者メモの更新に失敗しました');
+    if (!result.success) {
+      throw new Error(result.error || '管理者メモの更新に失敗しました');
     }
 
     // データを再取得して画面を更新
     if (session?.user?.tenant_id) {
-      await fetchReservations(session.user.tenant_id);
+      await fetchReservations();
     }
   };
 
@@ -209,13 +194,12 @@ function ReservationsContent() {
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
         fetchReservations(
-          session.user.tenant_id,
           staffIdForApi,
           monthStart,
           monthEnd
         );
       } else {
-        fetchReservations(session.user.tenant_id, staffIdForApi);
+        fetchReservations(staffIdForApi);
       }
     }
   }, [
@@ -243,39 +227,25 @@ function ReservationsContent() {
       nextMonth.setMonth(nextMonth.getMonth() + 1);
       const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
       fetchReservations(
-        session.user.tenant_id,
         staffIdForApi,
         monthStart,
         monthEnd
       );
     } else {
-      fetchReservations(session.user.tenant_id, staffIdForApi);
+      fetchReservations(staffIdForApi);
     }
   };
 
   const handleCreateReservationData = async (
     reservationData: ReservationData
-  ) => {
+  ): Promise<void> => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const response = await fetch(
-      buildApiUrl('/api/admin/reservations', session.user.tenant_id),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reservationData),
-      }
-    );
+    const result = await adminApi.createAdminReservation(reservationData);
 
-    const result = await response.json();
-
-    if (!response.ok) {
+    if (!result.success) {
       throw new Error(result.error || '予約の作成に失敗しました');
     }
-
-    return result;
   };
 
   const handleMonthChange = (month: string) => {
@@ -364,7 +334,6 @@ function ReservationsContent() {
 
         {viewMode === 'calendar' && (
           <AdminReservationCalendar
-            tenantId={session?.user?.tenant_id || null}
             reservations={selectedStaffReservations}
             onDeleteReservation={deleteReservation}
             onCreateReservation={handleCreateReservation}
@@ -382,7 +351,6 @@ function ReservationsContent() {
 
         {viewMode === 'table' && (
           <ReservationList
-            tenantId={session?.user?.tenant_id || null}
             reservations={reservations}
             onDeleteReservation={deleteReservation}
             selectedStaffId={selectedStaffId}

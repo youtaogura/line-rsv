@@ -18,9 +18,8 @@ interface ReservationWithStaff extends Reservation {
 }
 
 interface ReservationListProps {
-  tenantId: string | null;
   reservations: ReservationWithStaff[];
-  onDeleteReservation: (tenantId: string, id: string) => Promise<void>;
+  onDeleteReservation: (id: string) => Promise<void>;
   selectedStaffId: string;
   currentMonth: string;
   onMonthChange: (month: string) => void;
@@ -28,7 +27,6 @@ interface ReservationListProps {
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
-  tenantId,
   reservations,
   onDeleteReservation,
   selectedStaffId,
@@ -72,9 +70,7 @@ export const ReservationList: React.FC<ReservationListProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    if (!tenantId)
-                      throw new Error('テナントIDが見つかりません');
-                    onDeleteReservation(tenantId, reservation.id);
+                    onDeleteReservation(reservation.id);
                   }}
                   className="text-red-600 hover:text-red-900 hover:bg-red-50 ml-2 p-2"
                   title="予約を削除"

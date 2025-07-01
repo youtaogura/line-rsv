@@ -1,4 +1,5 @@
 import type { AdminSession } from '@/lib/admin-types';
+import { buildAdminApiUrl } from '@/lib/api';
 import type {
   BusinessHour,
   Reservation,
@@ -7,7 +8,6 @@ import type {
   User,
 } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
-import { buildApiUrl } from '@/lib/tenant-helpers';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,19 +36,15 @@ export const useAdminSession = () => {
 export const useReservations = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const { session } = useAdminSession();
 
   const fetchReservations = useCallback(
     async (
-      tenantId: string,
       staffMemberId?: string,
       startDate?: string,
       endDate?: string
     ) => {
       try {
-        if (!tenantId) {
-          console.error('No tenant ID found in session');
-          return;
-        }
 
         // 管理者画面でのフィルタリング機能を使用
         const queryParams = new URLSearchParams();
@@ -63,10 +59,7 @@ export const useReservations = () => {
         }
 
         const response = await fetch(
-          buildApiUrl(
-            `/api/admin/reservations?${queryParams.toString()}`,
-            tenantId
-          )
+          buildAdminApiUrl(`/api/admin/reservations?${queryParams.toString()}`)
         );
 
         if (response.ok) {
@@ -78,7 +71,7 @@ export const useReservations = () => {
           const { data, error } = await supabase
             .from('reservations')
             .select('*')
-            .eq('tenant_id', tenantId)
+            .eq('tenant_id', session?.user?.tenant_id)
             .order('datetime', { ascending: true });
 
           if (error) {
@@ -93,20 +86,16 @@ export const useReservations = () => {
         setLoading(false);
       }
     },
-    []
+    [session]
   );
 
-  const deleteReservation = async (tenantId: string, reservationId: string) => {
+  const deleteReservation = async (reservationId: string) => {
     if (!confirm('この予約を削除しますか？')) return;
 
     try {
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/reservations?id=${reservationId}`, tenantId),
+        buildAdminApiUrl(`/api/admin/reservations?id=${reservationId}`),
         {
           method: 'DELETE',
         }
@@ -139,14 +128,9 @@ export const useBusinessHours = () => {
 
   const fetchBusinessHours = useCallback(async () => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        console.error('No tenant ID found in session');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl('/api/admin/business-hours', tenantId)
+        buildAdminApiUrl('/api/admin/business-hours')
       );
       const data = await response.json();
 
@@ -166,14 +150,9 @@ export const useBusinessHours = () => {
     end_time: string;
   }) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl('/api/admin/business-hours', tenantId),
+        buildAdminApiUrl('/api/admin/business-hours'),
         {
           method: 'POST',
           headers: {
@@ -204,14 +183,9 @@ export const useBusinessHours = () => {
     if (!confirm('この営業時間を削除しますか？')) return;
 
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/business-hours?id=${id}`, tenantId),
+        buildAdminApiUrl(`/api/admin/business-hours?id=${id}`),
         {
           method: 'DELETE',
         }
@@ -244,16 +218,11 @@ export const useUsers = () => {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        console.error('No tenant ID found in session');
-        return;
-      }
 
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('tenant_id', tenantId)
+        .eq('tenant_id', session?.user?.tenant_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -275,14 +244,9 @@ export const useUsers = () => {
     }
   ) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/users/${userId}`, tenantId),
+        buildAdminApiUrl(`/api/admin/users/${userId}`),
         {
           method: 'PUT',
           headers: {
@@ -313,14 +277,9 @@ export const useUsers = () => {
 
   const mergeUser = async (sourceUserId: string, targetUserId: string) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/users/${sourceUserId}/merge`, tenantId),
+        buildAdminApiUrl(`/api/admin/users/${sourceUserId}/merge`),
         {
           method: 'POST',
           headers: {
@@ -368,71 +327,69 @@ export const useUsers = () => {
 
 export const useStaffMembers = () => {
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
-  const [staffBusinessHours, setStaffBusinessHours] = useState<{ [staffId: string]: StaffMemberBusinessHour[] }>({});
+  const [staffBusinessHours, setStaffBusinessHours] = useState<{
+    [staffId: string]: StaffMemberBusinessHour[];
+  }>({});
   const [loading, setLoading] = useState(true);
   const { session } = useAdminSession();
 
-  const fetchStaffMembers = useCallback(async (options?: { withBusinessHours?: boolean }) => {
-    try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        console.error('No tenant ID found in session');
-        return;
-      }
+  const fetchStaffMembers = useCallback(
+    async (options?: { withBusinessHours?: boolean }) => {
+      try {
 
-      const response = await fetch(buildApiUrl('/api/admin/staff-members', tenantId));
-      const data = await response.json();
+        const response = await fetch(
+          buildAdminApiUrl('/api/admin/staff-members')
+        );
+        const data = await response.json();
 
-      if (response.ok) {
-        setStaffMembers(data);
-        
-        // 営業時間も一緒に取得する場合
-        if (options?.withBusinessHours) {
-          try {
-            const businessHoursResponse = await fetch(
-              buildApiUrl(
-                `/api/admin/staff-member-business-hours?staff_member_id=all`,
-                tenantId
-              )
-            );
-            if (businessHoursResponse.ok) {
-              const allBusinessHoursData = await businessHoursResponse.json();
-              
-              // スタッフIDごとにグループ化
-              const businessHoursMap: { [staffId: string]: StaffMemberBusinessHour[] } = {};
-              allBusinessHoursData.forEach((bh: StaffMemberBusinessHour) => {
-                if (!businessHoursMap[bh.staff_member_id]) {
-                  businessHoursMap[bh.staff_member_id] = [];
-                }
-                businessHoursMap[bh.staff_member_id].push(bh);
-              });
-              
-              setStaffBusinessHours(businessHoursMap);
+        if (response.ok) {
+          setStaffMembers(data);
+
+          // 営業時間も一緒に取得する場合
+          if (options?.withBusinessHours) {
+            try {
+              const businessHoursResponse = await fetch(
+                buildAdminApiUrl(
+                  `/api/admin/staff-member-business-hours?staff_member_id=all`
+                )
+              );
+              if (businessHoursResponse.ok) {
+                const allBusinessHoursData = await businessHoursResponse.json();
+
+                // スタッフIDごとにグループ化
+                const businessHoursMap: {
+                  [staffId: string]: StaffMemberBusinessHour[];
+                } = {};
+                allBusinessHoursData.forEach((bh: StaffMemberBusinessHour) => {
+                  if (!businessHoursMap[bh.staff_member_id]) {
+                    businessHoursMap[bh.staff_member_id] = [];
+                  }
+                  businessHoursMap[bh.staff_member_id].push(bh);
+                });
+
+                setStaffBusinessHours(businessHoursMap);
+              }
+            } catch (error) {
+              console.error('Error fetching staff business hours:', error);
             }
-          } catch (error) {
-            console.error('Error fetching staff business hours:', error);
           }
+        } else {
+          console.error('Error fetching staff members:', data.error);
         }
-      } else {
-        console.error('Error fetching staff members:', data.error);
+      } catch (error) {
+        console.error('Fetch staff members error:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Fetch staff members error:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [session]);
+    },
+    [session]
+  );
 
   const createStaffMember = async (name: string) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl('/api/admin/staff-members', tenantId),
+        buildAdminApiUrl('/api/admin/staff-members'),
         {
           method: 'POST',
           headers: {
@@ -461,14 +418,9 @@ export const useStaffMembers = () => {
 
   const updateStaffMember = async (id: string, name: string) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/staff-members?id=${id}`, tenantId),
+        buildAdminApiUrl(`/api/admin/staff-members?id=${id}`),
         {
           method: 'PUT',
           headers: {
@@ -499,14 +451,9 @@ export const useStaffMembers = () => {
     if (!confirm('このスタッフを削除しますか？')) return;
 
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/staff-members?id=${id}`, tenantId),
+        buildAdminApiUrl(`/api/admin/staff-members?id=${id}`),
         {
           method: 'DELETE',
         }
@@ -546,16 +493,10 @@ export const useStaffMemberBusinessHours = () => {
   const fetchStaffMemberBusinessHours = useCallback(
     async (staffMemberId: string) => {
       try {
-        const tenantId = session?.user?.tenant_id;
-        if (!tenantId) {
-          console.error('No tenant ID found in session');
-          return;
-        }
 
         const response = await fetch(
-          buildApiUrl(
-            `/api/admin/staff-member-business-hours?staff_member_id=${staffMemberId}`,
-            tenantId
+          buildAdminApiUrl(
+            `/api/admin/staff-member-business-hours?staff_member_id=${staffMemberId}`
           )
         );
         const data = await response.json();
@@ -584,14 +525,9 @@ export const useStaffMemberBusinessHours = () => {
     end_time: string;
   }) => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return false;
-      }
 
       const response = await fetch(
-        buildApiUrl('/api/admin/staff-member-business-hours', tenantId),
+        buildAdminApiUrl('/api/admin/staff-member-business-hours'),
         {
           method: 'POST',
           headers: {
@@ -622,14 +558,11 @@ export const useStaffMemberBusinessHours = () => {
     if (!confirm('この営業時間を削除しますか？')) return;
 
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        alert('セッション情報が正しくありません');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/staff-member-business-hours?id=${id}`, tenantId),
+        buildAdminApiUrl(
+          `/api/admin/staff-member-business-hours?id=${id}`
+        ),
         {
           method: 'DELETE',
         }
@@ -666,13 +599,9 @@ export const useTenant = () => {
   const fetchTenant = useCallback(async () => {
     try {
       const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        console.error('No tenant ID found in session');
-        return;
-      }
 
       const response = await fetch(
-        buildApiUrl(`/api/admin/tenants/${tenantId}`, tenantId)
+        buildAdminApiUrl(`/api/admin/tenants/${tenantId}`)
       );
       if (response.ok) {
         const tenantData = await response.json();
@@ -701,15 +630,12 @@ export const useRecentReservations = () => {
   const fetchRecentReservations = useCallback(
     async (limit: number = 5) => {
       try {
-        const tenantId = session?.user?.tenant_id;
-        if (!tenantId) {
-          console.error('No tenant ID found in session');
-          return;
-        }
 
         setLoading(true);
         const response = await fetch(
-          buildApiUrl(`/api/admin/recent-reservations?limit=${limit}`, tenantId)
+          buildAdminApiUrl(
+            `/api/admin/recent-reservations?limit=${limit}`
+          )
         );
 
         if (response.ok) {
@@ -748,17 +674,11 @@ export const useUnassignedReservations = () => {
 
   const fetchUnassignedReservations = useCallback(async () => {
     try {
-      const tenantId = session?.user?.tenant_id;
-      if (!tenantId) {
-        console.error('No tenant ID found in session');
-        return;
-      }
 
       setLoading(true);
       const response = await fetch(
-        buildApiUrl(
-          '/api/admin/reservations?staff_member_id=unassigned',
-          tenantId
+        buildAdminApiUrl(
+          '/api/admin/reservations?staff_member_id=unassigned'
         )
       );
 

@@ -1,5 +1,5 @@
+import { buildPublicApiUrl, fetchApi } from './base';
 import type { ApiResponse } from './types';
-import { fetchApi, buildTenantApiUrl } from './base';
 
 interface CreateReservationData {
   user_id: string;
@@ -31,7 +31,7 @@ export const reservationApi = {
     reservationData: CreateReservationData,
     tenantId: string
   ): Promise<ApiResponse<ReservationResponse>> {
-    const url = buildTenantApiUrl('/api/public/reservations', tenantId);
+    const url = buildPublicApiUrl('/api/public/reservations', tenantId);
 
     return fetchApi(url, {
       method: 'POST',

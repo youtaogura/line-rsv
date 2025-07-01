@@ -45,7 +45,7 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] =
     useState(false);
 
-  const { getUnreadCount } = useNotifications(tenant?.id);
+  const { getUnreadCount } = useNotifications();
   const unreadCount = getUnreadCount();
 
   const handleBack = () => {
@@ -131,7 +131,6 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
       <NotificationDrawer
         isOpen={isNotificationDrawerOpen}
         onClose={() => setIsNotificationDrawerOpen(false)}
-        tenantId={tenant?.id}
       />
     </SidebarProvider>
   );

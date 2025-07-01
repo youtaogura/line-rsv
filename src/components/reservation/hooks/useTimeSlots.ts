@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TimeSlot } from '../types';
-import { buildApiUrl } from '@/lib/tenant-helpers';
-import { format } from 'date-fns';
+import { timeSlotsApi } from '@/lib/api';
 
 interface UseTimeSlotsReturn {
   availableSlots: TimeSlot[];
@@ -29,22 +28,13 @@ export function useTimeSlots(
     setError(null);
 
     try {
-      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const queryParams = new URLSearchParams({ date: dateStr });
-      if (selectedStaffId) {
-        queryParams.set('staff_member_id', selectedStaffId);
-      }
-      const response = await fetch(
-        buildApiUrl(`/api/public/available-slots?${queryParams.toString()}`, tenantId)
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch time slots');
+      const result = await timeSlotsApi.getAvailableSlots(selectedDate, tenantId, selectedStaffId);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch time slots');
       }
 
-      const data = await response.json();
-      setAvailableSlots(data);
+      setAvailableSlots(result.data || []);
     } catch (err) {
       console.error('Error fetching time slots:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

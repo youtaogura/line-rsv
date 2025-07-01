@@ -1,6 +1,6 @@
 import type { TimeSlot } from '@/components/reservation/types';
+import { buildAdminApiUrl, fetchApi } from './base';
 import type { ApiResponse } from './types';
-import { fetchApi, buildTenantApiUrl } from './base';
 
 export const timeSlotsApi = {
   async getAvailableSlots(
@@ -9,7 +9,7 @@ export const timeSlotsApi = {
     staffId?: string
   ): Promise<ApiResponse<TimeSlot[]>> {
     const dateStr = date.toISOString().split('T')[0];
-    let url = buildTenantApiUrl(
+    let url = buildAdminApiUrl(
       `/api/public/available-slots?date=${dateStr}`,
       tenantId
     );

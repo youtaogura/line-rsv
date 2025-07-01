@@ -2,7 +2,6 @@ export { ActionButton } from './ActionButton';
 export { AdminLayout } from './AdminLayout';
 export { AuthGuard } from './AuthGuard';
 export { DateTimeDisplay } from './DateTimeDisplay';
-export { ErrorIcon } from './ErrorIcon';
 export { ErrorMessage } from './ErrorMessage';
 export { LoadingSpinner } from './LoadingSpinner';
 export { MemberTypeBadge } from './MemberTypeBadge';

@@ -18,9 +18,8 @@ import { ReservationModal } from './ReservationModal';
 import type { TimeSlot } from './types';
 
 interface AdminReservationCalendarProps {
-  tenantId: string | null;
   reservations: ReservationWithUser[];
-  onDeleteReservation: (tenantId: string, id: string) => void;
+  onDeleteReservation: (id: string) => void;
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
   selectedStaffId: string;
@@ -116,7 +115,6 @@ function reservationOnlyTimeSlots(
 }
 
 export function AdminReservationCalendar({
-  tenantId,
   reservations,
   onDeleteReservation,
   onCreateReservation,
@@ -265,9 +263,7 @@ export function AdminReservationCalendar({
                         key={`${slot.startTime}-${index}`}
                         slot={slot}
                         onDeleteReservation={() => {
-                          if (!tenantId)
-                            throw new Error('テナントIDが見つかりません');
-                          onDeleteReservation(tenantId, slot.reservation!.id);
+                          onDeleteReservation(slot.reservation!.id);
                         }}
                         onAddReservation={() => {
                           setSelectedDateTime(slot.datetime);

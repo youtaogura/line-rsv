@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ReservationMenu } from '@/lib/supabase';
-import { buildApiUrl } from '@/lib/tenant-helpers';
+import { adminApi } from '@/lib/api';
 
 interface UseReservationMenuReturn {
   reservationMenu: ReservationMenu | null;
@@ -27,22 +27,18 @@ export function useReservationMenu(
     setError(null);
 
     try {
-      const response = await fetch(
-        buildApiUrl('/api/admin/reservation-menu', tenantId)
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          // メニューが見つからない場合はnullを設定（デフォルト動作）
+      const result = await adminApi.getAdminReservationMenu(tenantId);
+      
+      if (!result.success) {
+        // 404エラーの場合はnullを設定（デフォルト動作）
+        if (result.error?.includes('404')) {
           setReservationMenu(null);
           return;
         }
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch reservation menu');
+        throw new Error(result.error || 'Failed to fetch reservation menu');
       }
 
-      const data = await response.json();
-      setReservationMenu(data);
+      setReservationMenu(result.data as ReservationMenu);
     } catch (err) {
       console.error('Error fetching reservation menu:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

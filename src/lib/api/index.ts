@@ -1,12 +1,14 @@
 // Export all API modules
-export { userApi } from './user';
-export { tenantApi } from './tenant';
-export { staffApi } from './staff';
-export { reservationMenuApi } from './reservationMenu';
+export { adminApi } from './admin';
+export { availabilityApi } from './availability';
 export { businessHoursApi } from './businessHours';
-export { timeSlotsApi } from './timeSlots';
 export { reservationApi } from './reservation';
+export { reservationMenuApi } from './reservationMenu';
+export { staffApi } from './staff';
+export { tenantApi } from './tenant';
+export { timeSlotsApi } from './timeSlots';
+export { userApi } from './user';
 
 // Export types and base utilities
+export { buildAdminApiUrl, fetchApi } from './base';
 export type { ApiResponse } from './types';
-export { fetchApi, buildTenantApiUrl } from './base';

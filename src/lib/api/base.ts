@@ -1,4 +1,3 @@
-import { buildApiUrl } from '@/lib/tenant-helpers';
 import type { ApiResponse } from './types';
 
 // Base fetch function with error handling
@@ -30,7 +29,19 @@ export async function fetchApi<T>(
   }
 }
 
-// Helper function to build API URLs with tenant context
-export function buildTenantApiUrl(endpoint: string, tenantId: string): string {
-  return buildApiUrl(endpoint, tenantId);
+export function buildAdminApiUrl(endpoint: string): string {
+  return new URL(endpoint, window.location.origin).toString();
+}
+
+export function buildPublicApiUrl(
+  endpoint: string,
+  tenantId: string | null
+): string {
+  if (!tenantId) {
+    throw new Error('Tenant ID is required for API calls');
+  }
+
+  const url = new URL(endpoint, window.location.origin);
+  url.searchParams.set('tenantId', tenantId);
+  return url.toString();
 }

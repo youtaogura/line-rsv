@@ -1,12 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DayAvailability } from '../types';
-import { buildApiUrl } from '@/lib/tenant-helpers';
+import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
+import { availabilityApi } from '@/lib/api';
 
 interface UseMonthlyAvailabilityReturn {
   availabilityData: DayAvailability[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
+}
+
+// Convert MonthlyAvailability to DayAvailability[]
+function convertToDateAvailability(monthlyData: MonthlyAvailability): DayAvailability[] {
+  const dayAvailabilityMap = new Map<string, boolean>();
+  
+  // Extract dates from tenant time slots and check if any are available
+  monthlyData.tenant.timeSlots.forEach(slot => {
+    const date = slot.datetime.split('T')[0];
+    if (!dayAvailabilityMap.has(date)) {
+      dayAvailabilityMap.set(date, false);
+    }
+    if (slot.isAvailable) {
+      dayAvailabilityMap.set(date, true);
+    }
+  });
+  
+  // Convert to DayAvailability array
+  return Array.from(dayAvailabilityMap.entries()).map(([date, hasAvailability]) => ({
+    date,
+    hasAvailability
+  }));
 }
 
 export function useMonthlyAvailability(
@@ -30,20 +53,15 @@ export function useMonthlyAvailability(
     setError(null);
 
     try {
-      const response = await fetch(
-        buildApiUrl(
-          `/api/public/availability/monthly?year=${year}&month=${month}`,
-          tenantId
-        )
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch availability data');
+      const result = await availabilityApi.getMonthlyAvailability(tenantId, year, month - 1);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch availability data');
       }
 
-      const data = await response.json();
-      setAvailabilityData(data);
+      // Convert MonthlyAvailability to DayAvailability[]
+      const convertedData = result.data ? convertToDateAvailability(result.data) : [];
+      setAvailabilityData(convertedData);
     } catch (err) {
       console.error('Error fetching monthly availability:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

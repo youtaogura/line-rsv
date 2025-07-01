@@ -13,7 +13,7 @@ import {
   useTenant,
   useUnassignedReservations,
 } from '@/hooks/useAdminData';
-import { buildApiUrl } from '@/lib/tenant-helpers';
+import { adminApi } from '@/lib/api';
 import { CalendarCheck, Clock, UserCog, Users } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -30,50 +30,20 @@ function AdminContent() {
   const handleAssignStaff = async (reservationId: string, staffId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const response = await fetch(
-      buildApiUrl(
-        `/api/admin/reservations?id=${reservationId}`,
-        session.user.tenant_id
-      ),
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          staff_member_id: staffId,
-        }),
-      }
-    );
+    const result = await adminApi.assignStaffToReservation(reservationId, staffId, session.user.tenant_id);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'スタッフの設定に失敗しました');
+    if (!result.success) {
+      throw new Error(result.error || 'スタッフの設定に失敗しました');
     }
   };
 
   const handleRemoveStaff = async (reservationId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const response = await fetch(
-      buildApiUrl(
-        `/api/admin/reservations?id=${reservationId}`,
-        session.user.tenant_id
-      ),
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          staff_member_id: null,
-        }),
-      }
-    );
+    const result = await adminApi.assignStaffToReservation(reservationId, null, session.user.tenant_id);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'スタッフの解除に失敗しました');
+    if (!result.success) {
+      throw new Error(result.error || 'スタッフの解除に失敗しました');
     }
   };
 
@@ -83,25 +53,10 @@ function AdminContent() {
   ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const response = await fetch(
-      buildApiUrl(
-        `/api/admin/reservations?id=${reservationId}`,
-        session.user.tenant_id
-      ),
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          admin_note: adminNote,
-        }),
-      }
-    );
+    const result = await adminApi.updateReservationAdminNote(reservationId, adminNote, session.user.tenant_id);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || '管理者メモの更新に失敗しました');
+    if (!result.success) {
+      throw new Error(result.error || '管理者メモの更新に失敗しました');
     }
 
     // データを再取得して画面を更新
