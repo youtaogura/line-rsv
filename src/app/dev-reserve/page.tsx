@@ -2,14 +2,13 @@
 
 import { LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 
 const env = process.env.NODE_ENV;
 
 function DevReserveContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   useEffect(() => {
     const userId = searchParams.get('userId');
@@ -17,7 +16,7 @@ function DevReserveContent() {
     const tenantId = searchParams.get('tenantId');
 
     if (env !== 'development' || !userId || !displayName) {
-      router.push('/error');
+      window.location.href = '/error';
       return;
     }
 

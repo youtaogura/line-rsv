@@ -4,12 +4,11 @@ import { LoadingSpinner, PageLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { UI_TEXT } from '@/constants/ui';
 import { AlertTriangle } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 function ErrorContent() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  // const searchParams = useSearchParams();
+  // const error = searchParams.get('error');
 
   const getErrorMessage = () => {
     return {

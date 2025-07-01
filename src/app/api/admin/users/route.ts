@@ -10,7 +10,7 @@ import {
 } from '@/utils/api';
 import { NextRequest } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // テナント検証
     let tenant;
