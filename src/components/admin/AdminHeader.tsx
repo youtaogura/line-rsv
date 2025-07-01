@@ -6,11 +6,12 @@ import {
   Building,
   Calendar,
   Clock,
+  KeySquare,
   LogOut,
   Menu,
-  Settings,
   UserCheck,
   Users,
+  X,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
@@ -22,14 +23,15 @@ import { PasswordChangeModal } from '@/components/admin/PasswordChangeModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import { Separator } from '@/components/ui/separator';
 
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
@@ -191,30 +193,38 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             </div>
 
             {/* Mobile menu button */}
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
+            <Drawer
+              open={isSheetOpen}
+              onOpenChange={setIsSheetOpen}
+              direction="right"
+            >
+              <DrawerTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">メニューを開く</span>
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>管理画面メニュー</SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-col space-y-2 p-6 pb-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold">管理画面</h2>
+              </DrawerTrigger>
+              <DrawerContent className="max-w-sm">
+                <DrawerHeader className="border-b h-16">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <DrawerTitle>
+                        <p className="text-lg font-semibold">
+                          {tenant?.name || '管理画面'}
+                        </p>
+                      </DrawerTitle>
                     </div>
-                    {tenant && (
-                      <p className="text-sm text-muted-foreground">
-                        {tenant.name}
-                      </p>
-                    )}
+                    <DrawerClose asChild>
+                      <Button variant="ghost" size="icon">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">閉じる</span>
+                      </Button>
+                    </DrawerClose>
                   </div>
+                </DrawerHeader>
+                <div className="flex flex-col h-full">
                   <Separator />
-                  <nav className="flex flex-col space-y-2 p-6 pt-4 flex-1">
+                  <nav className="flex flex-col space-y-2 p-4 flex-1">
                     {navigationItems.map((item) => {
                       const Icon = item.icon;
                       return (
@@ -222,7 +232,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                           key={item.href}
                           href={item.href}
                           onClick={() => setIsSheetOpen(false)}
-                          className="flex items-center space-x-3 rounded-xs px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                          className="flex items-center space-x-3 rounded-xs py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Icon className="h-4 w-4" />
                           <span>{item.label}</span>
@@ -259,7 +269,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                             setIsSheetOpen(false);
                           }}
                         >
-                          <Settings className="mr-2 h-4 w-4" />
+                          <KeySquare className="mr-2 h-4 w-4" />
                           <span>パスワード変更</span>
                         </Button>
                         <Button
@@ -277,8 +287,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                     </div>
                   </div>
                 </div>
-              </SheetContent>
-            </Sheet>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
       </div>

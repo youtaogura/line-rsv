@@ -45,13 +45,8 @@ const NotificationItem: React.FC<{
             <h4 className="text-sm font-medium text-gray-900">
               {notification.title}
             </h4>
-            {isUnread && (
-              <Badge variant="secondary" className="text-xs">
-                未読
-              </Badge>
-            )}
           </div>
-          <p className="text-sm text-gray-600 whitespace-pre-line mb-2">
+          <p className="text-xs text-gray-600 whitespace-pre-line mb-2">
             {notification.message}
           </p>
           <p className="text-xs text-gray-400">
