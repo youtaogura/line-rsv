@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 import { CircleAlert } from 'lucide-react';
 import React, { useState } from 'react';
-import { Button } from '../ui/button';
 import { StaffAssignModal } from './StaffAssignModal';
 
 interface UnassignedReservationsProps {
@@ -54,37 +53,28 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
           {reservations.map((reservation) => (
             <div
               key={reservation.id}
-              className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 px-4 bg-white border rounded-xs gap-3"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 px-4 bg-white border rounded-xs gap-3 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleAssignStaff(reservation)}
             >
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 flex flex-col sm:flex-row gap-2 sm:items-center">
+                <div className="text-md text-gray-900 font-semibold">
+                  <DateTimeDisplay
+                    datetime={reservation.datetime}
+                    format="short"
+                  />
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-sm text-gray-900 truncate">
                     {reservation.users?.name ||
                       'ユーザー名が取得できませんでした'}
                   </span>
                   {reservation.is_created_by_user && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge className="bg-green-50 text-green-800">
                       LINE予約
                     </Badge>
                   )}
                   <MemberTypeBadge memberType={reservation.member_type} />
                 </div>
-              </div>
-              <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
-                <div className="text-sm text-gray-600">
-                  <DateTimeDisplay
-                    datetime={reservation.datetime}
-                    format="short"
-                  />
-                </div>
-                <Button
-                  onClick={() => handleAssignStaff(reservation)}
-                  variant="outline"
-                  size="sm"
-                  className="whitespace-nowrap"
-                >
-                  設定
-                </Button>
               </div>
             </div>
           ))}

@@ -78,9 +78,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
                 <span className="font-medium">お客様:</span>{' '}
                 {reservation.users?.name || '名前不明'}
                 {reservation.is_created_by_user && (
-                  <Badge variant="secondary" className="text-xs">
-                    LINE予約
-                  </Badge>
+                  <Badge className="bg-green-50 text-green-800">LINE予約</Badge>
                 )}
               </p>
               <p className="text-sm">
