@@ -118,7 +118,6 @@ function UsersContent() {
             users={filteredUsers}
             userFilter={userFilter}
             nameFilter={nameFilter}
-            onMergeUser={handleMergeUser}
             onEditUser={handleEditUser}
             onUserFilterChange={setUserFilter}
             onNameFilterChange={setNameFilter}

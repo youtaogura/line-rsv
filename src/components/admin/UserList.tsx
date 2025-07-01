@@ -12,7 +12,6 @@ interface UserListProps {
   userFilter: UserFilter;
   nameFilter: string;
   onEditUser: (user: User) => void;
-  onMergeUser: (user: User) => void;
   onUserFilterChange: (filter: UserFilter) => void;
   onNameFilterChange: (name: string) => void;
 }
@@ -22,7 +21,6 @@ export const UserList: React.FC<UserListProps> = ({
   userFilter,
   nameFilter,
   onEditUser,
-  onMergeUser,
   onUserFilterChange,
   onNameFilterChange,
 }) => {
