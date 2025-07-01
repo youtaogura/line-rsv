@@ -33,7 +33,7 @@ export function UserCard({ user, onEditUser }: Props) {
             ) : (
               <p className="mt-2 flex items-center space-x-2 text-gray-400 hover:text-primary/80 transition-colors">
                 <Phone className="h-4 w-4" />
-                <span className="text-sm">登録なし</span>
+                <span className="text-sm">-</span>
               </p>
             )}
           </div>

@@ -97,7 +97,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
               <DateTimeDisplay datetime={reservation.datetime} format="full" />
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              担当: {reservation.staff_members?.name || '未指定'}
+              担当: {reservation.staff_members?.name || '-'}
             </div>
           </div>
           {reservation.note && (

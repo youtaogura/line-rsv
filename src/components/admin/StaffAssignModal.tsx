@@ -87,7 +87,7 @@ export const StaffAssignModal: React.FC<StaffAssignModalProps> = ({
               </p>
               <p className="text-sm">
                 <span className="font-medium">現在の担当:</span>{' '}
-                {reservation.staff_members?.name || '未指定'}
+                {reservation.staff_members?.name || '-'}
               </p>
             </div>
           </div>

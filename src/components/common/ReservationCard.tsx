@@ -64,7 +64,7 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
               </div>
             </div>
             <div className="text-xs text-gray-600 mt-2">
-              担当: {reservation.staff_members?.name || '未指定'}
+              担当: {reservation.staff_members?.name || '-'}
             </div>
             {reservation.note && (
               <div className="text-xs text-gray-500 mt-1 truncate">

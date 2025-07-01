@@ -312,8 +312,8 @@ export async function POST(request: NextRequest) {
               .select('name')
               .eq('id', staff_member_id)
               .single()
-          ).data?.name || '未指定'
-        : '未指定';
+          ).data?.name || '-'
+        : '-';
 
       const notificationTitle = `予約のお知らせ（${memberTypeText}）`;
       const notificationMessage = `新しい予約がありました。

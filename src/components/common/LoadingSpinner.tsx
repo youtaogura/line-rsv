@@ -5,7 +5,7 @@ interface LoadingSpinnerProps {
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  className = 'min-h-screen flex items-center justify-center',
+  className = 'fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-white z-100 flex items-center justify-center',
 }) => {
   return (
     <div className={className}>
