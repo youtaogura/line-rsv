@@ -2,8 +2,8 @@ import { MonthNavigation } from '@/components/admin/MonthNavigation';
 import { ReservationCard } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { UI_TEXT } from '@/constants/ui';
 import type { Reservation } from '@/lib/supabase';
+import { Trash2 } from 'lucide-react';
 import React from 'react';
 
 interface ReservationWithStaff extends Reservation {
@@ -76,9 +76,10 @@ export const ReservationList: React.FC<ReservationListProps> = ({
                       throw new Error('テナントIDが見つかりません');
                     onDeleteReservation(tenantId, reservation.id);
                   }}
-                  className="text-red-600 hover:text-red-900 hover:bg-red-50 ml-2"
+                  className="text-red-600 hover:text-red-900 hover:bg-red-50 ml-2 p-2"
+                  title="予約を削除"
                 >
-                  {UI_TEXT.DELETE}
+                  <Trash2 size={16} />
                 </Button>
               }
             />

@@ -54,7 +54,12 @@ function ReservationsContent() {
   const [monthlyAvailability, setMonthlyAvailability] =
     useState<MonthlyAvailability | null>(null);
   const [reservationMenu] = useState<ReservationMenuSimple | null>(null);
-  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedStaffId') || '';
+    }
+    return '';
+  });
   const [currentMonth, setCurrentMonth] = useState<string>(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -126,9 +131,32 @@ function ReservationsContent() {
 
   useEffect(() => {
     if (staffMembers.length > 0) {
-      setSelectedStaffId(staffMembers.length > 1 ? 'all' : staffMembers[0].id);
+      const savedStaffId = localStorage.getItem('selectedStaffId');
+      
+      // 保存されたスタッフIDが有効かチェック
+      const isValidStaffId = savedStaffId && (
+        savedStaffId === 'all' || 
+        savedStaffId === 'unassigned' || 
+        staffMembers.some(staff => staff.id === savedStaffId)
+      );
+      
+      if (isValidStaffId) {
+        setSelectedStaffId(savedStaffId);
+      } else {
+        // 保存されたIDが無効な場合はデフォルトを設定
+        const defaultStaffId = staffMembers.length > 1 ? 'all' : staffMembers[0].id;
+        setSelectedStaffId(defaultStaffId);
+        localStorage.setItem('selectedStaffId', defaultStaffId);
+      }
     }
   }, [staffMembers]);
+
+  // selectedStaffIdが変更されたときにローカルストレージに保存
+  useEffect(() => {
+    if (selectedStaffId) {
+      localStorage.setItem('selectedStaffId', selectedStaffId);
+    }
+  }, [selectedStaffId]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -344,6 +372,7 @@ function ReservationsContent() {
             reservationsOnlySelected={reservationsOnlySelected}
             onCreateReservationData={handleCreateReservationData}
             onMonthChange={handleMonthChange}
+            onAdminNoteUpdate={handleAdminNoteUpdate}
           />
         )}
 

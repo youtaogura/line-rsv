@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
 interface MonthNavigationProps {
@@ -25,25 +26,12 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between bg-white p-4 rounded-xs shadow mb-4">
+    <div className="flex items-center justify-between bg-white p-4 rounded-xs shadow mb-4 border">
       <button
         onClick={() => onMonthChange(previousMonthStr)}
-        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xs hover:bg-gray-200 transition-colors"
+        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-xs hover:bg-gray-200 transition-colors"
       >
-        <svg
-          className="w-4 h-4 mr-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        {formatMonth(previousMonthStr)}
+        <ChevronLeft className="w-4 h-4" />
       </button>
 
       <h2 className="text-lg font-semibold text-gray-900">
@@ -52,22 +40,9 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
 
       <button
         onClick={() => onMonthChange(nextMonthStr)}
-        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xs hover:bg-gray-200 transition-colors"
+        className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-xs hover:bg-gray-200 transition-colors"
       >
-        {formatMonth(nextMonthStr)}
-        <svg
-          className="w-4 h-4 ml-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+        <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );
