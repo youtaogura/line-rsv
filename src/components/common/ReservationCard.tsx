@@ -60,7 +60,7 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
     try {
       await onAdminNoteUpdate(reservation.id, adminNote);
       setIsEditing(false);
-    } catch (error) {
+    } catch (_error) {
       alert('管理者メモの更新に失敗しました');
     } finally {
       setIsUpdating(false);
