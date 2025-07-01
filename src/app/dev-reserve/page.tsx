@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+
+const env = process.env.NODE_ENV;
 
 function DevReserveContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const userId = searchParams.get('userId');
     const displayName = searchParams.get('displayName');
     const tenantId = searchParams.get('tenantId');
 
-    if (!userId || !displayName) {
-      alert('必要なパラメータ（userId, displayName）が不足しています。');
+    if (env !== 'development' || !userId || !displayName) {
+      router.push('/error');
       return;
     }
 

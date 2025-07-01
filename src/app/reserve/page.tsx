@@ -6,14 +6,14 @@ import type { CreateReservationParams } from '@/components/reservation/Reservati
 import { ReservationInputForm } from '@/components/reservation/ReservationInputForm';
 import { StaffSelection } from '@/components/reservation/StaffSelection';
 import {
+  availabilityApi,
+  businessHoursApi,
   reservationApi,
   reservationMenuApi,
   staffApi,
   tenantApi,
   userApi,
 } from '@/lib/api';
-import { availabilityApi } from '@/lib/api/availability';
-import { businessHoursApi } from '@/lib/api/businessHours';
 import type {
   BusinessHour,
   Reservation,

@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import {
   requireValidTenantFromSession,
@@ -7,14 +6,12 @@ import {
 import {
   createApiResponse,
   createErrorResponse,
-  createValidationErrorResponse,
   createNotFoundResponse,
+  createValidationErrorResponse,
 } from '@/utils/api';
+import { NextRequest } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ tenant_id: string }> }
-) {
+export async function GET(request: NextRequest) {
   try {
     // セッション認証
     let tenant;
@@ -27,19 +24,10 @@ export async function GET(
       throw error;
     }
 
-    const { tenant_id } = await params;
-
-    // セッションのテナントIDと一致するかチェック
-    if (tenant.id !== tenant_id) {
-      return createValidationErrorResponse({
-        tenant_id: 'Access denied to this tenant',
-      });
-    }
-
     const { data, error } = await supabase
       .from('tenants')
       .select('*')
-      .eq('id', tenant_id)
+      .eq('id', tenant.id)
       .eq('is_active', true)
       .single();
 

@@ -7,7 +7,6 @@ import type {
   StaffMemberBusinessHour,
   User,
 } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,16 +35,10 @@ export const useAdminSession = () => {
 export const useReservations = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
 
   const fetchReservations = useCallback(
-    async (
-      staffMemberId?: string,
-      startDate?: string,
-      endDate?: string
-    ) => {
+    async (staffMemberId?: string, startDate?: string, endDate?: string) => {
       try {
-
         // 管理者画面でのフィルタリング機能を使用
         const queryParams = new URLSearchParams();
         if (staffMemberId && staffMemberId !== 'all') {
@@ -66,19 +59,8 @@ export const useReservations = () => {
           const data = await response.json();
           setReservations(data || []);
         } else {
-          console.error('Error fetching reservations:', response.statusText);
-          // フォールバック: 直接Supabaseから取得
-          const { data, error } = await supabase
-            .from('reservations')
-            .select('*')
-            .eq('tenant_id', session?.user?.tenant_id)
-            .order('datetime', { ascending: true });
-
-          if (error) {
-            console.error('Error fetching reservations:', error);
-          } else {
-            setReservations(data || []);
-          }
+          const data = await response.json();
+          alert(data.error || '予約の取得に失敗しました');
         }
       } catch (error) {
         console.error('Fetch error:', error);
@@ -86,14 +68,13 @@ export const useReservations = () => {
         setLoading(false);
       }
     },
-    [session]
+    []
   );
 
   const deleteReservation = async (reservationId: string) => {
     if (!confirm('この予約を削除しますか？')) return;
 
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/reservations?id=${reservationId}`),
         {
@@ -124,11 +105,9 @@ export const useReservations = () => {
 
 export const useBusinessHours = () => {
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([]);
-  const { session } = useAdminSession();
 
   const fetchBusinessHours = useCallback(async () => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl('/api/admin/business-hours')
       );
@@ -142,7 +121,7 @@ export const useBusinessHours = () => {
     } catch (error) {
       console.error('Fetch business hours error:', error);
     }
-  }, [session]);
+  }, []);
 
   const createBusinessHour = async (newBusinessHour: {
     day_of_week: number;
@@ -150,7 +129,6 @@ export const useBusinessHours = () => {
     end_time: string;
   }) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl('/api/admin/business-hours'),
         {
@@ -183,7 +161,6 @@ export const useBusinessHours = () => {
     if (!confirm('この営業時間を削除しますか？')) return;
 
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/business-hours?id=${id}`),
         {
@@ -214,26 +191,22 @@ export const useBusinessHours = () => {
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const { session } = useAdminSession();
 
   const fetchUsers = useCallback(async () => {
     try {
+      const response = await fetch(buildAdminApiUrl('/api/admin/users'));
+      const data = await response.json();
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('tenant_id', session?.user?.tenant_id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching users:', error);
+      if (response.ok) {
+        setUsers(data);
       } else {
-        setUsers(data || []);
+        alert(data.error || 'ユーザーの取得に失敗しました');
+        console.error('Error fetching users:', data.error);
       }
     } catch (error) {
       console.error('Fetch users error:', error);
     }
-  }, [session]);
+  }, []);
 
   const updateUser = async (
     userId: string,
@@ -244,7 +217,6 @@ export const useUsers = () => {
     }
   ) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/users/${userId}`),
         {
@@ -277,7 +249,6 @@ export const useUsers = () => {
 
   const mergeUser = async (sourceUserId: string, targetUserId: string) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/users/${sourceUserId}/merge`),
         {
@@ -331,12 +302,10 @@ export const useStaffMembers = () => {
     [staffId: string]: StaffMemberBusinessHour[];
   }>({});
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
 
   const fetchStaffMembers = useCallback(
     async (options?: { withBusinessHours?: boolean }) => {
       try {
-
         const response = await fetch(
           buildAdminApiUrl('/api/admin/staff-members')
         );
@@ -382,12 +351,11 @@ export const useStaffMembers = () => {
         setLoading(false);
       }
     },
-    [session]
+    []
   );
 
   const createStaffMember = async (name: string) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl('/api/admin/staff-members'),
         {
@@ -418,7 +386,6 @@ export const useStaffMembers = () => {
 
   const updateStaffMember = async (id: string, name: string) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/staff-members?id=${id}`),
         {
@@ -451,7 +418,6 @@ export const useStaffMembers = () => {
     if (!confirm('このスタッフを削除しますか？')) return;
 
     try {
-
       const response = await fetch(
         buildAdminApiUrl(`/api/admin/staff-members?id=${id}`),
         {
@@ -488,12 +454,10 @@ export const useStaffMemberBusinessHours = () => {
     []
   );
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
 
   const fetchStaffMemberBusinessHours = useCallback(
     async (staffMemberId: string) => {
       try {
-
         const response = await fetch(
           buildAdminApiUrl(
             `/api/admin/staff-member-business-hours?staff_member_id=${staffMemberId}`
@@ -515,7 +479,7 @@ export const useStaffMemberBusinessHours = () => {
         setLoading(false);
       }
     },
-    [session]
+    []
   );
 
   const createStaffMemberBusinessHour = async (businessHour: {
@@ -525,7 +489,6 @@ export const useStaffMemberBusinessHours = () => {
     end_time: string;
   }) => {
     try {
-
       const response = await fetch(
         buildAdminApiUrl('/api/admin/staff-member-business-hours'),
         {
@@ -558,11 +521,8 @@ export const useStaffMemberBusinessHours = () => {
     if (!confirm('この営業時間を削除しますか？')) return;
 
     try {
-
       const response = await fetch(
-        buildAdminApiUrl(
-          `/api/admin/staff-member-business-hours?id=${id}`
-        ),
+        buildAdminApiUrl(`/api/admin/staff-member-business-hours?id=${id}`),
         {
           method: 'DELETE',
         }
@@ -594,15 +554,10 @@ export const useTenant = () => {
   const [tenant, setTenant] = useState<{ id: string; name: string } | null>(
     null
   );
-  const { session } = useAdminSession();
 
   const fetchTenant = useCallback(async () => {
     try {
-      const tenantId = session?.user?.tenant_id;
-
-      const response = await fetch(
-        buildAdminApiUrl(`/api/admin/tenants/${tenantId}`)
-      );
+      const response = await fetch(buildAdminApiUrl(`/api/admin/tenants/`));
       if (response.ok) {
         const tenantData = await response.json();
         setTenant(tenantData);
@@ -612,7 +567,7 @@ export const useTenant = () => {
     } catch (error) {
       console.error('Fetch tenant error:', error);
     }
-  }, [session]);
+  }, []);
 
   return {
     tenant,
@@ -625,38 +580,31 @@ export const useRecentReservations = () => {
     []
   );
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
 
-  const fetchRecentReservations = useCallback(
-    async (limit: number = 5) => {
-      try {
+  const fetchRecentReservations = useCallback(async (limit: number = 5) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        buildAdminApiUrl(`/api/admin/recent-reservations?limit=${limit}`)
+      );
 
-        setLoading(true);
-        const response = await fetch(
-          buildAdminApiUrl(
-            `/api/admin/recent-reservations?limit=${limit}`
-          )
+      if (response.ok) {
+        const data = await response.json();
+        setRecentReservations(data || []);
+      } else {
+        console.error(
+          'Error fetching recent reservations:',
+          response.statusText
         );
-
-        if (response.ok) {
-          const data = await response.json();
-          setRecentReservations(data || []);
-        } else {
-          console.error(
-            'Error fetching recent reservations:',
-            response.statusText
-          );
-          setRecentReservations([]);
-        }
-      } catch (error) {
-        console.error('Fetch recent reservations error:', error);
         setRecentReservations([]);
-      } finally {
-        setLoading(false);
       }
-    },
-    [session]
-  );
+    } catch (error) {
+      console.error('Fetch recent reservations error:', error);
+      setRecentReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return {
     recentReservations,
@@ -670,16 +618,12 @@ export const useUnassignedReservations = () => {
     Reservation[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const { session } = useAdminSession();
 
   const fetchUnassignedReservations = useCallback(async () => {
     try {
-
       setLoading(true);
       const response = await fetch(
-        buildAdminApiUrl(
-          '/api/admin/reservations?staff_member_id=unassigned'
-        )
+        buildAdminApiUrl('/api/admin/reservations?staff_member_id=unassigned')
       );
 
       if (response.ok) {
@@ -698,7 +642,7 @@ export const useUnassignedReservations = () => {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, []);
 
   return {
     unassignedReservations,

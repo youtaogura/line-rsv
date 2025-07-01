@@ -30,7 +30,10 @@ function AdminContent() {
   const handleAssignStaff = async (reservationId: string, staffId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const result = await adminApi.assignStaffToReservation(reservationId, staffId, session.user.tenant_id);
+    const result = await adminApi.assignStaffToReservation(
+      reservationId,
+      staffId
+    );
 
     if (!result.success) {
       throw new Error(result.error || 'スタッフの設定に失敗しました');
@@ -40,7 +43,7 @@ function AdminContent() {
   const handleRemoveStaff = async (reservationId: string) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const result = await adminApi.assignStaffToReservation(reservationId, null, session.user.tenant_id);
+    const result = await adminApi.assignStaffToReservation(reservationId, null);
 
     if (!result.success) {
       throw new Error(result.error || 'スタッフの解除に失敗しました');
@@ -53,7 +56,10 @@ function AdminContent() {
   ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const result = await adminApi.updateReservationAdminNote(reservationId, adminNote, session.user.tenant_id);
+    const result = await adminApi.updateReservationAdminNote(
+      reservationId,
+      adminNote
+    );
 
     if (!result.success) {
       throw new Error(result.error || '管理者メモの更新に失敗しました');
