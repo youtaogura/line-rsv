@@ -65,7 +65,7 @@ function ReserveContent() {
   const [staffBusinessHours, setStaffBusinessHours] = useState<
     StaffMemberBusinessHour[]
   >([]);
-  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('any');
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -74,6 +74,10 @@ function ReserveContent() {
   );
   const [monthlyAvailability, setMonthlyAvailability] =
     useState<MonthlyAvailability>();
+  const staffId = useMemo(
+    () => (selectedStaffId !== 'any' ? selectedStaffId : ''),
+    [selectedStaffId]
+  );
 
   useEffect(() => {
     if (!urlTenantId || !urlUserId) {
@@ -204,7 +208,7 @@ function ReserveContent() {
 
   // 営業日のSetを作成（スタッフ選択時はそのスタッフの対応可能日も考慮）
   const businessDaysSet = useMemo(() => {
-    if (selectedStaffId) {
+    if (selectedStaffId && selectedStaffId !== 'any') {
       // 選択されたスタッフの対応可能日を取得
       return new Set(
         staffBusinessHours
@@ -229,8 +233,8 @@ function ReserveContent() {
 
         {/* 既存予約一覧 */}
         {userReservations.length > 0 && (
-          <div className="mb-8 bg-white rounded-xs shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="mb-8 bg-white rounded-xs shadow-sm border border-gray-200 p-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
               あなたの予約一覧
             </h2>
             <div className="space-y-3">
@@ -272,27 +276,6 @@ function ReserveContent() {
               onStaffSelect={setSelectedStaffId}
             />
 
-            {/* メニュー情報表示 */}
-            {reservationMenu && (
-              <div className="bg-blue-50 rounded-xs border border-blue-200 p-4">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                  {reservationMenu.name}
-                </h3>
-                <div className="text-sm text-blue-700 space-y-1">
-                  <p>所要時間: {reservationMenu.duration_minutes}分</p>
-                  <p>
-                    開始可能時間: 毎時
-                    {reservationMenu.start_minutes_options.map((min, index) => (
-                      <span key={min}>
-                        {index > 0 && '、'}
-                        {min.toString().padStart(2, '0')}分
-                      </span>
-                    ))}
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* カレンダー */}
             {monthlyAvailability && (
               <ReservationCalendar
@@ -304,7 +287,7 @@ function ReserveContent() {
                 monthlyAvailability={monthlyAvailability}
                 selectedDateTime={selectedDateTime}
                 onDateTimeSelect={setSelectedDateTime}
-                selectedStaffId={selectedStaffId}
+                selectedStaffId={staffId}
                 businessDaysSet={businessDaysSet}
               />
             )}
@@ -319,7 +302,7 @@ function ReserveContent() {
               }}
               selectedDateTime={selectedDateTime}
               reservationMenu={reservationMenu}
-              selectedStaffId={selectedStaffId}
+              selectedStaffId={staffId}
               onSubmit={handleReservationSubmit}
               submitting={submitting}
               onSubmittingChange={setSubmitting}

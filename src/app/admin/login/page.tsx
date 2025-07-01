@@ -1,5 +1,6 @@
 'use client';
 
+import { Input } from '@/components/ui/input';
 import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -56,7 +57,7 @@ export default function AdminLogin() {
               <label htmlFor="username" className="sr-only">
                 ユーザー名
               </label>
-              <input
+              <Input
                 id="username"
                 name="username"
                 type="text"
@@ -71,7 +72,7 @@ export default function AdminLogin() {
               <label htmlFor="password" className="sr-only">
                 パスワード
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"

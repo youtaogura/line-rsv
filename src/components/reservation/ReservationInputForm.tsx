@@ -2,7 +2,10 @@
 
 import type { ReservationMenu } from '@/lib/supabase';
 import { format as formatTz } from 'date-fns-tz';
+import { Check } from 'lucide-react';
 import { useState } from 'react';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
 
 export interface CreateReservationParams {
   user_id: string;
@@ -75,7 +78,8 @@ export function ReservationInputForm({
         member_type: initialUser.member_type,
         phone: phone.trim() || undefined,
         reservation_menu_id: reservationMenu?.id || undefined,
-        staff_member_id: selectedStaffId || undefined,
+        staff_member_id:
+          selectedStaffId === 'any' ? undefined : selectedStaffId,
       };
 
       const result = await onSubmit(reservationData);
@@ -89,13 +93,13 @@ export function ReservationInputForm({
   };
 
   return (
-    <div className="bg-white rounded-xs shadow-sm border border-gray-200 p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">予約情報入力</h2>
+    <div className="bg-white rounded-xs shadow-sm border border-gray-200 p-4">
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">予約情報入力</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 名前 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             お名前 <span className="text-red-500">*</span>
           </label>
           {initialUser.member_type === 'regular' ? (
@@ -106,12 +110,11 @@ export function ReservationInputForm({
               </span>
             </div>
           ) : (
-            <input
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors disabled:bg-gray-100"
               placeholder="お名前を入力してください"
             />
           )}
@@ -119,31 +122,19 @@ export function ReservationInputForm({
 
         {/* 選択した日時の表示 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             予約日時 <span className="text-red-500">*</span>
           </label>
           <div
             className={`w-full px-4 py-3 border rounded-xs transition-colors ${
               selectedDateTime
-                ? 'border-green-300 bg-green-50 text-green-800'
+                ? 'border-blue-500 bg-blue-100 text-blue-800'
                 : 'border-red-300 bg-red-50 text-red-800'
             }`}
           >
             {selectedDateTime ? (
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <Check className="w-5 h-5 mr-2 text-blue-600" />
                 <span className="font-medium">
                   {formatTz(new Date(selectedDateTime), 'yyyy年M月d日 HH:mm', {
                     timeZone: 'Asia/Tokyo',
@@ -174,17 +165,16 @@ export function ReservationInputForm({
         {/* 電話番号 */}
         {initialUser.member_type === 'guest' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               電話番号（ハイフンなし、半角数字）
               <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="tel"
               value={phone}
               pattern="[0-9]*"
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               placeholder="電話番号を入力してください"
             />
           </div>
@@ -192,10 +182,10 @@ export function ReservationInputForm({
 
         {/* メモ */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            メモ（任意）
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            備考（任意）
           </label>
-          <textarea
+          <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}

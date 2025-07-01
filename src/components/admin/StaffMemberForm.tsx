@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Input } from '../ui/input';
 
 interface StaffMemberFormProps {
   onCreateStaffMember: (name: string) => Promise<boolean>;
@@ -35,7 +36,7 @@ export const StaffMemberForm: React.FC<StaffMemberFormProps> = ({
           >
             スタッフ名
           </label>
-          <input
+          <Input
             type="text"
             id="name"
             value={name}

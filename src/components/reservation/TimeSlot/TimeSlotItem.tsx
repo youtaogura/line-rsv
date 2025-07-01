@@ -33,7 +33,7 @@ export function TimeSlotItem({
         w-full px-4 py-3 text-left rounded-xs border transition-colors
         ${
           isSelected
-            ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+            ? 'bg-blue-100 text-gray-700 border-blue-500 shadow-md'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300'
         }
       `}

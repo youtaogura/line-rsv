@@ -2,6 +2,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UI_TEXT } from '@/constants/ui';
 import type { User } from '@/lib/supabase';
 import React from 'react';
+import { Input } from '../ui/input';
 import { UserCard } from './UserCard';
 
 type UserFilter = 'all' | 'regular' | 'guest';
@@ -35,7 +36,7 @@ export const UserList: React.FC<UserListProps> = ({
           >
             名前で検索:
           </label>
-          <input
+          <Input
             id="name-filter"
             type="text"
             value={nameFilter}
