@@ -32,7 +32,7 @@ function AdminContent() {
 
     const response = await fetch(
       buildApiUrl(
-        `/api/reservations?id=${reservationId}`,
+        `/api/admin/reservations?id=${reservationId}`,
         session.user.tenant_id
       ),
       {
@@ -57,7 +57,7 @@ function AdminContent() {
 
     const response = await fetch(
       buildApiUrl(
-        `/api/reservations?id=${reservationId}`,
+        `/api/admin/reservations?id=${reservationId}`,
         session.user.tenant_id
       ),
       {
@@ -85,7 +85,7 @@ function AdminContent() {
 
     const response = await fetch(
       buildApiUrl(
-        `/api/reservations?id=${reservationId}`,
+        `/api/admin/reservations?id=${reservationId}`,
         session.user.tenant_id
       ),
       {

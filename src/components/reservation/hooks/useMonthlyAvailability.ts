@@ -32,7 +32,7 @@ export function useMonthlyAvailability(
     try {
       const response = await fetch(
         buildApiUrl(
-          `/api/availability/monthly?year=${year}&month=${month}`,
+          `/api/public/availability/monthly?year=${year}&month=${month}`,
           tenantId
         )
       );

@@ -4,7 +4,7 @@ import { fetchApi, buildTenantApiUrl } from './base';
 
 export const staffApi = {
   async getStaffMembers(tenantId: string): Promise<ApiResponse<StaffMember[]>> {
-    const url = buildTenantApiUrl('/api/staff-members', tenantId);
+    const url = buildTenantApiUrl('/api/public/staff-members', tenantId);
     return fetchApi<StaffMember[]>(url);
   },
 
@@ -13,7 +13,7 @@ export const staffApi = {
     staffMemberId: string | 'all'
   ): Promise<ApiResponse<StaffMemberBusinessHour[]>> {
     const url = buildTenantApiUrl(
-      `/api/staff-member-business-hours?staff_member_id=${staffMemberId}`,
+      `/api/public/staff-member-business-hours?staff_member_id=${staffMemberId}`,
       tenantId
     );
     return fetchApi<StaffMemberBusinessHour[]>(url);

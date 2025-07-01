@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import {
-  requireValidTenant,
+  requireValidTenantFromSession,
   TenantValidationError,
 } from '@/lib/tenant-validation';
 import {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });

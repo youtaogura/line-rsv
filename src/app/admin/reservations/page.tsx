@@ -1,6 +1,6 @@
 'use client';
 
-import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
+import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 import { ReservationList } from '@/components/admin/ReservationList';
 import {
   AdminLayout,
@@ -75,7 +75,7 @@ function ReservationsContent() {
 
     const response = await fetch(
       buildApiUrl(
-        `/api/reservations?id=${reservationId}`,
+        `/api/admin/reservations?id=${reservationId}`,
         session.user.tenant_id
       ),
       {
@@ -259,7 +259,7 @@ function ReservationsContent() {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
     const response = await fetch(
-      buildApiUrl('/api/reservations', session.user.tenant_id),
+      buildApiUrl('/api/admin/reservations', session.user.tenant_id),
       {
         method: 'POST',
         headers: {

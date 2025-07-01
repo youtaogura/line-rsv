@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 import type { Tenant } from './supabase';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth';
 
 export async function validateTenant(tenantId: string): Promise<Tenant | null> {
   if (!tenantId || typeof tenantId !== 'string') {
@@ -61,4 +63,36 @@ export async function requireValidTenant(
   }
 
   return tenant;
+}
+
+export async function requireValidTenantFromSession(): Promise<Tenant> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.tenant_id) {
+    throw new TenantValidationError(
+      'Admin session required with tenant information',
+      'MISSING_TENANT_ID'
+    );
+  }
+
+  const tenant = await validateTenant(session.user.tenant_id);
+
+  if (!tenant) {
+    throw new TenantValidationError(
+      'Invalid or inactive tenant in session',
+      'INVALID_TENANT_ID'
+    );
+  }
+
+  return tenant;
+}
+
+export async function requireValidTenantFromRequestOrSession(
+  request: Request | { url: string }
+): Promise<Tenant> {
+  try {
+    return await requireValidTenantFromSession();
+  } catch (_sessionError) {
+    return await requireValidTenant(request);
+  }
 }

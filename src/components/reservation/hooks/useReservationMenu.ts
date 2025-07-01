@@ -28,7 +28,7 @@ export function useReservationMenu(
 
     try {
       const response = await fetch(
-        buildApiUrl('/api/reservation-menu', tenantId)
+        buildApiUrl('/api/admin/reservation-menu', tenantId)
       );
 
       if (!response.ok) {

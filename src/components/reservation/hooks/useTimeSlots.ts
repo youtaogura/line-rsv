@@ -35,7 +35,7 @@ export function useTimeSlots(
         queryParams.set('staff_member_id', selectedStaffId);
       }
       const response = await fetch(
-        buildApiUrl(`/api/available-slots?${queryParams.toString()}`, tenantId)
+        buildApiUrl(`/api/public/available-slots?${queryParams.toString()}`, tenantId)
       );
 
       if (!response.ok) {

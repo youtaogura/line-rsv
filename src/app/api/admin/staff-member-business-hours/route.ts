@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import {
-  requireValidTenant,
+  requireValidTenantFromSession,
   TenantValidationError,
 } from '@/lib/tenant-validation';
 import {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // テナント検証
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     // テナント検証
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const tenant = await requireValidTenant(request);
+    const tenant = await requireValidTenantFromSession();
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

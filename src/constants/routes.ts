@@ -17,11 +17,11 @@ export const ROUTES = {
   // API routes
   API: {
     AUTH: '/api/auth',
-    RESERVATIONS: '/api/reservations',
-    BUSINESS_HOURS: '/api/business-hours',
-    USERS: '/api/users',
-    TENANTS: '/api/tenants',
-    USER: '/api/user',
+    RESERVATIONS: '/api/public/reservations',
+    BUSINESS_HOURS: '/api/public/business-hours',
+    USERS: '/api/public/users',
+    TENANTS: '/api/public/tenants',
+    USER: '/api/public/user',
   },
 } as const;
 

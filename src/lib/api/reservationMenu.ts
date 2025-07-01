@@ -6,7 +6,7 @@ export const reservationMenuApi = {
   async getReservationMenu(
     tenantId: string
   ): Promise<ApiResponse<ReservationMenu | null>> {
-    const url = buildTenantApiUrl('/api/reservation-menu', tenantId);
+    const url = buildTenantApiUrl('/api/public/reservation-menu', tenantId);
     const result = await fetchApi<ReservationMenu>(url);
 
     // 404 is expected for optional reservation menu

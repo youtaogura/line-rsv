@@ -72,8 +72,23 @@ export function redirectToError(
   }
 }
 
+// 管理画面専用のAPIパスを判定
+function isAdminOnlyEndpoint(endpoint: string): boolean {
+  const adminOnlyPaths = [
+    '/api/admin/',
+  ];
+  
+  return adminOnlyPaths.some(path => endpoint.includes(path));
+}
+
 // APIコール用のヘルパー
 export function buildApiUrl(endpoint: string, tenantId: string | null): string {
+  // 管理画面専用APIの場合はtenantIdを付与しない（セッションから取得）
+  if (isAdminOnlyEndpoint(endpoint)) {
+    return new URL(endpoint, window.location.origin).toString();
+  }
+
+  // その他のAPIはtenantIdを付与（従来通り）
   if (!tenantId) {
     throw new Error('Tenant ID is required for API calls');
   }

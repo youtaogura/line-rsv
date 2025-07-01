@@ -1,6 +1,6 @@
 'use client';
 
-import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
+import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 import type {
   ReservationData,
   ReservationMenuSimple,

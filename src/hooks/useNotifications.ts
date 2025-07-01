@@ -20,7 +20,7 @@ export const useNotifications = (tenantId: string | undefined) => {
     if (!tenantId) return;
 
     try {
-      const response = await fetch(buildApiUrl('/api/notifications', tenantId));
+      const response = await fetch(buildApiUrl('/api/admin/notifications', tenantId));
 
       if (response.ok) {
         const data = await response.json();
@@ -43,7 +43,7 @@ export const useNotifications = (tenantId: string | undefined) => {
 
     try {
       const response = await fetch(
-        buildApiUrl(`/api/notifications?id=${notificationId}`, tenantId),
+        buildApiUrl(`/api/admin/notifications?id=${notificationId}`, tenantId),
         {
           method: 'PUT',
         }

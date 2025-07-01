@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from '@/constants/api';
 import { supabase } from '@/lib/supabase';
 import {
-  requireValidTenant,
+  requireValidTenantFromSession,
   TenantValidationError,
 } from '@/lib/tenant-validation';
 import {
@@ -11,11 +11,11 @@ import {
 } from '@/utils/api';
 import { NextRequest } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });
@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest) {
   try {
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });

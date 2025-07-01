@@ -1,5 +1,5 @@
 import {
-  requireValidTenant,
+  requireValidTenantFromSession,
   TenantValidationError,
 } from '@/lib/tenant-validation';
 import {
@@ -18,7 +18,7 @@ export async function POST(
     // テナント検証
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });

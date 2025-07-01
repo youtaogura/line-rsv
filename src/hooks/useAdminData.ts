@@ -106,7 +106,7 @@ export const useReservations = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/reservations?id=${reservationId}`, tenantId),
+        buildApiUrl(`/api/admin/reservations?id=${reservationId}`, tenantId),
         {
           method: 'DELETE',
         }
@@ -146,7 +146,7 @@ export const useBusinessHours = () => {
       }
 
       const response = await fetch(
-        buildApiUrl('/api/business-hours', tenantId)
+        buildApiUrl('/api/admin/business-hours', tenantId)
       );
       const data = await response.json();
 
@@ -173,7 +173,7 @@ export const useBusinessHours = () => {
       }
 
       const response = await fetch(
-        buildApiUrl('/api/business-hours', tenantId),
+        buildApiUrl('/api/admin/business-hours', tenantId),
         {
           method: 'POST',
           headers: {
@@ -211,7 +211,7 @@ export const useBusinessHours = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/business-hours?id=${id}`, tenantId),
+        buildApiUrl(`/api/admin/business-hours?id=${id}`, tenantId),
         {
           method: 'DELETE',
         }
@@ -282,7 +282,7 @@ export const useUsers = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/users/${userId}`, tenantId),
+        buildApiUrl(`/api/admin/users/${userId}`, tenantId),
         {
           method: 'PUT',
           headers: {
@@ -320,7 +320,7 @@ export const useUsers = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/users/${sourceUserId}/merge`, tenantId),
+        buildApiUrl(`/api/admin/users/${sourceUserId}/merge`, tenantId),
         {
           method: 'POST',
           headers: {
@@ -380,7 +380,7 @@ export const useStaffMembers = () => {
         return;
       }
 
-      const response = await fetch(buildApiUrl('/api/staff-members', tenantId));
+      const response = await fetch(buildApiUrl('/api/admin/staff-members', tenantId));
       const data = await response.json();
 
       if (response.ok) {
@@ -391,7 +391,7 @@ export const useStaffMembers = () => {
           try {
             const businessHoursResponse = await fetch(
               buildApiUrl(
-                `/api/staff-member-business-hours?staff_member_id=all`,
+                `/api/admin/staff-member-business-hours?staff_member_id=all`,
                 tenantId
               )
             );
@@ -432,7 +432,7 @@ export const useStaffMembers = () => {
       }
 
       const response = await fetch(
-        buildApiUrl('/api/staff-members', tenantId),
+        buildApiUrl('/api/admin/staff-members', tenantId),
         {
           method: 'POST',
           headers: {
@@ -468,7 +468,7 @@ export const useStaffMembers = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/staff-members?id=${id}`, tenantId),
+        buildApiUrl(`/api/admin/staff-members?id=${id}`, tenantId),
         {
           method: 'PUT',
           headers: {
@@ -506,7 +506,7 @@ export const useStaffMembers = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/staff-members?id=${id}`, tenantId),
+        buildApiUrl(`/api/admin/staff-members?id=${id}`, tenantId),
         {
           method: 'DELETE',
         }
@@ -554,7 +554,7 @@ export const useStaffMemberBusinessHours = () => {
 
         const response = await fetch(
           buildApiUrl(
-            `/api/staff-member-business-hours?staff_member_id=${staffMemberId}`,
+            `/api/admin/staff-member-business-hours?staff_member_id=${staffMemberId}`,
             tenantId
           )
         );
@@ -591,7 +591,7 @@ export const useStaffMemberBusinessHours = () => {
       }
 
       const response = await fetch(
-        buildApiUrl('/api/staff-member-business-hours', tenantId),
+        buildApiUrl('/api/admin/staff-member-business-hours', tenantId),
         {
           method: 'POST',
           headers: {
@@ -629,7 +629,7 @@ export const useStaffMemberBusinessHours = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/staff-member-business-hours?id=${id}`, tenantId),
+        buildApiUrl(`/api/admin/staff-member-business-hours?id=${id}`, tenantId),
         {
           method: 'DELETE',
         }
@@ -672,7 +672,7 @@ export const useTenant = () => {
       }
 
       const response = await fetch(
-        buildApiUrl(`/api/tenants/${tenantId}`, tenantId)
+        buildApiUrl(`/api/admin/tenants/${tenantId}`, tenantId)
       );
       if (response.ok) {
         const tenantData = await response.json();

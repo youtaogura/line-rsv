@@ -5,15 +5,15 @@ export const API_ENDPOINTS = {
     LINE: '/api/auth/line',
     LINE_CALLBACK: '/api/auth/line/callback',
   },
-  RESERVATIONS: '/api/reservations',
-  BUSINESS_HOURS: '/api/business-hours',
-  USERS: '/api/users',
-  USER: '/api/user',
-  TENANTS: '/api/tenants',
+  RESERVATIONS: '/api/public/reservations',
+  BUSINESS_HOURS: '/api/public/business-hours',
+  USERS: '/api/public/users',
+  USER: '/api/public/user',
+  TENANTS: '/api/public/tenants',
   AVAILABILITY: {
-    MONTHLY: '/api/availability/monthly',
+    MONTHLY: '/api/public/availability/monthly',
   },
-  RESERVATION_MENU: '/api/reservation-menu',
+  RESERVATION_MENU: '/api/public/reservation-menu',
   NOTIFY: '/api/notify',
 } as const;
 

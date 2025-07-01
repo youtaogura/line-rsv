@@ -25,7 +25,7 @@ import type {
 import { startOfMonth } from 'date-fns';
 import { format as formatTz } from 'date-fns-tz';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { MonthlyAvailability } from '../api/availability/monthly/route';
+import { MonthlyAvailability } from '../api/public/availability/monthly/route';
 
 function ReserveContent() {
   const [urlUserId, setUrlUserId] = useState<string | null>(null);

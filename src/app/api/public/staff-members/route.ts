@@ -8,12 +8,11 @@ import {
   createApiResponse,
   createErrorResponse,
   createValidationErrorResponse,
-  createNotFoundResponse,
 } from '@/utils/api';
 
 export async function GET(request: NextRequest) {
   try {
-    // テナント検証
+    // テナント検証（クエリパラメータから）
     let tenant;
     try {
       tenant = await requireValidTenant(request);
@@ -24,24 +23,18 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    // そのテナントの予約メニューを取得（1テナント1メニューの想定）
-    const { data: reservationMenu, error } = await supabase
-      .from('reservation_menu')
+    const { data, error } = await supabase
+      .from('staff_members')
       .select('*')
       .eq('tenant_id', tenant.id)
-      .limit(1)
-      .single();
+      .order('name', { ascending: true });
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // データが見つからない場合
-        return createNotFoundResponse('Reservation menu');
-      }
-      console.error('Error fetching reservation menu:', error);
-      return createErrorResponse('Failed to fetch reservation menu');
+      console.error('Error fetching staff members:', error);
+      return createErrorResponse('Failed to fetch staff members');
     }
 
-    return createApiResponse(reservationMenu);
+    return createApiResponse(data);
   } catch (error) {
     console.error('Unexpected error:', error);
     return createErrorResponse('Internal server error');

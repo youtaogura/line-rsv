@@ -31,7 +31,7 @@ export const reservationApi = {
     reservationData: CreateReservationData,
     tenantId: string
   ): Promise<ApiResponse<ReservationResponse>> {
-    const url = buildTenantApiUrl('/api/reservations', tenantId);
+    const url = buildTenantApiUrl('/api/public/reservations', tenantId);
 
     return fetchApi(url, {
       method: 'POST',

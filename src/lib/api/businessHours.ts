@@ -6,7 +6,7 @@ export const businessHoursApi = {
   async getBusinessHours(
     tenantId: string
   ): Promise<ApiResponse<BusinessHour[]>> {
-    const url = buildTenantApiUrl('/api/business-hours', tenantId);
+    const url = buildTenantApiUrl('/api/public/business-hours', tenantId);
     return fetchApi<BusinessHour[]>(url);
   },
 };

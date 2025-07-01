@@ -5,7 +5,7 @@ export const tenantApi = {
   async getTenant(
     tenantId: string
   ): Promise<ApiResponse<{ tenant_id: string; name: string }>> {
-    const url = buildTenantApiUrl(`/api/tenants/${tenantId}`, tenantId);
+    const url = buildTenantApiUrl(`/api/public/tenants/${tenantId}`, tenantId);
     return fetchApi(url);
   },
 };

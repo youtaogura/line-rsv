@@ -10,7 +10,7 @@ export const timeSlotsApi = {
   ): Promise<ApiResponse<TimeSlot[]>> {
     const dateStr = date.toISOString().split('T')[0];
     let url = buildTenantApiUrl(
-      `/api/available-slots?date=${dateStr}`,
+      `/api/public/available-slots?date=${dateStr}`,
       tenantId
     );
 
