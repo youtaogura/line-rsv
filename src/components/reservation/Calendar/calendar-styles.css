@@ -138,12 +138,6 @@
   border-color: #3b82f6 !important;
 }
 
-.react-calendar__tile--now {
-  background-color: #fef3c7 !important;
-  border-color: #f59e0b !important;
-  color: #92400e !important;
-}
-
 .react-calendar__tile--now:enabled:hover {
   background-color: #fbbf24 !important;
   color: #78350f !important;
