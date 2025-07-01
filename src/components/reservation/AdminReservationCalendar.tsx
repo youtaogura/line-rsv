@@ -2,7 +2,6 @@
 
 import { MonthlyAvailability } from '@/app/api/availability/monthly/route';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import type {
   Reservation,
   ReservationData,
@@ -32,6 +31,7 @@ interface AdminReservationCalendarProps {
   businessDaysSet: Set<number>;
   monthlyAvailability: MonthlyAvailability | null;
   reservationMenu: ReservationMenuSimple | null;
+  reservationsOnlySelected: boolean;
   onCreateReservationData: (reservationData: ReservationData) => Promise<void>;
   onMonthChange: (month: string) => void;
 }
@@ -132,6 +132,7 @@ export function AdminReservationCalendar({
   businessDaysSet,
   monthlyAvailability,
   reservationMenu,
+  reservationsOnlySelected,
   onCreateReservationData,
   onMonthChange,
 }: AdminReservationCalendarProps) {
@@ -139,8 +140,6 @@ export function AdminReservationCalendar({
   const [dayReservations, setDayReservations] = useState<DayReservations>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>('');
-  const [reservationsOnlySelected, setReservationsOnlySelected] =
-    useState(false);
 
   const timeSlots = useMemo(() => {
     if (!monthlyAvailability) return [];
@@ -239,167 +238,142 @@ export function AdminReservationCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-xs p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">予約カレンダー</h3>
-          {selectedStaffId &&
-            selectedStaffId !== 'all' &&
-            selectedStaffId !== 'unassigned' && (
-              <div className="flex items-center space-x-3">
-                <Switch
-                  checked={reservationsOnlySelected}
-                  onCheckedChange={setReservationsOnlySelected}
-                  id="reservations-only-toggle"
-                />
-                <label
-                  htmlFor="reservations-only-toggle"
-                  className="text-sm font-medium text-gray-700 cursor-pointer"
-                >
-                  予約だけ表示
-                </label>
-              </div>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* カレンダー部分 */}
+        <div className="w-full overflow-hidden shadow rounded-xs p-4">
+          <CalendarView
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            onActiveStartDateChange={handleMonthChange}
+            timeSlots={timeSlots}
+            reservations={reservations}
+            showReservationsOnly={showReservationsOnly}
+            businessDaysSet={businessDaysSet}
+          />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* カレンダー部分 */}
-          <div className="w-full overflow-hidden">
-            <CalendarView
-              selectedDate={selectedDate}
-              onDateChange={handleDateChange}
-              onActiveStartDateChange={handleMonthChange}
-              timeSlots={timeSlots}
-              reservations={reservations}
-              showReservationsOnly={showReservationsOnly}
-              businessDaysSet={businessDaysSet}
-            />
-          </div>
+        {/* 選択日の予約詳細 */}
+        <div className="flex flex-col min-h-[400px] lg:min-h-96">
+          <h4 className="text-md font-medium text-gray-900 mb-3">
+            {selectedDate
+              ? format(selectedDate, 'M月d日の予約')
+              : '日付を選択してください'}
+          </h4>
 
-          {/* 選択日の予約詳細 */}
-          <div className="flex flex-col min-h-[400px] lg:min-h-96">
-            <h4 className="text-md font-medium text-gray-900 mb-3">
-              {selectedDate
-                ? format(selectedDate, 'M月d日の予約')
-                : '日付を選択してください'}
-            </h4>
+          {selectedDate ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* タイムスロット一覧 */}
+              <div className="flex-1 overflow-hidden">
+                <div className="space-y-2 max-h-80 lg:max-h-96 overflow-y-auto">
+                  {timeSlotsWithReservation.map((slot, index) => {
+                    const displayTime = slot.endTime
+                      ? `${slot.startTime}-${slot.endTime}`
+                      : slot.startTime;
 
-            {selectedDate ? (
-              <div className="flex-1 flex flex-col min-h-0">
-                {/* タイムスロット一覧 */}
-                <div className="flex-1 overflow-hidden">
-                  <div className="space-y-2 max-h-80 lg:max-h-96 overflow-y-auto">
-                    {timeSlotsWithReservation.map((slot, index) => {
-                      const displayTime = slot.endTime
-                        ? `${slot.startTime}-${slot.endTime}`
-                        : slot.startTime;
+                    return (
+                      <div
+                        key={`${slot.startTime}-${index}`}
+                        className={`border rounded-xs p-3 ${
+                          slot.reservation
+                            ? 'border-orange-200 bg-orange-50'
+                            : 'border-green-200 bg-green-50'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-900">
+                                {displayTime}
+                              </span>
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  slot.reservation
+                                    ? 'bg-red-100 text-orange-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}
+                              >
+                                {slot.reservation ? '予約済み' : '空き'}
+                              </span>
 
-                      return (
-                        <div
-                          key={`${slot.startTime}-${index}`}
-                          className={`border rounded-xs p-3 ${
-                            slot.reservation
-                              ? 'border-orange-200 bg-orange-50'
-                              : 'border-green-200 bg-green-50'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-gray-900">
-                                  {displayTime}
-                                </span>
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    slot.reservation
-                                      ? 'bg-red-100 text-orange-800'
-                                      : 'bg-green-100 text-green-800'
-                                  }`}
-                                >
-                                  {slot.reservation ? '予約済み' : '空き'}
-                                </span>
-
-                                {slot.reservation && (
-                                  <>
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-sm font-medium text-gray-700">
-                                        {slot.reservation!.users?.name ||
-                                          'ユーザー名が取得できませんでした'}
-                                      </span>
-                                      {slot.reservation!.is_created_by_user && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          LINE予約
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <span
-                                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                        slot.reservation!.member_type ===
-                                        'regular'
-                                          ? 'bg-blue-100 text-blue-800'
-                                          : 'bg-yellow-100 text-yellow-800'
-                                      }`}
-                                    >
-                                      {slot.reservation!.member_type ===
-                                      'regular'
-                                        ? '会員'
-                                        : 'ゲスト'}
+                              {slot.reservation && (
+                                <>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {slot.reservation!.users?.name ||
+                                        'ユーザー名が取得できませんでした'}
                                     </span>
-                                  </>
-                                )}
-                              </div>
-
-                              {slot.reservation?.note && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                  備考: {slot.reservation!.note}
-                                </p>
+                                    {slot.reservation!.is_created_by_user && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                      >
+                                        LINE予約
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span
+                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                      slot.reservation!.member_type ===
+                                      'regular'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}
+                                  >
+                                    {slot.reservation!.member_type === 'regular'
+                                      ? '会員'
+                                      : 'ゲスト'}
+                                  </span>
+                                </>
                               )}
                             </div>
 
-                            {slot.reservation ? (
-                              <button
-                                onClick={() => {
-                                  if (!tenantId)
-                                    throw new Error(
-                                      'テナントIDが見つかりません'
-                                    );
-                                  onDeleteReservation(
-                                    tenantId,
-                                    slot.reservation!.id
-                                  );
-                                }}
-                                className="text-red-600 hover:text-red-900 text-sm ml-2"
-                              >
-                                削除
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setSelectedDateTime(slot.datetime);
-                                  setIsModalOpen(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-900 text-sm ml-2"
-                              >
-                                予約追加
-                              </button>
+                            {slot.reservation?.note && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                備考: {slot.reservation!.note}
+                              </p>
                             )}
                           </div>
+
+                          {slot.reservation ? (
+                            <button
+                              onClick={() => {
+                                if (!tenantId)
+                                  throw new Error('テナントIDが見つかりません');
+                                onDeleteReservation(
+                                  tenantId,
+                                  slot.reservation!.id
+                                );
+                              }}
+                              className="text-red-600 hover:text-red-900 text-sm ml-2"
+                            >
+                              削除
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSelectedDateTime(slot.datetime);
+                                setIsModalOpen(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-900 text-sm ml-2"
+                            >
+                              予約追加
+                            </button>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">
-                カレンダーから日付を選択すると、その日の予約詳細が表示されます
-              </p>
-            )}
-          </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">
+              カレンダーから日付を選択すると、その日の予約詳細が表示されます
+            </p>
+          )}
         </div>
       </div>
+      {/* </div> */}
 
       {/* 予約作成モーダル */}
       <ReservationModal

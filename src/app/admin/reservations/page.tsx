@@ -9,6 +9,14 @@ import {
   ViewModeToggle,
 } from '@/components/common';
 import { AdminReservationCalendar } from '@/components/reservation/AdminReservationCalendar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { UI_TEXT } from '@/constants/ui';
 import {
   useAdminSession,
@@ -32,7 +40,12 @@ function ReservationsContent() {
   const { businessHours, fetchBusinessHours } = useBusinessHours();
   const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } =
     useStaffMemberBusinessHours();
-  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'table'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('reservationViewMode') as 'calendar' | 'table') || 'calendar';
+    }
+    return 'calendar';
+  });
   const [monthlyAvailability, setMonthlyAvailability] =
     useState<MonthlyAvailability | null>(null);
   const [reservationMenu] = useState<ReservationMenuSimple | null>(null);
@@ -41,6 +54,8 @@ function ReservationsContent() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+  const [reservationsOnlySelected, setReservationsOnlySelected] =
+    useState(false);
 
   const selectedStaffReservations = useMemo(() => {
     if (selectedStaffId === 'all') {
@@ -216,41 +231,61 @@ function ReservationsContent() {
             <ViewModeToggle
               currentMode={viewMode}
               modes={viewModes}
-              onModeChange={(mode) => setViewMode(mode as 'calendar' | 'table')}
+              onModeChange={(mode) => {
+                const newMode = mode as 'calendar' | 'table';
+                setViewMode(newMode);
+                localStorage.setItem('reservationViewMode', newMode);
+              }}
             />
           </div>
 
-          {/* スタッフフィルタ */}
-          {staffMembers && staffMembers.length > 1 && (
-            <div className="bg-white p-4 rounded-xs shadow">
-              <div className="flex items-center space-x-4">
-                <label
-                  htmlFor="staff-filter"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  担当スタッフでフィルタ:
-                </label>
-                <select
-                  id="staff-filter"
-                  value={selectedStaffId}
-                  onChange={(e) => setSelectedStaffId(e.target.value)}
-                  className="block w-auto rounded-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                >
+          <div className="flex flex-col space-y-2 mb-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              予約カレンダー
+            </h3>
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700">担当:</label>
+              <Select
+                value={selectedStaffId}
+                onValueChange={setSelectedStaffId}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="スタッフを選択" />
+                </SelectTrigger>
+                <SelectContent>
                   {staffMembers.length > 1 && (
                     <>
-                      <option value="all">全員</option>
-                      <option value="unassigned">担当なし</option>
+                      <SelectItem value="all">全員</SelectItem>
+                      <SelectItem value="unassigned">担当なし</SelectItem>
                     </>
                   )}
                   {staffMembers.map((staff) => (
-                    <option key={staff.id} value={staff.id}>
+                    <SelectItem key={staff.id} value={staff.id}>
                       {staff.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-              </div>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+            {viewMode === 'calendar' &&
+              selectedStaffId &&
+              selectedStaffId !== 'all' &&
+              selectedStaffId !== 'unassigned' && (
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    checked={reservationsOnlySelected}
+                    onCheckedChange={setReservationsOnlySelected}
+                    id="reservations-only-toggle"
+                  />
+                  <label
+                    htmlFor="reservations-only-toggle"
+                    className="text-sm font-medium text-gray-700 cursor-pointer"
+                  >
+                    予約だけ表示
+                  </label>
+                </div>
+              )}
+          </div>
         </div>
 
         {viewMode === 'calendar' && (
@@ -264,6 +299,7 @@ function ReservationsContent() {
             businessDaysSet={businessDaysSet}
             monthlyAvailability={monthlyAvailability}
             reservationMenu={reservationMenu}
+            reservationsOnlySelected={reservationsOnlySelected}
             onCreateReservationData={handleCreateReservationData}
             onMonthChange={handleMonthChange}
           />

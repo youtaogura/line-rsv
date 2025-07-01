@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import {
   requireValidTenant,
@@ -9,6 +8,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/utils/api';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       `
       )
       .eq('tenant_id', tenant.id)
-      .order('datetime', { ascending: true });
+      .order('datetime', { ascending: false });
 
     // スタッフフィルタ
     if (staffMemberId && staffMemberId !== 'all') {

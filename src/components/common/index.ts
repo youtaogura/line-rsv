@@ -9,3 +9,4 @@ export { ErrorIcon } from './ErrorIcon';
 export { MemberTypeBadge } from './MemberTypeBadge';
 export { DateTimeDisplay } from './DateTimeDisplay';
 export { Footer } from './Footer';
+export { ReservationCard } from './ReservationCard';

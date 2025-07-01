@@ -1,5 +1,4 @@
-import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
-import { Badge } from '@/components/ui/badge';
+import { ReservationCard } from '@/components/common';
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
 import Link from 'next/link';
@@ -47,34 +46,11 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
         ) : (
           <div className="space-y-2">
             {displayedReservations.map((reservation) => (
-              <div
+              <ReservationCard
                 key={reservation.id}
-                className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-gray-100 last:border-b-0 gap-2"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-sm truncate">
-                      {reservation.users?.name ||
-                        'ユーザー名が取得できませんでした'}
-                    </span>
-                    {reservation.is_created_by_user && (
-                      <Badge variant="secondary" className="text-xs">
-                        LINE予約
-                      </Badge>
-                    )}
-                    <MemberTypeBadge memberType={reservation.member_type} />
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    担当: {reservation.staff_members?.name || '未指定'}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500 flex-shrink-0">
-                  <DateTimeDisplay
-                    datetime={reservation.datetime}
-                    format="short"
-                  />
-                </div>
-              </div>
+                reservation={reservation}
+                variant="compact"
+              />
             ))}
             {hasMoreReservations && (
               <div className="pt-2">

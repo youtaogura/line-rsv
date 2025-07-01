@@ -151,7 +151,7 @@ export const CalendarView = React.memo(function CalendarView({
         minDate={today}
         maxDetail="month"
         minDetail="month"
-        formatDay={(locale, date) => date.getDate().toString()}
+        formatDay={(_, date) => date.getDate().toString()}
         className="w-full border-0 bg-white rounded-xs"
       />
     </div>
