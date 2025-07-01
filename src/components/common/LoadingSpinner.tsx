@@ -1,3 +1,5 @@
+import { Loader } from 'lucide-react';
+
 interface LoadingSpinnerProps {
   className?: string;
 }
@@ -8,7 +10,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className={className}>
       <div className="flex flex-col items-center space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <Loader className="animate-spin [animation-duration:2s]" />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
-import { StaffMemberForm } from '@/components/admin/StaffMemberForm';
-import { StaffMemberList } from '@/components/admin/StaffMemberList';
+import { StaffMemberDialog } from '@/components/admin/StaffMemberDialog';
+import { StaffMemberList, type StaffBusinessHoursMap } from '@/components/admin/StaffMemberList';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import {
   useAdminSession,
@@ -14,6 +14,7 @@ function StaffContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
   const {
     staffMembers,
+    staffBusinessHours,
     loading,
     fetchStaffMembers,
     createStaffMember,
@@ -25,7 +26,7 @@ function StaffContent() {
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
-      fetchStaffMembers();
+      fetchStaffMembers({ withBusinessHours: true });
       fetchBusinessHours();
     }
   }, [isAuthenticated, session, fetchStaffMembers, fetchBusinessHours]);
@@ -42,15 +43,17 @@ function StaffContent() {
         user={session?.user}
         showBackButton={true}
       >
-        <div className="space-y-8">
-          <StaffMemberForm onCreateStaffMember={createStaffMember} />
-          <StaffMemberList
-            staffMembers={staffMembers}
-            onUpdateStaffMember={updateStaffMember}
-            onDeleteStaffMember={deleteStaffMember}
-            tenantBusinessHours={tenantBusinessHours}
-          />
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">スタッフ一覧</h1>
+          <StaffMemberDialog onCreateStaffMember={createStaffMember} />
         </div>
+        <StaffMemberList
+          staffMembers={staffMembers}
+          onUpdateStaffMember={updateStaffMember}
+          onDeleteStaffMember={deleteStaffMember}
+          tenantBusinessHours={tenantBusinessHours}
+          allStaffBusinessHours={staffBusinessHours}
+        />
       </AdminLayout>
     </AuthGuard>
   );

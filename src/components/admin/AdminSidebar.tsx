@@ -2,12 +2,12 @@
 
 import {
   Building,
-  Calendar,
+  CalendarCheck,
   Clock,
   Home,
   LogOut,
   Settings,
-  UserCheck,
+  UserCog,
   Users,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -68,7 +68,7 @@ const navigationItems = [
   {
     label: UI_TEXT.RESERVATION_MANAGEMENT,
     href: ROUTES.ADMIN.RESERVATIONS,
-    icon: Calendar,
+    icon: CalendarCheck,
   },
   {
     label: UI_TEXT.BUSINESS_HOURS_MANAGEMENT,
@@ -78,7 +78,7 @@ const navigationItems = [
   {
     label: UI_TEXT.STAFF_MANAGEMENT,
     href: ROUTES.ADMIN.STAFF,
-    icon: UserCheck,
+    icon: UserCog,
   },
   {
     label: UI_TEXT.USER_MANAGEMENT,

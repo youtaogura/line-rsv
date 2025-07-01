@@ -35,10 +35,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (staffMemberId === 'all') {
+      // テナントに属するスタッフの営業時間のみを取得
       const { data, error } = await supabase
         .from('staff_member_business_hours')
-        .select('*')
+        .select(`
+          *,
+          staff_members!inner (
+            id,
+            tenant_id
+          )
+        `)
         .eq('is_active', true)
+        .eq('staff_members.tenant_id', tenant.id)
         .order('day_of_week', { ascending: true })
         .order('start_time', { ascending: true });
 

@@ -368,10 +368,11 @@ export const useUsers = () => {
 
 export const useStaffMembers = () => {
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [staffBusinessHours, setStaffBusinessHours] = useState<{ [staffId: string]: StaffMemberBusinessHour[] }>({});
   const [loading, setLoading] = useState(true);
   const { session } = useAdminSession();
 
-  const fetchStaffMembers = useCallback(async () => {
+  const fetchStaffMembers = useCallback(async (options?: { withBusinessHours?: boolean }) => {
     try {
       const tenantId = session?.user?.tenant_id;
       if (!tenantId) {
@@ -384,6 +385,34 @@ export const useStaffMembers = () => {
 
       if (response.ok) {
         setStaffMembers(data);
+        
+        // 営業時間も一緒に取得する場合
+        if (options?.withBusinessHours) {
+          try {
+            const businessHoursResponse = await fetch(
+              buildApiUrl(
+                `/api/staff-member-business-hours?staff_member_id=all`,
+                tenantId
+              )
+            );
+            if (businessHoursResponse.ok) {
+              const allBusinessHoursData = await businessHoursResponse.json();
+              
+              // スタッフIDごとにグループ化
+              const businessHoursMap: { [staffId: string]: StaffMemberBusinessHour[] } = {};
+              allBusinessHoursData.forEach((bh: StaffMemberBusinessHour) => {
+                if (!businessHoursMap[bh.staff_member_id]) {
+                  businessHoursMap[bh.staff_member_id] = [];
+                }
+                businessHoursMap[bh.staff_member_id].push(bh);
+              });
+              
+              setStaffBusinessHours(businessHoursMap);
+            }
+          } catch (error) {
+            console.error('Error fetching staff business hours:', error);
+          }
+        }
       } else {
         console.error('Error fetching staff members:', data.error);
       }
@@ -498,6 +527,7 @@ export const useStaffMembers = () => {
 
   return {
     staffMembers,
+    staffBusinessHours,
     loading,
     fetchStaffMembers,
     createStaffMember,

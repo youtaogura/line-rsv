@@ -200,7 +200,7 @@ function ReservationsContent() {
 
   const viewModes = [
     { key: 'calendar', label: 'カレンダー表示' },
-    { key: 'table', label: 'テーブル表示' },
+    { key: 'table', label: '一覧表示' },
   ];
 
   return (
