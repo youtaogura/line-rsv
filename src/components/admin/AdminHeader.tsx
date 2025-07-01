@@ -3,13 +3,13 @@
 import {
   ArrowLeft,
   Bell,
-  Building,
-  Calendar,
+  CalendarCheck,
   Clock,
+  Home,
   KeySquare,
   LogOut,
   Menu,
-  UserCheck,
+  UserCog,
   Users,
   X,
 } from 'lucide-react';
@@ -56,12 +56,12 @@ const navigationItems = [
   {
     label: UI_TEXT.ADMIN_DASHBOARD,
     href: ROUTES.ADMIN.ROOT,
-    icon: Building,
+    icon: Home,
   },
   {
     label: UI_TEXT.RESERVATION_MANAGEMENT,
     href: ROUTES.ADMIN.RESERVATIONS,
-    icon: Calendar,
+    icon: CalendarCheck,
   },
   {
     label: UI_TEXT.BUSINESS_HOURS_MANAGEMENT,
@@ -71,7 +71,7 @@ const navigationItems = [
   {
     label: UI_TEXT.STAFF_MANAGEMENT,
     href: ROUTES.ADMIN.STAFF,
-    icon: UserCheck,
+    icon: UserCog,
   },
   {
     label: UI_TEXT.USER_MANAGEMENT,
@@ -156,7 +156,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
             {/* Page title */}
             <div className="flex flex-col">
-              <h1 className="text-lg font-semibold md:text-xl">管理画面</h1>
+              <h1 className="text-lg font-semibold md:text-xl">FiLUP</h1>
               {tenant && (
                 <p className="text-xs text-muted-foreground">{tenant.name}</p>
               )}

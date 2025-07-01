@@ -225,10 +225,10 @@ function ReserveContent() {
   }
 
   return (
-    <PageLayout className="py-8">
+    <PageLayout className="pt-8 pb-16">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">
-          {tenant?.name} レッスン予約
+        <h1 className="text-2xl font-bold text-center mb-8 text-gray-900">
+          {tenant?.name} 予約ページ
         </h1>
 
         {/* 既存予約一覧 */}

@@ -91,7 +91,7 @@ export const AdminLayoutWithSidebar: React.FC<AdminLayoutWithSidebarProps> = ({
 
               {/* Page title */}
               <div className="flex flex-col flex-1">
-                <h1 className="text-lg font-semibold">管理画面</h1>
+                <h1 className="text-lg font-semibold">FiLUP</h1>
                 {tenant && (
                   <p className="text-xs text-muted-foreground">{tenant.name}</p>
                 )}
