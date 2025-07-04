@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { PasswordResetModal } from '@/components/admin/PasswordResetModal';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -14,6 +15,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,8 +112,24 @@ export default function AdminLogin() {
               {loading ? 'ログイン中...' : 'ログイン'}
             </Button>
           </div>
+          
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              className="text-sm text-gray-600 hover:text-gray-800"
+              onClick={() => setIsPasswordResetModalOpen(true)}
+            >
+              パスワードを忘れた方はこちら
+            </Button>
+          </div>
         </form>
       </div>
+      
+      <PasswordResetModal
+        isOpen={isPasswordResetModalOpen}
+        onClose={() => setIsPasswordResetModalOpen(false)}
+      />
     </PageLayout>
   );
 }
