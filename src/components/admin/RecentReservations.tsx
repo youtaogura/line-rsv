@@ -3,35 +3,18 @@ import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
 import Link from 'next/link';
 import React from 'react';
-
-interface Reservation {
-  id: string;
-  name: string;
-  member_type: string;
-  datetime: string;
-  is_created_by_user: boolean;
-  note?: string;
-  admin_note?: string;
-  users?: {
-    user_id: string;
-    name: string;
-  } | null;
-  staff_members?: {
-    id: string;
-    name: string;
-  } | null;
-}
+import { ReservationWithStaff } from './ReservationList';
 
 interface RecentReservationsProps {
-  reservations: Reservation[];
+  reservations: ReservationWithStaff[];
   maxDisplay?: number;
-  onAdminNoteUpdate?: (reservationId: string, adminNote: string) => Promise<void>;
+  onReservationClick: (reservation: ReservationWithStaff) => void;
 }
 
 export const RecentReservations: React.FC<RecentReservationsProps> = ({
   reservations,
   maxDisplay = 5,
-  onAdminNoteUpdate,
+  onReservationClick,
 }) => {
   // APIで既にソート済みなので、そのまま使用
   const displayedReservations = reservations.slice(0, maxDisplay);
@@ -54,7 +37,7 @@ export const RecentReservations: React.FC<RecentReservationsProps> = ({
                 key={reservation.id}
                 reservation={reservation}
                 variant="compact"
-                onAdminNoteUpdate={onAdminNoteUpdate}
+                onReservationClick={onReservationClick}
               />
             ))}
             {hasMoreReservations && (

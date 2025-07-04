@@ -2,29 +2,15 @@ import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import React from 'react';
+import { ReservationWithStaff } from '../admin/ReservationList';
 
 interface ReservationCardProps {
-  reservation: {
-    id: string;
-    name: string;
-    member_type: string;
-    datetime: string;
-    is_created_by_user: boolean;
-    note?: string;
-    admin_note?: string;
-    created_at?: string;
-    users?: {
-      user_id: string;
-      name: string;
-    } | null;
-    staff_members?: {
-      id: string;
-      name: string;
-    } | null;
-  };
+  reservation: ReservationWithStaff;
   variant?: 'compact' | 'detailed';
   actions?: React.ReactNode;
-  onReservationClick?: (reservation: any) => void;
+  onReservationClick?: (
+    reservation: ReservationCardProps['reservation']
+  ) => void;
 }
 
 export const ReservationCard: React.FC<ReservationCardProps> = ({
@@ -75,7 +61,6 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
           <div className="absolute right-2 bottom-2">{actions ?? <></>}</div>
         </CardContent>
       </Card>
-
     </>
   );
 };

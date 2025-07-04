@@ -1,3 +1,4 @@
+import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import React, { useState, useMemo } from 'react';
-import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
+import React, { useMemo, useState } from 'react';
 
 interface ReservationDetailModalProps {
   isOpen: boolean;
@@ -48,10 +48,7 @@ interface ReservationDetailModalProps {
     reservationId: string,
     adminNote: string
   ) => Promise<void>;
-  onStaffAssignment?: (
-    reservationId: string,
-    staffId: string
-  ) => Promise<void>;
+  onStaffAssignment?: (reservationId: string, staffId: string) => Promise<void>;
 }
 
 export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
@@ -77,14 +74,14 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   // 予約日時に空きがあるスタッフを取得
   const availableStaff = useMemo(() => {
     if (!monthlyAvailability || !staffMembers.length) return [];
-    
-    return staffMembers.filter(staff => {
-      const staffTimeSlots = monthlyAvailability.staffMembers.find(
-        s => s.id === staff.id
-      )?.timeSlots || [];
-      
+
+    return staffMembers.filter((staff) => {
+      const staffTimeSlots =
+        monthlyAvailability.staffMembers.find((s) => s.id === staff.id)
+          ?.timeSlots || [];
+
       return staffTimeSlots.some(
-        slot => slot.datetime === reservation.datetime && slot.isAvailable
+        (slot) => slot.datetime === reservation.datetime && slot.isAvailable
       );
     });
   }, [monthlyAvailability, staffMembers, reservation.datetime]);
@@ -124,9 +121,10 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
 
   // 担当スタッフがいない場合にスタッフ割り当てを可能にする
   const canAssignStaff = !reservation.staff_members && staffMembers.length > 0;
-  
+
   // 利用可能なスタッフがいる場合はそれを優先、そうでなければ全スタッフから選択可能
-  const selectableStaff = availableStaff.length > 0 ? availableStaff : staffMembers;
+  const selectableStaff =
+    availableStaff.length > 0 ? availableStaff : staffMembers;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -151,18 +149,23 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           <div>
             <div className="text-sm text-gray-600">
               日時:{' '}
-              <DateTimeDisplay datetime={reservation.datetime} format="full" />
+              <DateTimeDisplay datetime={reservation.datetime} format="short" />
             </div>
-            <div className="text-sm text-gray-600 mt-1">
-              担当: {reservation.staff_members?.name || '-'}
-            </div>
+            {!canAssignStaff && (
+              <div className="text-sm text-gray-600 mt-1">
+                担当: {reservation.staff_members?.name || '-'}
+              </div>
+            )}
             {canAssignStaff && onStaffAssignment && (
               <div className="mt-2">
                 <div className="text-sm font-medium text-gray-700 mb-2">
                   担当スタッフを割り当て
                 </div>
                 <div className="flex gap-2">
-                  <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                  <Select
+                    value={selectedStaffId}
+                    onValueChange={setSelectedStaffId}
+                  >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="スタッフを選択" />
                     </SelectTrigger>
@@ -170,7 +173,9 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                       {selectableStaff.map((staff) => (
                         <SelectItem key={staff.id} value={staff.id}>
                           {staff.name}
-                          {availableStaff.find(s => s.id === staff.id) ? ' (空きあり)' : ''}
+                          {availableStaff.find((s) => s.id === staff.id)
+                            ? ' (空きあり)'
+                            : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -180,7 +185,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                     onClick={handleStaffAssignment}
                     disabled={!selectedStaffId || isAssigningStaff}
                   >
-                    {isAssigningStaff ? '割り当て中...' : '割り当て'}
+                    {isAssigningStaff ? '更新中...' : '更新'}
                   </Button>
                 </div>
               </div>

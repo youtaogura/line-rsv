@@ -2,8 +2,10 @@
 
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
+import { ReservationWithStaff } from '@/components/admin/ReservationList';
 import { UnassignedReservations } from '@/components/admin/UnassignedReservations';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
+import { ReservationDetailModal } from '@/components/common/ReservationDetailModal';
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
 import {
@@ -26,29 +28,9 @@ function AdminContent() {
     useUnassignedReservations();
   const { staffMembers, fetchStaffMembers } = useStaffMembers();
   const [loading, setLoading] = useState(true);
-
-  const handleAssignStaff = async (reservationId: string, staffId: string) => {
-    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
-
-    const result = await adminApi.assignStaffToReservation(
-      reservationId,
-      staffId
-    );
-
-    if (!result.success) {
-      throw new Error(result.error || 'スタッフの設定に失敗しました');
-    }
-  };
-
-  const handleRemoveStaff = async (reservationId: string) => {
-    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
-
-    const result = await adminApi.assignStaffToReservation(reservationId, null);
-
-    if (!result.success) {
-      throw new Error(result.error || 'スタッフの解除に失敗しました');
-    }
-  };
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] =
+    useState<ReservationWithStaff | null>(null);
 
   const handleAdminNoteUpdate = async (
     reservationId: string,
@@ -67,6 +49,31 @@ function AdminContent() {
 
     // データを再取得して画面を更新
     await fetchRecentReservations(5);
+  };
+
+  const handleReservationClick = (reservation: ReservationWithStaff) => {
+    setSelectedReservation(reservation);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleStaffAssignment = async (
+    reservationId: string,
+    staffId: string
+  ) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+
+    const result = await adminApi.assignStaffToReservation(
+      reservationId,
+      staffId
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || 'スタッフの設定に失敗しました');
+    }
+
+    // データを再取得して画面を更新
+    await fetchRecentReservations(5);
+    await fetchUnassignedReservations();
   };
 
   useEffect(() => {
@@ -108,17 +115,30 @@ function AdminContent() {
           <div className="mt-8">
             <UnassignedReservations
               reservations={unassignedReservations}
-              staffMembers={staffMembers}
-              tenantId={session?.user?.tenant_id || ''}
-              onAssignStaff={handleAssignStaff}
-              onRemoveStaff={handleRemoveStaff}
+              onReservationClick={handleReservationClick}
             />
           </div>
         )}
         <RecentReservations
           reservations={recentReservations}
-          onAdminNoteUpdate={handleAdminNoteUpdate}
+          onReservationClick={handleReservationClick}
         />
+
+        {/* 予約詳細モーダル */}
+        {selectedReservation && (
+          <ReservationDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => {
+              setIsDetailModalOpen(false);
+              setSelectedReservation(null);
+            }}
+            reservation={selectedReservation}
+            monthlyAvailability={null}
+            staffMembers={staffMembers}
+            onAdminNoteUpdate={handleAdminNoteUpdate}
+            onStaffAssignment={handleStaffAssignment}
+          />
+        )}
       </AdminLayout>
     </AuthGuard>
   );

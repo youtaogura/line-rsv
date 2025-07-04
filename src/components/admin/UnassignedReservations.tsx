@@ -1,38 +1,18 @@
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
-import type { ReservationSimple, StaffMemberSimple } from '@/lib/supabase';
 import { CircleAlert } from 'lucide-react';
-import React, { useState } from 'react';
-import { StaffAssignModal } from './StaffAssignModal';
+import React from 'react';
+import { ReservationWithStaff } from './ReservationList';
 
 interface UnassignedReservationsProps {
-  reservations: ReservationSimple[];
-  staffMembers: StaffMemberSimple[];
-  tenantId: string;
-  onAssignStaff: (reservationId: string, staffId: string) => Promise<void>;
-  onRemoveStaff: (reservationId: string) => Promise<void>;
+  reservations: ReservationWithStaff[];
+  onReservationClick: (reservation: ReservationWithStaff) => void;
 }
 
 export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
   reservations,
-  staffMembers,
-  onAssignStaff,
-  onRemoveStaff,
+  onReservationClick,
 }) => {
-  const [selectedReservation, setSelectedReservation] =
-    useState<ReservationSimple | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleAssignStaff = (reservation: ReservationSimple) => {
-    setSelectedReservation(reservation);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedReservation(null);
-  };
-
   return (
     <div className="mb-8 bg-white border border-amber-200 rounded-xs shadow">
       <div className="px-6 py-4 border-b border-amber-200 bg-amber-50">
@@ -54,7 +34,7 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
             <div
               key={reservation.id}
               className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 px-4 bg-white border rounded-xs gap-3 cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => handleAssignStaff(reservation)}
+              onClick={() => onReservationClick?.(reservation)}
             >
               <div className="flex-1 flex flex-col sm:flex-row gap-2 sm:items-center">
                 <div className="text-md text-gray-900 font-semibold">
@@ -80,15 +60,6 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
           ))}
         </div>
       </div>
-
-      <StaffAssignModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        reservation={selectedReservation}
-        staffMembers={staffMembers}
-        onAssignStaff={onAssignStaff}
-        onRemoveStaff={onRemoveStaff}
-      />
     </div>
   );
 };
