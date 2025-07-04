@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import React, { useMemo, useState } from 'react';
-import { ReservationWithStaff } from '../admin/ReservationList';
 
 interface ReservationDetailModalProps {
   isOpen: boolean;

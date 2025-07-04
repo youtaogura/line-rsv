@@ -1,8 +1,8 @@
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import React from 'react';
-import { ReservationWithStaff } from '../admin/ReservationList';
 
 interface ReservationCardProps {
   reservation: ReservationWithStaff;

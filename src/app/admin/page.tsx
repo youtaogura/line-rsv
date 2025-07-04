@@ -2,7 +2,6 @@
 
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
-import { ReservationWithStaff } from '@/components/admin/ReservationList';
 import { UnassignedReservations } from '@/components/admin/UnassignedReservations';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { ReservationDetailModal } from '@/components/common/ReservationDetailModal';
@@ -16,6 +15,7 @@ import {
   useUnassignedReservations,
 } from '@/hooks/useAdminData';
 import { adminApi } from '@/lib/api';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import { CalendarCheck, Clock, UserCog, Users } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 

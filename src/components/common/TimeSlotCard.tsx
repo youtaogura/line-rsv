@@ -1,28 +1,21 @@
-import { Reservation } from '@/lib/supabase';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import { Plus, Trash2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { MemberTypeBadge } from './MemberTypeBadge';
 
-export interface ReservationWithUser extends Reservation {
-  users?: {
-    user_id: string;
-    name: string;
-  } | null;
-}
-
 export interface TimeSlotWithReservation {
   startTime: string;
   endTime?: string;
   datetime: string;
-  reservation?: ReservationWithUser;
+  reservation?: ReservationWithStaff;
 }
 
 interface Props {
   slot: TimeSlotWithReservation;
   onDeleteReservation: () => void;
   onAddReservation: () => void;
-  onReservationClick?: (reservation: ReservationWithUser) => void;
+  onReservationClick?: (reservation: ReservationWithStaff) => void;
 }
 
 export function TimeSlotCard({
@@ -31,6 +24,7 @@ export function TimeSlotCard({
   onAddReservation,
   onReservationClick,
 }: Props) {
+  console.log(slot);
 
   const displayTime = slot.endTime
     ? `${slot.startTime}-${slot.endTime}`
@@ -96,9 +90,9 @@ export function TimeSlotCard({
           </>
         )}
 
-        {slot.reservation?.note && (
+        {slot.reservation?.staff_members && (
           <p className="text-sm text-gray-600 mt-2">
-            備考: {slot.reservation!.note}
+            担当: {slot.reservation.staff_members.name}
           </p>
         )}
       </div>
@@ -118,7 +112,6 @@ export function TimeSlotCard({
           </Button>
         </div>
       )}
-
     </div>
   );
 }

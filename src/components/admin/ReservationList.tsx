@@ -4,20 +4,9 @@ import { ReservationCard } from '@/components/common';
 import { ReservationDetailModal } from '@/components/common/ReservationDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import type { Reservation } from '@/lib/supabase';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import { Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-
-export interface ReservationWithStaff extends Reservation {
-  staff_members?: {
-    id: string;
-    name: string;
-  } | null;
-  users?: {
-    user_id: string;
-    name: string;
-  } | null;
-}
 
 interface ReservationListProps {
   reservations: ReservationWithStaff[];

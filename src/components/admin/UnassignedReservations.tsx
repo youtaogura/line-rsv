@@ -1,8 +1,8 @@
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import { CircleAlert } from 'lucide-react';
 import React from 'react';
-import { ReservationWithStaff } from './ReservationList';
 
 interface UnassignedReservationsProps {
   reservations: ReservationWithStaff[];

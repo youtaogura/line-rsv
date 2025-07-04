@@ -1,9 +1,9 @@
 import { ReservationCard } from '@/components/common';
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import Link from 'next/link';
 import React from 'react';
-import { ReservationWithStaff } from './ReservationList';
 
 interface RecentReservationsProps {
   reservations: ReservationWithStaff[];

@@ -6,20 +6,17 @@ import type {
   ReservationMenuSimple,
   User,
 } from '@/lib/supabase';
+import { ReservationWithStaff } from '@/lib/types/reservation';
 import { addMinutes, format, isSameDay } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ReservationWithUser,
-  TimeSlotCard,
-  TimeSlotWithReservation,
-} from '../common/TimeSlotCard';
 import { ReservationDetailModal } from '../common/ReservationDetailModal';
+import { TimeSlotCard, TimeSlotWithReservation } from '../common/TimeSlotCard';
 import { CalendarView } from './Calendar/CalendarView';
 import { ReservationModal } from './ReservationModal';
 import type { TimeSlot } from './types';
 
 interface AdminReservationCalendarProps {
-  reservations: ReservationWithUser[];
+  reservations: ReservationWithStaff[];
   onDeleteReservation: (id: string) => void;
   onCreateReservation?: (datetime: string) => void;
   availableUsers?: User[];
@@ -38,20 +35,17 @@ interface AdminReservationCalendarProps {
     reservationId: string,
     adminNote: string
   ) => Promise<void>;
-  onStaffAssignment?: (
-    reservationId: string,
-    staffId: string
-  ) => Promise<void>;
+  onStaffAssignment?: (reservationId: string, staffId: string) => Promise<void>;
 }
 
 interface DayReservations {
-  [date: string]: ReservationWithUser[];
+  [date: string]: ReservationWithStaff[];
 }
 
 // タイムスロットを統合する関数
 function consolidateTimeSlots(
   timeSlots: TimeSlot[],
-  reservations: ReservationWithUser[]
+  reservations: ReservationWithStaff[]
 ): TimeSlotWithReservation[] {
   const consolidatedSlots: TimeSlotWithReservation[] = [];
   const processedSlots = new Set<string>();
@@ -103,7 +97,7 @@ function consolidateTimeSlots(
 }
 
 function reservationOnlyTimeSlots(
-  currentDayReservations: ReservationWithUser[]
+  currentDayReservations: ReservationWithStaff[]
 ): TimeSlotWithReservation[] {
   return currentDayReservations
     .sort(
@@ -144,7 +138,8 @@ export function AdminReservationCalendar({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>('');
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<ReservationWithUser | null>(null);
+  const [selectedReservation, setSelectedReservation] =
+    useState<ReservationWithStaff | null>(null);
 
   const timeSlots = useMemo(() => {
     if (!monthlyAvailability) return [];
