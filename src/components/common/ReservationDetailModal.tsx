@@ -17,28 +17,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import React, { useMemo, useState } from 'react';
+import { ReservationWithStaff } from '../admin/ReservationList';
 
 interface ReservationDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reservation: {
-    id: string;
-    name: string;
-    member_type: string;
-    datetime: string;
-    is_created_by_user: boolean;
-    note?: string;
-    admin_note?: string;
-    created_at?: string;
-    users?: {
-      user_id: string;
-      name: string;
-    } | null;
-    staff_members?: {
-      id: string;
-      name: string;
-    } | null;
-  };
+  reservation: ReservationWithStaff;
   monthlyAvailability?: MonthlyAvailability | null;
   staffMembers?: Array<{
     id: string;
@@ -72,7 +56,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   }, [reservation.admin_note]);
 
   // 予約日時に空きがあるスタッフを取得
-  const availableStaff = useMemo(() => {
+  const availableStaffs = useMemo(() => {
     if (!monthlyAvailability || !staffMembers.length) return [];
 
     return staffMembers.filter((staff) => {
@@ -81,7 +65,9 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           ?.timeSlots || [];
 
       return staffTimeSlots.some(
-        (slot) => slot.datetime === reservation.datetime && slot.isAvailable
+        (slot) =>
+          new Date(slot.datetime).getTime() ===
+            new Date(reservation.datetime).getTime() && slot.isAvailable
       );
     });
   }, [monthlyAvailability, staffMembers, reservation.datetime]);
@@ -121,10 +107,6 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
 
   // 担当スタッフがいない場合にスタッフ割り当てを可能にする
   const canAssignStaff = !reservation.staff_members && staffMembers.length > 0;
-
-  // 利用可能なスタッフがいる場合はそれを優先、そうでなければ全スタッフから選択可能
-  const selectableStaff =
-    availableStaff.length > 0 ? availableStaff : staffMembers;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -170,12 +152,9 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                       <SelectValue placeholder="スタッフを選択" />
                     </SelectTrigger>
                     <SelectContent>
-                      {selectableStaff.map((staff) => (
+                      {availableStaffs.map((staff) => (
                         <SelectItem key={staff.id} value={staff.id}>
                           {staff.name}
-                          {availableStaff.find((s) => s.id === staff.id)
-                            ? ' (空きあり)'
-                            : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
