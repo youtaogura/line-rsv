@@ -85,6 +85,24 @@ function ReservationsContent() {
     }
   };
 
+  const handleStaffAssignment = async (
+    reservationId: string,
+    staffId: string
+  ) => {
+    if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
+
+    const result = await adminApi.assignStaffToReservation(reservationId, staffId);
+
+    if (!result.success) {
+      throw new Error(result.error || 'スタッフの割り当てに失敗しました');
+    }
+
+    // データを再取得して画面を更新
+    if (session?.user?.tenant_id) {
+      await fetchReservations();
+    }
+  };
+
   const selectedStaffReservations = useMemo(() => {
     if (selectedStaffId === 'all') {
       return reservations;
@@ -160,12 +178,11 @@ function ReservationsContent() {
     fetchTenant,
   ]);
 
-  // 月間カレンダー用の利用可能性データを取得
+  // 月間利用可能性データを取得（カレンダー表示とスタッフ割り当て機能で使用）
   useEffect(() => {
     if (
       isAuthenticated &&
-      session?.user?.tenant_id &&
-      viewMode === 'calendar'
+      session?.user?.tenant_id
     ) {
       const currentDate = new Date(currentMonth);
       availabilityApi
@@ -179,7 +196,7 @@ function ReservationsContent() {
         })
         .catch(console.error);
     }
-  }, [isAuthenticated, session, viewMode, currentMonth]);
+  }, [isAuthenticated, session, currentMonth]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -343,9 +360,11 @@ function ReservationsContent() {
             monthlyAvailability={monthlyAvailability}
             reservationMenu={reservationMenu}
             reservationsOnlySelected={reservationsOnlySelected}
+            staffMembers={staffMembers}
             onCreateReservationData={handleCreateReservationData}
             onMonthChange={handleMonthChange}
             onAdminNoteUpdate={handleAdminNoteUpdate}
+            onStaffAssignment={handleStaffAssignment}
           />
         )}
 
@@ -356,7 +375,10 @@ function ReservationsContent() {
             selectedStaffId={selectedStaffId}
             currentMonth={currentMonth}
             onMonthChange={handleMonthChange}
+            monthlyAvailability={monthlyAvailability}
+            staffMembers={staffMembers}
             onAdminNoteUpdate={handleAdminNoteUpdate}
+            onStaffAssignment={handleStaffAssignment}
           />
         )}
       </AdminLayout>

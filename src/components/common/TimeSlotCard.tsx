@@ -1,10 +1,8 @@
 import { Reservation } from '@/lib/supabase';
 import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { MemberTypeBadge } from './MemberTypeBadge';
-import { ReservationDetailModal } from './ReservationDetailModal';
 
 export interface ReservationWithUser extends Reservation {
   users?: {
@@ -24,27 +22,23 @@ interface Props {
   slot: TimeSlotWithReservation;
   onDeleteReservation: () => void;
   onAddReservation: () => void;
-  onAdminNoteUpdate?: (
-    reservationId: string,
-    adminNote: string
-  ) => Promise<void>;
+  onReservationClick?: (reservation: ReservationWithUser) => void;
 }
 
 export function TimeSlotCard({
   slot,
   onDeleteReservation,
   onAddReservation,
-  onAdminNoteUpdate,
+  onReservationClick,
 }: Props) {
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const displayTime = slot.endTime
     ? `${slot.startTime}-${slot.endTime}`
     : slot.startTime;
 
   const handleReservationClick = () => {
-    if (slot.reservation) {
-      setIsDetailModalOpen(true);
+    if (slot.reservation && onReservationClick) {
+      onReservationClick(slot.reservation);
     }
   };
 
@@ -125,15 +119,6 @@ export function TimeSlotCard({
         </div>
       )}
 
-      {/* 予約詳細モーダル */}
-      {slot.reservation && (
-        <ReservationDetailModal
-          isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
-          reservation={slot.reservation}
-          onAdminNoteUpdate={onAdminNoteUpdate}
-        />
-      )}
     </div>
   );
 }

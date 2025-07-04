@@ -1,10 +1,12 @@
 import { MonthNavigation } from '@/components/admin/MonthNavigation';
 import { ReservationCard } from '@/components/common';
+import { ReservationDetailModal } from '@/components/common/ReservationDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Reservation } from '@/lib/supabase';
 import { Trash2 } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
+import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 
 interface ReservationWithStaff extends Reservation {
   staff_members?: {
@@ -23,7 +25,16 @@ interface ReservationListProps {
   selectedStaffId: string;
   currentMonth: string;
   onMonthChange: (month: string) => void;
+  monthlyAvailability?: MonthlyAvailability | null;
+  staffMembers?: Array<{
+    id: string;
+    name: string;
+  }>;
   onAdminNoteUpdate?: (reservationId: string, adminNote: string) => Promise<void>;
+  onStaffAssignment?: (
+    reservationId: string,
+    staffId: string
+  ) => Promise<void>;
 }
 
 export const ReservationList: React.FC<ReservationListProps> = ({
@@ -32,8 +43,14 @@ export const ReservationList: React.FC<ReservationListProps> = ({
   selectedStaffId,
   currentMonth,
   onMonthChange,
+  monthlyAvailability,
+  staffMembers,
   onAdminNoteUpdate,
+  onStaffAssignment,
 }) => {
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<ReservationWithStaff | null>(null);
+  
   const filteredReservations = reservations.filter((reservation) => {
     if (selectedStaffId === 'all') {
       return true;
@@ -64,7 +81,10 @@ export const ReservationList: React.FC<ReservationListProps> = ({
               key={reservation.id}
               reservation={reservation}
               variant="compact"
-              onAdminNoteUpdate={onAdminNoteUpdate}
+              onReservationClick={(reservation) => {
+                setSelectedReservation(reservation);
+                setIsDetailModalOpen(true);
+              }}
               actions={
                 <Button
                   variant="ghost"
@@ -82,6 +102,22 @@ export const ReservationList: React.FC<ReservationListProps> = ({
           ))
         )}
       </div>
+      
+      {/* 予約詳細モーダル */}
+      {selectedReservation && (
+        <ReservationDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedReservation(null);
+          }}
+          reservation={selectedReservation}
+          monthlyAvailability={monthlyAvailability}
+          staffMembers={staffMembers}
+          onAdminNoteUpdate={onAdminNoteUpdate}
+          onStaffAssignment={onStaffAssignment}
+        />
+      )}
     </div>
   );
 };

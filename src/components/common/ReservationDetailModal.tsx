@@ -7,8 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 
 interface ReservationDetailModalProps {
   isOpen: boolean;
@@ -31,9 +39,18 @@ interface ReservationDetailModalProps {
       name: string;
     } | null;
   };
+  monthlyAvailability?: MonthlyAvailability | null;
+  staffMembers?: Array<{
+    id: string;
+    name: string;
+  }>;
   onAdminNoteUpdate?: (
     reservationId: string,
     adminNote: string
+  ) => Promise<void>;
+  onStaffAssignment?: (
+    reservationId: string,
+    staffId: string
   ) => Promise<void>;
 }
 
@@ -41,16 +58,36 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   isOpen,
   onClose,
   reservation,
+  monthlyAvailability,
+  staffMembers = [],
   onAdminNoteUpdate,
+  onStaffAssignment,
 }) => {
   const [adminNote, setAdminNote] = useState(reservation.admin_note || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState('');
+  const [isAssigningStaff, setIsAssigningStaff] = useState(false);
 
   // reservation.admin_noteが変更されたらローカルstateを更新
   React.useEffect(() => {
     setAdminNote(reservation.admin_note || '');
   }, [reservation.admin_note]);
+
+  // 予約日時に空きがあるスタッフを取得
+  const availableStaff = useMemo(() => {
+    if (!monthlyAvailability || !staffMembers.length) return [];
+    
+    return staffMembers.filter(staff => {
+      const staffTimeSlots = monthlyAvailability.staffMembers.find(
+        s => s.id === staff.id
+      )?.timeSlots || [];
+      
+      return staffTimeSlots.some(
+        slot => slot.datetime === reservation.datetime && slot.isAvailable
+      );
+    });
+  }, [monthlyAvailability, staffMembers, reservation.datetime]);
 
   const handleAdminNoteUpdate = async () => {
     if (!onAdminNoteUpdate) return;
@@ -70,6 +107,26 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
     setAdminNote(reservation.admin_note || '');
     setIsEditing(false);
   };
+
+  const handleStaffAssignment = async () => {
+    if (!onStaffAssignment || !selectedStaffId) return;
+
+    setIsAssigningStaff(true);
+    try {
+      await onStaffAssignment(reservation.id, selectedStaffId);
+      setSelectedStaffId('');
+    } catch (_error) {
+      alert('担当スタッフの割り当てに失敗しました');
+    } finally {
+      setIsAssigningStaff(false);
+    }
+  };
+
+  // 担当スタッフがいない場合にスタッフ割り当てを可能にする
+  const canAssignStaff = !reservation.staff_members && staffMembers.length > 0;
+  
+  // 利用可能なスタッフがいる場合はそれを優先、そうでなければ全スタッフから選択可能
+  const selectableStaff = availableStaff.length > 0 ? availableStaff : staffMembers;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -99,6 +156,35 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
             <div className="text-sm text-gray-600 mt-1">
               担当: {reservation.staff_members?.name || '-'}
             </div>
+            {canAssignStaff && onStaffAssignment && (
+              <div className="mt-2">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  担当スタッフを割り当て
+                </div>
+                <div className="flex gap-2">
+                  <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="スタッフを選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectableStaff.map((staff) => (
+                        <SelectItem key={staff.id} value={staff.id}>
+                          {staff.name}
+                          {availableStaff.find(s => s.id === staff.id) ? ' (空きあり)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    onClick={handleStaffAssignment}
+                    disabled={!selectedStaffId || isAssigningStaff}
+                  >
+                    {isAssigningStaff ? '割り当て中...' : '割り当て'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           {reservation.note && (
             <div>

@@ -1,8 +1,7 @@
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import React, { useState } from 'react';
-import { ReservationDetailModal } from './ReservationDetailModal';
+import React from 'react';
 
 interface ReservationCardProps {
   reservation: {
@@ -25,23 +24,19 @@ interface ReservationCardProps {
   };
   variant?: 'compact' | 'detailed';
   actions?: React.ReactNode;
-  onAdminNoteUpdate?: (
-    reservationId: string,
-    adminNote: string
-  ) => Promise<void>;
+  onReservationClick?: (reservation: any) => void;
 }
 
 export const ReservationCard: React.FC<ReservationCardProps> = ({
   reservation,
   actions,
-  onAdminNoteUpdate,
+  onReservationClick,
 }) => {
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   return (
     <>
       <Card
         className="py-0 cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => setIsDetailModalOpen(true)}
+        onClick={() => onReservationClick?.(reservation)}
       >
         <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 gap-2 relative">
           <div className="flex-1 min-w-0">
@@ -81,12 +76,6 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
         </CardContent>
       </Card>
 
-      <ReservationDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        reservation={reservation}
-        onAdminNoteUpdate={onAdminNoteUpdate}
-      />
     </>
   );
 };

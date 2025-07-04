@@ -13,6 +13,7 @@ import {
   TimeSlotCard,
   TimeSlotWithReservation,
 } from '../common/TimeSlotCard';
+import { ReservationDetailModal } from '../common/ReservationDetailModal';
 import { CalendarView } from './Calendar/CalendarView';
 import { ReservationModal } from './ReservationModal';
 import type { TimeSlot } from './types';
@@ -27,11 +28,19 @@ interface AdminReservationCalendarProps {
   monthlyAvailability: MonthlyAvailability | null;
   reservationMenu: ReservationMenuSimple | null;
   reservationsOnlySelected: boolean;
+  staffMembers?: Array<{
+    id: string;
+    name: string;
+  }>;
   onCreateReservationData: (reservationData: ReservationData) => Promise<void>;
   onMonthChange: (month: string) => void;
   onAdminNoteUpdate?: (
     reservationId: string,
     adminNote: string
+  ) => Promise<void>;
+  onStaffAssignment?: (
+    reservationId: string,
+    staffId: string
   ) => Promise<void>;
 }
 
@@ -124,14 +133,18 @@ export function AdminReservationCalendar({
   monthlyAvailability,
   reservationMenu,
   reservationsOnlySelected,
+  staffMembers,
   onCreateReservationData,
   onMonthChange,
   onAdminNoteUpdate,
+  onStaffAssignment,
 }: AdminReservationCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [dayReservations, setDayReservations] = useState<DayReservations>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<string>('');
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<ReservationWithUser | null>(null);
 
   const timeSlots = useMemo(() => {
     if (!monthlyAvailability) return [];
@@ -269,7 +282,10 @@ export function AdminReservationCalendar({
                           setSelectedDateTime(slot.datetime);
                           setIsModalOpen(true);
                         }}
-                        onAdminNoteUpdate={onAdminNoteUpdate}
+                        onReservationClick={(reservation) => {
+                          setSelectedReservation(reservation);
+                          setIsDetailModalOpen(true);
+                        }}
                       />
                     );
                   })}
@@ -300,6 +316,22 @@ export function AdminReservationCalendar({
           }
         }}
       />
+
+      {/* 予約詳細モーダル */}
+      {selectedReservation && (
+        <ReservationDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedReservation(null);
+          }}
+          reservation={selectedReservation}
+          monthlyAvailability={monthlyAvailability}
+          staffMembers={staffMembers}
+          onAdminNoteUpdate={onAdminNoteUpdate}
+          onStaffAssignment={onStaffAssignment}
+        />
+      )}
     </div>
   );
 }
