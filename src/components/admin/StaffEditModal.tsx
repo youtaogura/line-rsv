@@ -8,10 +8,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
 import { Clock, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { StaffMemberBusinessHourManager } from './StaffMemberBusinessHourManager';
+
+// ローカル型定義
+interface StaffMember {
+  id: string;
+  name: string;
+}
+
+interface BusinessHourSimple {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
 
 interface StaffEditModalProps {
   isOpen: boolean;

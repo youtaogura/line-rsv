@@ -1,7 +1,14 @@
-import { User } from '@/lib/supabase';
 import { Phone } from 'lucide-react';
 import { MemberTypeBadge } from '../common';
 import { Card, CardContent } from '../ui/card';
+
+// ローカル型定義
+interface User {
+  user_id: string;
+  name: string;
+  member_type: 'regular' | 'guest';
+  phone?: string;
+}
 
 interface Props {
   user: User;

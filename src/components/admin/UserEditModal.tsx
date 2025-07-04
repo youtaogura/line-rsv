@@ -20,9 +20,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { User } from '@/lib/supabase';
 import { Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+
+// ローカル型定義
+interface User {
+  user_id: string;
+  name: string;
+  member_type: 'regular' | 'guest';
+  phone?: string;
+}
 
 interface UserEditModalProps {
   isOpen: boolean;

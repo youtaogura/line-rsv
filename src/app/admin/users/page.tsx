@@ -7,10 +7,16 @@ import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { MEMBER_TYPES } from '@/constants/business';
 import { UI_TEXT } from '@/constants/ui';
 import { useAdminSession, useAdminTenant, useAdminUsers } from '@/hooks/admin';
-import type { User } from '@/lib/supabase';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 type UserFilter = 'all' | 'regular' | 'guest';
+
+interface User {
+  user_id: string;
+  name: string;
+  member_type: 'regular' | 'guest';
+  phone?: string;
+}
 
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();

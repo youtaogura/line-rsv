@@ -1,11 +1,6 @@
 'use client';
 
 import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
-import type {
-  ReservationData,
-  ReservationMenuSimple,
-  User,
-} from '@/lib/supabase';
 import { ReservationWithStaff } from '@/lib/types/reservation';
 import { addMinutes, format, isSameDay } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,6 +9,30 @@ import { TimeSlotCard, TimeSlotWithReservation } from '../common/TimeSlotCard';
 import { CalendarView } from './Calendar/CalendarView';
 import { ReservationModal } from './ReservationModal';
 import type { TimeSlot } from './types';
+
+interface User {
+  user_id: string;
+  name: string;
+  phone?: string;
+  member_type: 'guest' | 'regular';
+}
+
+interface ReservationMenuSimple {
+  id: string;
+  name: string;
+}
+
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 
 interface AdminReservationCalendarProps {
   reservations: ReservationWithStaff[];

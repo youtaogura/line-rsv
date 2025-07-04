@@ -1,22 +1,33 @@
-import type {
-  BusinessHour,
-  Reservation,
-  ReservationMenu,
-  StaffMemberBusinessHour,
-} from '@/lib/supabase';
 import { addMinutes, format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DayAvailabilityInfo, TimeSlot } from '../types';
 
+interface BusinessHour {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+interface Reservation {
+  datetime: string;
+  duration_minutes?: number;
+  staff_member_id?: string;
+}
+interface ReservationMenu {
+  start_minutes_options: number[];
+  duration_minutes: number;
+}
+interface StaffMemberBusinessHour {
+  day_of_week: number;
+  staff_member_id: string;
+  start_time: string;
+  end_time: string;
+}
 /**
  * 指定した日の営業時間と予約メニューからタイムスロットを生成
  */
 export function generateTimeSlots(
   date: Date,
-  businessHours: Pick<
-    BusinessHour,
-    'day_of_week' | 'start_time' | 'end_time'
-  >[],
+  businessHours: BusinessHour[],
   reservationMenu?: ReservationMenu
 ): TimeSlot[] {
   const dayOfWeek = date.getDay();
@@ -200,7 +211,7 @@ export function calculateAvailabilityWithoutStaffSelection(
 
   // 各スタッフの営業時間を取得
   const dayStaffBusinessHours = staffBusinessHours.filter(
-    (sbh) => sbh.day_of_week === dayOfWeek && sbh.is_active
+    (sbh) => sbh.day_of_week === dayOfWeek
   );
 
   // 各時間スロットについて、利用可能なスタッフがいるかチェック

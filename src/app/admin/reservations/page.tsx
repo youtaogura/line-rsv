@@ -19,17 +19,33 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { UI_TEXT } from '@/constants/ui';
 import {
-  useAdminSession,
   useAdminBusinessHours,
   useAdminReservations,
+  useAdminSession,
   useAdminStaffMemberBusinessHours,
   useAdminStaffMembers,
   useAdminTenant,
   useAdminUsers,
 } from '@/hooks/admin';
-import { availabilityApi, adminApi } from '@/lib/api';
-import type { ReservationData, ReservationMenuSimple } from '@/lib/supabase';
+import { adminApi, availabilityApi } from '@/lib/api';
 import { Suspense, useEffect, useMemo, useState } from 'react';
+
+interface ReservationMenuSimple {
+  id: string;
+  name: string;
+}
+
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
@@ -72,7 +88,10 @@ function ReservationsContent() {
   ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const result = await adminApi.updateReservationAdminNote(reservationId, adminNote);
+    const result = await adminApi.updateReservationAdminNote(
+      reservationId,
+      adminNote
+    );
 
     if (!result.success) {
       throw new Error(result.error || '管理者メモの更新に失敗しました');
@@ -90,7 +109,10 @@ function ReservationsContent() {
   ) => {
     if (!session?.user?.tenant_id) throw new Error('テナントIDが未設定です');
 
-    const result = await adminApi.assignStaffToReservation(reservationId, staffId);
+    const result = await adminApi.assignStaffToReservation(
+      reservationId,
+      staffId
+    );
 
     if (!result.success) {
       throw new Error(result.error || 'スタッフの割り当てに失敗しました');
@@ -179,10 +201,7 @@ function ReservationsContent() {
 
   // 月間利用可能性データを取得（カレンダー表示とスタッフ割り当て機能で使用）
   useEffect(() => {
-    if (
-      isAuthenticated &&
-      session?.user?.tenant_id
-    ) {
+    if (isAuthenticated && session?.user?.tenant_id) {
       const currentDate = new Date(currentMonth);
       availabilityApi
         .getMonthlyAvailability(
@@ -209,11 +228,7 @@ function ReservationsContent() {
         const nextMonth = new Date(currentMonth + '-01');
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
-        fetchReservations(
-          staffIdForApi,
-          monthStart,
-          monthEnd
-        );
+        fetchReservations(staffIdForApi, monthStart, monthEnd);
       } else {
         fetchReservations(staffIdForApi);
       }
@@ -242,11 +257,7 @@ function ReservationsContent() {
       const nextMonth = new Date(currentMonth + '-01');
       nextMonth.setMonth(nextMonth.getMonth() + 1);
       const monthEnd = nextMonth.toISOString().substring(0, 10) + 'T23:59:59';
-      fetchReservations(
-        staffIdForApi,
-        monthStart,
-        monthEnd
-      );
+      fetchReservations(staffIdForApi, monthStart, monthEnd);
     } else {
       fetchReservations(staffIdForApi);
     }

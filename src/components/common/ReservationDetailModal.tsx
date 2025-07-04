@@ -1,4 +1,3 @@
-import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 import { DateTimeDisplay, MemberTypeBadge } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,25 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { ReservationWithStaff } from '@/lib/types/reservation';
 import React, { useMemo, useState } from 'react';
+
+// ローカル型定義
+interface TimeSlot {
+  time: string;
+  datetime: string;
+  isAvailable: boolean;
+}
+
+interface StaffTimeSlots {
+  id: string;
+  timeSlots: TimeSlot[];
+}
+
+interface MonthlyAvailability {
+  tenant: {
+    timeSlots: TimeSlot[];
+  };
+  staffMembers: StaffTimeSlots[];
+}
 
 interface ReservationDetailModalProps {
   isOpen: boolean;

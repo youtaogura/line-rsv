@@ -1,4 +1,3 @@
-import type { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
 import { MonthNavigation } from '@/components/admin/MonthNavigation';
 import { ReservationCard } from '@/components/common';
 import { ReservationDetailModal } from '@/components/common/ReservationDetailModal';
@@ -7,6 +6,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ReservationWithStaff } from '@/lib/types/reservation';
 import { Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
+
+// ローカル型定義
+interface TimeSlot {
+  time: string;
+  datetime: string;
+  isAvailable: boolean;
+}
+
+interface StaffTimeSlots {
+  id: string;
+  timeSlots: TimeSlot[];
+}
+
+interface MonthlyAvailability {
+  tenant: {
+    timeSlots: TimeSlot[];
+  };
+  staffMembers: StaffTimeSlots[];
+}
 
 interface ReservationListProps {
   reservations: ReservationWithStaff[];
@@ -46,9 +64,9 @@ export const ReservationList: React.FC<ReservationListProps> = ({
       return true;
     }
     if (selectedStaffId === 'unassigned') {
-      return !reservation.staff_member_id;
+      return !reservation.staff_members?.id;
     }
-    return reservation.staff_member_id === selectedStaffId;
+    return reservation.staff_members?.id === selectedStaffId;
   });
   return (
     <div>

@@ -1,4 +1,3 @@
-import type { Reservation } from '@/lib/supabase';
 import { format, isBefore, isSameDay, startOfDay } from 'date-fns';
 import React, { useCallback, useMemo } from 'react';
 import Calendar from 'react-calendar';
@@ -7,6 +6,9 @@ import { TimeSlot } from '../types';
 import './calendar-styles.css';
 import { CalendarTile } from './CalendarTile';
 
+interface Reservation {
+  datetime: string;
+}
 interface CalendarViewProps {
   selectedDate: Date | null;
   onDateChange: (date: Date) => void;

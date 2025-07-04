@@ -10,10 +10,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DAYS_OF_WEEK } from '@/constants/time';
-import type { BusinessHourSimple, StaffMember } from '@/lib/supabase';
 import { AlertTriangle, Clock, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { TimeSelector } from './TimeSelector';
+
+// ローカル型定義
+interface StaffMember {
+  id: string;
+  name: string;
+}
+
+interface BusinessHourSimple {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
 
 interface StaffMemberBusinessHourManagerProps {
   staffMember: StaffMember;

@@ -1,11 +1,18 @@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UI_TEXT } from '@/constants/ui';
-import type { User } from '@/lib/supabase';
 import React from 'react';
 import { Input } from '../ui/input';
 import { UserCard } from './UserCard';
 
 type UserFilter = 'all' | 'regular' | 'guest';
+
+// ローカル型定義
+interface User {
+  user_id: string;
+  name: string;
+  member_type: 'regular' | 'guest';
+  phone?: string;
+}
 
 interface UserListProps {
   users: User[];

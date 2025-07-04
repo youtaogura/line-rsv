@@ -10,10 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import type { User } from '@/lib/supabase';
 import { AlertTriangle, ArrowRight, Phone } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { MemberTypeBadge } from '../common';
+
+// ローカル型定義
+interface User {
+  user_id: string;
+  name: string;
+  member_type: 'regular' | 'guest';
+  phone?: string;
+}
 
 interface UserMergeModalProps {
   isOpen: boolean;

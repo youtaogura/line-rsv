@@ -18,14 +18,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type {
-  ReservationData,
-  ReservationMenuSimple,
-  User,
-} from '@/lib/supabase';
 import { format as formatTz } from 'date-fns-tz';
 import { useEffect, useState } from 'react';
 
+interface User {
+  user_id: string;
+  name: string;
+  phone?: string;
+  member_type: 'guest' | 'regular';
+}
+interface ReservationMenuSimple {
+  id: string;
+  name: string;
+}
+interface ReservationData {
+  user_id: string;
+  name: string;
+  datetime: string;
+  note?: string | null;
+  member_type: string;
+  phone?: string | null;
+  admin_note?: string | null;
+  is_admin_mode: boolean;
+  reservation_menu_id?: string | null;
+}
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;

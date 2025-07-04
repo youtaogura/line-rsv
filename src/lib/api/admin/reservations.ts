@@ -1,6 +1,8 @@
-import { fetchApi } from '../shared/utils';
 import type { ApiResponse } from '../shared/types';
+import { fetchApi } from '../shared/utils';
 import { buildAdminApiUrl } from './base';
+import { AdminStaffMember } from './staffMembers';
+import { AdminUser } from './users';
 
 // Note: These types mirror supabase types but are defined separately for admin API
 export interface AdminReservation {
@@ -17,6 +19,8 @@ export interface AdminReservation {
   staff_member_id?: string;
   is_created_by_user: boolean;
   created_at: string;
+  staff_members?: AdminStaffMember;
+  users: AdminUser;
 }
 
 export interface ReservationsQueryParams {
@@ -27,7 +31,9 @@ export interface ReservationsQueryParams {
 }
 
 export const adminReservationsApi = {
-  async getReservations(params?: ReservationsQueryParams): Promise<ApiResponse<AdminReservation[]>> {
+  async getReservations(
+    params?: ReservationsQueryParams
+  ): Promise<ApiResponse<AdminReservation[]>> {
     const queryParams = new URLSearchParams();
     if (params?.staff_member_id && params.staff_member_id !== 'all') {
       queryParams.set('staff_member_id', params.staff_member_id);
@@ -42,24 +48,34 @@ export const adminReservationsApi = {
       queryParams.set('limit', params.limit.toString());
     }
 
-    const url = buildAdminApiUrl(`/api/admin/reservations?${queryParams.toString()}`);
+    const url = buildAdminApiUrl(
+      `/api/admin/reservations?${queryParams.toString()}`
+    );
     return fetchApi<AdminReservation[]>(url);
   },
 
-  async deleteReservation(reservationId: string): Promise<ApiResponse<{ message: string }>> {
+  async deleteReservation(
+    reservationId: string
+  ): Promise<ApiResponse<{ message: string }>> {
     const url = buildAdminApiUrl(`/api/admin/reservations?id=${reservationId}`);
     return fetchApi<{ message: string }>(url, {
       method: 'DELETE',
     });
   },
 
-  async getRecentReservations(limit: number = 5): Promise<ApiResponse<AdminReservation[]>> {
-    const url = buildAdminApiUrl(`/api/admin/recent-reservations?limit=${limit}`);
+  async getRecentReservations(
+    limit: number = 5
+  ): Promise<ApiResponse<AdminReservation[]>> {
+    const url = buildAdminApiUrl(
+      `/api/admin/recent-reservations?limit=${limit}`
+    );
     return fetchApi<AdminReservation[]>(url);
   },
 
   async getUnassignedReservations(): Promise<ApiResponse<AdminReservation[]>> {
-    const url = buildAdminApiUrl('/api/admin/reservations?staff_member_id=unassigned');
+    const url = buildAdminApiUrl(
+      '/api/admin/reservations?staff_member_id=unassigned'
+    );
     return fetchApi<AdminReservation[]>(url);
   },
 };

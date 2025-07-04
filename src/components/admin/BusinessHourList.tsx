@@ -1,9 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDayName } from '@/lib/admin-types';
-import type { BusinessHour } from '@/lib/supabase';
 import { Clock, Trash2 } from 'lucide-react';
 import React from 'react';
+
+// ローカル型定義
+interface BusinessHour {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
 
 interface BusinessHourListProps {
   businessHours: BusinessHour[];
