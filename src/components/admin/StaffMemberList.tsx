@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStaffMemberBusinessHours } from '@/hooks/useAdminData';
+import { useAdminStaffMemberBusinessHours } from '@/hooks/admin';
 import { getDayName } from '@/lib/admin-types';
 import type {
   BusinessHourSimple,
@@ -39,7 +39,7 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
     fetchStaffMemberBusinessHours,
     createStaffMemberBusinessHour,
     deleteStaffMemberBusinessHour,
-  } = useStaffMemberBusinessHours();
+  } = useAdminStaffMemberBusinessHours();
 
   useEffect(() => {
     if (selectedStaff) {

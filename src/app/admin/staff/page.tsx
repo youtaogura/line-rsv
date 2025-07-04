@@ -5,15 +5,15 @@ import { StaffMemberList } from '@/components/admin/StaffMemberList';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import {
   useAdminSession,
-  useBusinessHours,
-  useStaffMembers,
-  useTenant,
-} from '@/hooks/useAdminData';
+  useAdminBusinessHours,
+  useAdminStaffMembers,
+  useAdminTenant,
+} from '@/hooks/admin';
 import { Suspense, useEffect } from 'react';
 
 function StaffContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { tenant, fetchTenant } = useTenant();
+  const { tenant, fetchTenant } = useAdminTenant();
   const {
     staffMembers,
     staffBusinessHours,
@@ -22,9 +22,9 @@ function StaffContent() {
     createStaffMember,
     updateStaffMember,
     deleteStaffMember,
-  } = useStaffMembers();
+  } = useAdminStaffMembers();
   const { businessHours: tenantBusinessHours, fetchBusinessHours } =
-    useBusinessHours();
+    useAdminBusinessHours();
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {

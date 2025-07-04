@@ -1,5 +1,5 @@
 import { HTTP_STATUS } from '@/constants/api';
-import { supabase } from '@/lib/supabase';
+import { supabase, Reservation } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
@@ -11,6 +11,13 @@ import {
   createValidationErrorResponse,
 } from '@/utils/api';
 import { NextRequest } from 'next/server';
+
+// API response type definitions
+export type ReservationsApiResponse = Pick<Reservation, 'id' | 'user_id' | 'name' | 'datetime' | 'note' | 'member_type' | 'reservation_menu_id' | 'duration_minutes' | 'is_created_by_user' | 'created_at'>[];
+
+export type CreateReservationApiResponse = Pick<Reservation, 'id' | 'user_id' | 'name' | 'datetime' | 'note' | 'member_type' | 'admin_note' | 'reservation_menu_id' | 'duration_minutes' | 'staff_member_id' | 'is_created_by_user' | 'created_at'>;
+
+export type UpdateReservationApiResponse = Pick<Reservation, 'id' | 'user_id' | 'name' | 'datetime' | 'note' | 'member_type' | 'admin_note' | 'reservation_menu_id' | 'duration_minutes' | 'staff_member_id' | 'is_created_by_user' | 'created_at'>;
 
 export async function GET(request: NextRequest) {
   try {

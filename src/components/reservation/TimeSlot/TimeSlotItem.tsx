@@ -1,4 +1,4 @@
-import type { ReservationMenu } from '@/lib/supabase';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
 import { addMinutes } from 'date-fns';
 import { format as formatTz } from 'date-fns-tz';
 
@@ -6,7 +6,7 @@ interface TimeSlotItemProps {
   datetime: string;
   isSelected: boolean;
   onClick: () => void;
-  reservationMenu?: ReservationMenu | null;
+  reservationMenu?: ReservationMenuApiResponse;
 }
 
 export function TimeSlotItem({

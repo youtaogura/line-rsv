@@ -7,10 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { StaffMember } from '@/lib/supabase';
+import type { StaffMembersApiResponse } from '@/app/api/public/staff-members/route';
 
 interface StaffSelectionProps {
-  staffMembers: StaffMember[];
+  staffMembers: StaffMembersApiResponse;
   selectedStaffId: string;
   onStaffSelect: (staffId: string) => void;
 }

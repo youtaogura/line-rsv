@@ -1,16 +1,10 @@
 'use client';
 
-import { buildAdminApiUrl } from '@/lib/api';
-import { useCallback, useEffect, useRef, useState, createContext, useContext } from 'react';
+import { adminNotificationsApi, type Notification } from '@/lib/api';
 
-export interface Notification {
-  id: string;
-  read_at: string | null;
-  title: string;
-  message: string;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export the Notification type for other components
+export type { Notification };
+import { useCallback, useEffect, useRef, useState, createContext, useContext } from 'react';
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -45,16 +39,13 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch(
-        buildAdminApiUrl('/api/admin/notifications')
-      );
+      const response = await adminNotificationsApi.getNotifications();
 
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data || []);
+      if (response.success) {
+        setNotifications(response.data || []);
         setError(null);
       } else {
-        console.error('Error fetching notifications:', response.statusText);
+        console.error('Error fetching notifications:', response.error);
         setError('通知の取得に失敗しました');
       }
     } catch (err) {
@@ -67,26 +58,20 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(
-        buildAdminApiUrl(`/api/admin/notifications?id=${notificationId}`),
-        {
-          method: 'PUT',
-        }
-      );
+      const response = await adminNotificationsApi.markAsRead(notificationId);
 
-      if (response.ok) {
-        const updatedNotification = await response.json();
-        setNotifications(
-          notifications.map((n) =>
-            n.id === notificationId ? updatedNotification : n
-          )
-        );
+      if (response.success) {
+        const updatedNotification = response.data;
+        if (updatedNotification) {
+          setNotifications(
+            notifications.map((n) =>
+              n.id === notificationId ? updatedNotification : n
+            )
+          );
+        }
         return true;
       } else {
-        console.error(
-          'Error marking notification as read:',
-          response.statusText
-        );
+        console.error('Error marking notification as read:', response.error);
         return false;
       }
     } catch (err) {

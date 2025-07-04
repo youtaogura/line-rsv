@@ -6,7 +6,7 @@ import { UserMergeModal } from '@/components/admin/UserMergeModal';
 import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { MEMBER_TYPES } from '@/constants/business';
 import { UI_TEXT } from '@/constants/ui';
-import { useAdminSession, useTenant, useUsers } from '@/hooks/useAdminData';
+import { useAdminSession, useAdminTenant, useAdminUsers } from '@/hooks/admin';
 import type { User } from '@/lib/supabase';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
@@ -14,8 +14,8 @@ type UserFilter = 'all' | 'regular' | 'guest';
 
 function UsersContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { tenant, fetchTenant } = useTenant();
-  const { users, fetchUsers, updateUser, mergeUser } = useUsers();
+  const { tenant, fetchTenant } = useAdminTenant();
+  const { users, fetchUsers, updateUser, mergeUser } = useAdminUsers();
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [mergingUser, setMergingUser] = useState<User | null>(null);

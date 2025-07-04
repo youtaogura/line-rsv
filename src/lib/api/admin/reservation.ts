@@ -1,24 +1,9 @@
-import { buildAdminApiUrl, fetchApi } from './base';
-import type { ApiResponse } from './types';
+import { fetchApi } from '../shared/utils';
+import type { ApiResponse } from '../shared/types';
+import { buildAdminApiUrl } from './base';
+import type { CreateAdminReservationData } from './types';
 
-interface CreateAdminReservationData {
-  user_id: string;
-  name: string;
-  datetime: string;
-  note?: string | null;
-  member_type: string;
-  phone?: string | null;
-  reservation_menu_id?: string | null;
-  staff_member_id?: string | null;
-  admin_note?: string | null;
-}
-
-interface ChangePasswordData {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export const adminApi = {
+export const adminReservationApi = {
   async updateReservationAdminNote(
     reservationId: string,
     adminNote: string
@@ -69,17 +54,5 @@ export const adminApi = {
   async getAdminReservationMenu(): Promise<ApiResponse<unknown>> {
     const url = buildAdminApiUrl('/api/admin/reservation-menu');
     return fetchApi(url);
-  },
-
-  async changePassword(
-    passwordData: ChangePasswordData
-  ): Promise<ApiResponse<unknown>> {
-    return fetchApi('/api/admin/password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(passwordData),
-    });
   },
 };

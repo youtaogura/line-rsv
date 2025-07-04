@@ -6,20 +6,20 @@ import { AdminLayout, AuthGuard, LoadingSpinner } from '@/components/common';
 import { UI_TEXT } from '@/constants/ui';
 import {
   useAdminSession,
-  useBusinessHours,
-  useTenant,
-} from '@/hooks/useAdminData';
+  useAdminBusinessHours,
+  useAdminTenant,
+} from '@/hooks/admin';
 import { Suspense, useEffect, useState } from 'react';
 
 function BusinessHoursContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { tenant, fetchTenant } = useTenant();
+  const { tenant, fetchTenant } = useAdminTenant();
   const {
     businessHours,
     fetchBusinessHours,
     createBusinessHour,
     deleteBusinessHour,
-  } = useBusinessHours();
+  } = useAdminBusinessHours();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

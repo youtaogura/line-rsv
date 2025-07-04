@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, BusinessHour } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
@@ -9,6 +9,9 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/utils/api';
+
+// API response type definition
+export type BusinessHoursApiResponse = Pick<BusinessHour, 'id' | 'day_of_week' | 'start_time' | 'end_time'>[];
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('business_hours')
-      .select('*')
+      .select('id, day_of_week, start_time, end_time')
       .eq('tenant_id', tenant.id)
       .eq('is_active', true)
       .order('day_of_week', { ascending: true })

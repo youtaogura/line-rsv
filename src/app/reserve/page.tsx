@@ -13,15 +13,15 @@ import {
   staffApi,
   tenantApi,
   userApi,
+  type ApiResponse,
 } from '@/lib/api';
-import type {
-  BusinessHour,
-  Reservation,
-  ReservationMenu,
-  StaffMember,
-  StaffMemberBusinessHour,
-  User,
-} from '@/lib/supabase';
+import type { BusinessHoursApiResponse } from '@/app/api/public/business-hours/route';
+import type { ReservationsApiResponse } from '@/app/api/public/reservations/route';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
+import type { StaffMembersApiResponse } from '@/app/api/public/staff-members/route';
+import type { StaffMemberBusinessHoursApiResponse } from '@/app/api/public/staff-member-business-hours/route';
+import type { UserApiResponse } from '@/app/api/public/users/[user_id]/route';
+import type { TenantApiResponse } from '@/app/api/public/tenants/[tenant_id]/route';
 import { startOfMonth } from 'date-fns';
 import { format as formatTz } from 'date-fns-tz';
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -46,24 +46,21 @@ function ReserveContent() {
     }
   }, []);
 
-  const [tenant, setTenant] = useState<{
-    tenant_id: string;
-    name: string;
-  } | null>(null);
+  const [tenant, setTenant] = useState<TenantApiResponse | null>(null);
   const [user, setUser] = useState<{
     user_id: string;
     displayName: string;
     pictureUrl?: string;
   } | null>(null);
-  const [dbUser, setDbUser] = useState<User | null>(null);
+  const [dbUser, setDbUser] = useState<UserApiResponse>(null);
   const [loading, setLoading] = useState(true);
-  const [userReservations, setUserReservations] = useState<Reservation[]>([]);
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [userReservations, setUserReservations] = useState<ReservationsApiResponse>([]);
+  const [staffMembers, setStaffMembers] = useState<StaffMembersApiResponse>([]);
   const [reservationMenu, setReservationMenu] =
-    useState<ReservationMenu | null>(null);
-  const [businessHours, setBusinessHours] = useState<BusinessHour[]>([]);
+    useState<ReservationMenuApiResponse>(null);
+  const [businessHours, setBusinessHours] = useState<BusinessHoursApiResponse>([]);
   const [staffBusinessHours, setStaffBusinessHours] = useState<
-    StaffMemberBusinessHour[]
+    StaffMemberBusinessHoursApiResponse
   >([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('any');
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null);
@@ -180,7 +177,7 @@ function ReserveContent() {
         currentMonth.getFullYear(),
         currentMonth.getMonth()
       )
-      .then((response) => {
+      .then((response: ApiResponse<MonthlyAvailability>) => {
         setMonthlyAvailability(response.data ?? undefined);
       });
   }, [urlTenantId, currentMonth]);

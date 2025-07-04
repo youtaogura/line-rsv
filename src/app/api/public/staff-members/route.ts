@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, StaffMember } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
@@ -9,6 +9,9 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/utils/api';
+
+// API response type definition
+export type StaffMembersApiResponse = Pick<StaffMember, 'id' | 'name'>[];
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('staff_members')
-      .select('*')
+      .select('id, name')
       .eq('tenant_id', tenant.id)
       .order('name', { ascending: true });
 

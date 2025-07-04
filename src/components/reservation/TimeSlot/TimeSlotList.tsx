@@ -1,4 +1,4 @@
-import type { ReservationMenu } from '@/lib/supabase';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
 import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { TimeSlot } from '../types';
@@ -10,7 +10,7 @@ interface TimeSlotListProps {
   availableSlots: TimeSlot[];
   selectedDateTime: string | null;
   onTimeSelect: (datetime: string) => void;
-  reservationMenu: ReservationMenu | null;
+  reservationMenu: ReservationMenuApiResponse;
 }
 
 export function TimeSlotList({

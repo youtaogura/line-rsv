@@ -1,14 +1,14 @@
 'use client';
 
 import { MonthlyAvailability } from '@/app/api/public/availability/monthly/route';
-import type { ReservationMenu } from '@/lib/supabase';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
 import { isSameDay } from 'date-fns';
 import { useMemo } from 'react';
 import { CalendarView } from './Calendar/CalendarView';
 import { TimeSlotList } from './TimeSlot/TimeSlotList';
 
 interface ReservationCalendarProps {
-  reservationMenu: ReservationMenu | null;
+  reservationMenu: ReservationMenuApiResponse;
   selectedDate: Date | null;
   onDateChange: (date: Date) => void;
   currentMonth: Date;

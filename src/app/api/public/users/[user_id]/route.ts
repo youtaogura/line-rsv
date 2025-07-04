@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, User } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
@@ -10,6 +10,9 @@ import {
   createValidationErrorResponse,
   createNotFoundResponse,
 } from '@/utils/api';
+
+// API response type definition
+export type UserApiResponse = Pick<User, 'user_id' | 'name' | 'phone' | 'member_type'> | null;
 
 export async function GET(
   request: NextRequest,
@@ -35,7 +38,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select('user_id, name, phone, member_type')
       .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .single();
@@ -87,7 +90,7 @@ export async function POST(
     // Check if user already exists
     const { data: existingUser } = await supabase
       .from('users')
-      .select('*')
+      .select('user_id, name, phone, member_type')
       .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .single();
@@ -154,7 +157,7 @@ export async function PUT(
     // Check if user exists
     const { error: fetchError } = await supabase
       .from('users')
-      .select('*')
+      .select('user_id')
       .eq('tenant_id', tenant.id)
       .eq('user_id', user_id)
       .single();

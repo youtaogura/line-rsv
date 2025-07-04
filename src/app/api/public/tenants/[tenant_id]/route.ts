@@ -1,11 +1,14 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, Tenant } from '@/lib/supabase';
 import {
   createApiResponse,
   createErrorResponse,
   createValidationErrorResponse,
   createNotFoundResponse,
 } from '@/utils/api';
+
+// API response type definition
+export type TenantApiResponse = Pick<Tenant, 'id' | 'name'>;
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +25,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('tenants')
-      .select('*')
+      .select('id, name')
       .eq('id', tenant_id)
       .eq('is_active', true)
       .single();

@@ -10,7 +10,7 @@ import type {
 } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import {
-  requireValidTenant,
+  requireValidTenantFromSession,
   TenantValidationError,
 } from '@/lib/tenant-validation';
 import {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     // テナント検証
     let tenant;
     try {
-      tenant = await requireValidTenant(request);
+      tenant = await requireValidTenantFromSession();
     } catch (error) {
       if (error instanceof TenantValidationError) {
         return createValidationErrorResponse({ tenant: error.message });
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     const { data: staffBusinessHours, error: staffBusinessError } =
       await supabase
         .from('staff_member_business_hours')
-        .select('id, staff_member_id, day_of_week, start_time, end_time')
+        .select('*')
         .in(
           'staff_member_id',
           (staffMembers as StaffMember[]).map((s) => s.id)
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
       while (currentDay <= monthEnd) {
         const daySlots = generateTimeSlots(
           currentDay,
-          staffHours,
+          staffHours as BusinessHour[],
           reservationMenu
         );
 

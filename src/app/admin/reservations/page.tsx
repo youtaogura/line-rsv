@@ -20,28 +20,27 @@ import { Switch } from '@/components/ui/switch';
 import { UI_TEXT } from '@/constants/ui';
 import {
   useAdminSession,
-  useBusinessHours,
-  useReservations,
-  useStaffMemberBusinessHours,
-  useStaffMembers,
-  useTenant,
-  useUsers,
-} from '@/hooks/useAdminData';
-import { availabilityApi } from '@/lib/api/availability';
+  useAdminBusinessHours,
+  useAdminReservations,
+  useAdminStaffMemberBusinessHours,
+  useAdminStaffMembers,
+  useAdminTenant,
+  useAdminUsers,
+} from '@/hooks/admin';
+import { availabilityApi, adminApi } from '@/lib/api';
 import type { ReservationData, ReservationMenuSimple } from '@/lib/supabase';
-import { adminApi } from '@/lib/api';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 function ReservationsContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { tenant, fetchTenant } = useTenant();
+  const { tenant, fetchTenant } = useAdminTenant();
   const { reservations, loading, fetchReservations, deleteReservation } =
-    useReservations();
-  const { users, fetchUsers } = useUsers();
-  const { staffMembers, fetchStaffMembers } = useStaffMembers();
-  const { businessHours, fetchBusinessHours } = useBusinessHours();
+    useAdminReservations();
+  const { users, fetchUsers } = useAdminUsers();
+  const { staffMembers, fetchStaffMembers } = useAdminStaffMembers();
+  const { businessHours, fetchBusinessHours } = useAdminBusinessHours();
   const { businessHours: staffBusinessHours, fetchStaffMemberBusinessHours } =
-    useStaffMemberBusinessHours();
+    useAdminStaffMemberBusinessHours();
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>(() => {
     if (typeof window !== 'undefined') {
       return (

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, ReservationMenu } from '@/lib/supabase';
 import {
   requireValidTenant,
   TenantValidationError,
@@ -10,6 +10,9 @@ import {
   createValidationErrorResponse,
   createNotFoundResponse,
 } from '@/utils/api';
+
+// API response type definition
+export type ReservationMenuApiResponse = Pick<ReservationMenu, 'id' | 'name' | 'duration_minutes' | 'start_minutes_options'> | null;
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
     // そのテナントの予約メニューを取得（1テナント1メニューの想定）
     const { data: reservationMenu, error } = await supabase
       .from('reservation_menu')
-      .select('*')
+      .select('id, name, duration_minutes, start_minutes_options')
       .eq('tenant_id', tenant.id)
       .limit(1)
       .single();

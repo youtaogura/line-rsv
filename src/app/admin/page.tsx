@@ -9,11 +9,11 @@ import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
 import {
   useAdminSession,
-  useRecentReservations,
-  useStaffMembers,
-  useTenant,
-  useUnassignedReservations,
-} from '@/hooks/useAdminData';
+  useAdminRecentReservations,
+  useAdminStaffMembers,
+  useAdminTenant,
+  useAdminUnassignedReservations,
+} from '@/hooks/admin';
 import { adminApi } from '@/lib/api';
 import { ReservationWithStaff } from '@/lib/types/reservation';
 import { CalendarCheck, Clock, UserCog, Users } from 'lucide-react';
@@ -21,12 +21,12 @@ import { Suspense, useEffect, useState } from 'react';
 
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
-  const { tenant, fetchTenant } = useTenant();
+  const { tenant, fetchTenant } = useAdminTenant();
   const { recentReservations, fetchRecentReservations } =
-    useRecentReservations();
+    useAdminRecentReservations();
   const { unassignedReservations, fetchUnassignedReservations } =
-    useUnassignedReservations();
-  const { staffMembers, fetchStaffMembers } = useStaffMembers();
+    useAdminUnassignedReservations();
+  const { staffMembers, fetchStaffMembers } = useAdminStaffMembers();
   const [loading, setLoading] = useState(true);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] =

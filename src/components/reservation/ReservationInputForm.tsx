@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReservationMenu } from '@/lib/supabase';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
 import { format as formatTz } from 'date-fns-tz';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
@@ -25,7 +25,7 @@ interface ReservationInputFormProps {
     member_type: 'regular' | 'guest';
   };
   selectedDateTime: string | null;
-  reservationMenu: ReservationMenu | null;
+  reservationMenu: ReservationMenuApiResponse;
   selectedStaffId: string;
   onSubmit: (
     reservationData: CreateReservationParams

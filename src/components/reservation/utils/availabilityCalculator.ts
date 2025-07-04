@@ -13,14 +13,17 @@ import type { DayAvailabilityInfo, TimeSlot } from '../types';
  */
 export function generateTimeSlots(
   date: Date,
-  businessHours: BusinessHour[],
+  businessHours: Pick<
+    BusinessHour,
+    'day_of_week' | 'start_time' | 'end_time'
+  >[],
   reservationMenu?: ReservationMenu
 ): TimeSlot[] {
   const dayOfWeek = date.getDay();
 
   // その日の営業時間を取得（is_activeがtrueのもののみ）
   const dayBusinessHours = businessHours.filter(
-    (bh) => bh.day_of_week === dayOfWeek && bh.is_active
+    (bh) => bh.day_of_week === dayOfWeek
   );
 
   if (dayBusinessHours.length === 0) {
