@@ -27,7 +27,7 @@ import {
   useAdminTenant,
   useAdminUsers,
 } from '@/hooks/admin';
-import { adminApi, availabilityApi } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 interface ReservationMenuSimple {
@@ -203,9 +203,8 @@ function ReservationsContent() {
   useEffect(() => {
     if (isAuthenticated && session?.user?.tenant_id) {
       const currentDate = new Date(currentMonth);
-      availabilityApi
+      adminApi
         .getMonthlyAvailability(
-          session.user.tenant_id,
           currentDate.getFullYear(),
           currentDate.getMonth()
         )
