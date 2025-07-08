@@ -385,7 +385,11 @@ function ReservationsContent() {
         {viewMode === 'table' && (
           <ReservationList
             reservations={reservations}
-            onDeleteReservation={deleteReservation}
+            onDeleteReservation={async (id) => {
+              await deleteReservation(id);
+              await fetchReservations();
+              await fetchMonthlyAvailability(currentMonth);
+            }}
             selectedStaffId={selectedStaffId}
             currentMonth={currentMonth}
             onMonthChange={handleMonthChange}
