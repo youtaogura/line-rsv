@@ -125,7 +125,8 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   };
 
   // 担当スタッフがいない場合にスタッフ割り当てを可能にする
-  const canAssignStaff = !reservation.staff_members && staffMembers.length > 0;
+  const canAssignStaff =
+    !reservation.staff_members && availableStaffs.length > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -133,7 +134,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
         <DialogHeader>
           <DialogTitle>予約詳細</DialogTitle>
         </DialogHeader>
-        <DialogDescription aria-hidden />
+        <DialogDescription></DialogDescription>
         <div className="space-y-4">
           <div>
             <div className="font-medium">

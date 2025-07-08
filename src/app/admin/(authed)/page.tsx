@@ -1,5 +1,6 @@
 'use client';
 
+import { MonthlyAvailability } from '@/app/api/admin/availability/monthly/route';
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { RecentReservations } from '@/components/admin/RecentReservations';
 import { UnassignedReservations } from '@/components/admin/UnassignedReservations';
@@ -8,16 +9,17 @@ import { ReservationDetailModal } from '@/components/common/ReservationDetailMod
 import { ROUTES } from '@/constants/routes';
 import { UI_TEXT } from '@/constants/ui';
 import {
-  useAdminSession,
   useAdminRecentReservations,
+  useAdminSession,
   useAdminStaffMembers,
   useAdminTenant,
   useAdminUnassignedReservations,
 } from '@/hooks/admin';
 import { adminApi } from '@/lib/api';
 import { ReservationWithStaff } from '@/lib/types/reservation';
+import { format } from 'date-fns';
 import { CalendarCheck, Clock, UserCog, Users } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 function AdminContent() {
   const { session, isLoading, isAuthenticated } = useAdminSession();
@@ -31,6 +33,9 @@ function AdminContent() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] =
     useState<ReservationWithStaff | null>(null);
+  const [monthlyAvailabilityMap, setMonthlyAvailabilityMap] = useState<
+    Map<string, MonthlyAvailability>
+  >(new Map());
 
   const handleAdminNoteUpdate = async (
     reservationId: string,
@@ -52,9 +57,33 @@ function AdminContent() {
   };
 
   const handleReservationClick = (reservation: ReservationWithStaff) => {
-    setSelectedReservation(reservation);
-    setIsDetailModalOpen(true);
+    const date = new Date(reservation.datetime);
+    const month = format(date, 'yyyy-MM');
+    if (monthlyAvailabilityMap.has(month)) {
+      setSelectedReservation(reservation);
+      setIsDetailModalOpen(true);
+      return;
+    }
+    fetchMonthlyAvailability(date).then(() => {
+      setSelectedReservation(reservation);
+      setIsDetailModalOpen(true);
+    });
   };
+
+  const fetchMonthlyAvailability = useCallback((date: Date) => {
+    return adminApi
+      .getMonthlyAvailability(date.getFullYear(), date.getMonth())
+      .then((response) => {
+        if (!response.data) {
+          alert('スタッフの空き情報の取得に失敗しました。');
+          throw response.error;
+        }
+        setMonthlyAvailabilityMap(
+          monthlyAvailabilityMap.set(format(date, 'yyyy-MM'), response.data)
+        );
+      })
+      .catch(console.error);
+  }, []);
 
   const handleStaffAssignment = async (
     reservationId: string,
@@ -76,6 +105,15 @@ function AdminContent() {
     await fetchUnassignedReservations();
   };
 
+  const monthlyAvailability = useMemo(() => {
+    if (!selectedReservation) {
+      return null;
+    }
+    return monthlyAvailabilityMap.get(
+      format(new Date(selectedReservation.datetime), 'yyyy-MM')
+    );
+  }, [monthlyAvailabilityMap, selectedReservation]);
+
   useEffect(() => {
     if (isAuthenticated && session?.user) {
       const fetchData = async () => {
@@ -84,6 +122,7 @@ function AdminContent() {
           fetchRecentReservations(5),
           fetchUnassignedReservations(),
           fetchStaffMembers(),
+          fetchMonthlyAvailability(new Date()),
         ]);
         setLoading(false);
       };
@@ -96,6 +135,7 @@ function AdminContent() {
     fetchRecentReservations,
     fetchUnassignedReservations,
     fetchStaffMembers,
+    fetchMonthlyAvailability,
   ]);
 
   if (loading) {
@@ -133,7 +173,7 @@ function AdminContent() {
               setSelectedReservation(null);
             }}
             reservation={selectedReservation}
-            monthlyAvailability={null}
+            monthlyAvailability={monthlyAvailability}
             staffMembers={staffMembers}
             onAdminNoteUpdate={handleAdminNoteUpdate}
             onStaffAssignment={handleStaffAssignment}
