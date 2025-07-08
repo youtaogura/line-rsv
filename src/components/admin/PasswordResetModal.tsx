@@ -84,7 +84,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>パスワード再発行</DialogTitle>
           <DialogDescription>

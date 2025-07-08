@@ -96,7 +96,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>パスワード変更</DialogTitle>
           <DialogDescription>

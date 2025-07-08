@@ -52,7 +52,7 @@ export const StaffMemberDialog: React.FC<StaffMemberDialogProps> = ({
           スタッフを追加
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>新しいスタッフを追加</DialogTitle>
           <DialogDescription>

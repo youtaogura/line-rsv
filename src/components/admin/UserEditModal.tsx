@@ -93,7 +93,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>ユーザー情報編集</DialogTitle>
         </DialogHeader>

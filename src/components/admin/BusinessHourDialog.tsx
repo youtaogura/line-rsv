@@ -93,7 +93,7 @@ export const BusinessHourDialog: React.FC<BusinessHourDialogProps> = ({
           営業時間を追加
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>営業時間を追加</DialogTitle>
           <DialogDescription>

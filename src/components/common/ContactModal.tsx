@@ -10,7 +10,7 @@ export function ContactModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>お問合せ先</DialogTitle>
         </DialogHeader>

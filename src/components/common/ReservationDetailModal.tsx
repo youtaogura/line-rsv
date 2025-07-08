@@ -130,7 +130,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>予約詳細</DialogTitle>
         </DialogHeader>
