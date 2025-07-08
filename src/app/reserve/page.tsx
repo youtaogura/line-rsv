@@ -1,5 +1,12 @@
 'use client';
 
+import type { BusinessHoursApiResponse } from '@/app/api/public/business-hours/route';
+import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
+import type { ReservationsApiResponse } from '@/app/api/public/reservations/route';
+import type { StaffMemberBusinessHoursApiResponse } from '@/app/api/public/staff-member-business-hours/route';
+import type { StaffMembersApiResponse } from '@/app/api/public/staff-members/route';
+import type { TenantApiResponse } from '@/app/api/public/tenants/[tenant_id]/route';
+import type { UserApiResponse } from '@/app/api/public/users/[user_id]/route';
 import { LoadingSpinner, PageLayout } from '@/components/common';
 import { ReservationCalendar } from '@/components/reservation/ReservationCalendar';
 import type { CreateReservationParams } from '@/components/reservation/ReservationInputForm';
@@ -15,13 +22,6 @@ import {
   userApi,
   type ApiResponse,
 } from '@/lib/api';
-import type { BusinessHoursApiResponse } from '@/app/api/public/business-hours/route';
-import type { ReservationsApiResponse } from '@/app/api/public/reservations/route';
-import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
-import type { StaffMembersApiResponse } from '@/app/api/public/staff-members/route';
-import type { StaffMemberBusinessHoursApiResponse } from '@/app/api/public/staff-member-business-hours/route';
-import type { UserApiResponse } from '@/app/api/public/users/[user_id]/route';
-import type { TenantApiResponse } from '@/app/api/public/tenants/[tenant_id]/route';
 import { startOfMonth } from 'date-fns';
 import { format as formatTz } from 'date-fns-tz';
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -54,14 +54,16 @@ function ReserveContent() {
   } | null>(null);
   const [dbUser, setDbUser] = useState<UserApiResponse>(null);
   const [loading, setLoading] = useState(true);
-  const [userReservations, setUserReservations] = useState<ReservationsApiResponse>([]);
+  const [userReservations, setUserReservations] =
+    useState<ReservationsApiResponse>([]);
   const [staffMembers, setStaffMembers] = useState<StaffMembersApiResponse>([]);
   const [reservationMenu, setReservationMenu] =
     useState<ReservationMenuApiResponse>(null);
-  const [businessHours, setBusinessHours] = useState<BusinessHoursApiResponse>([]);
-  const [staffBusinessHours, setStaffBusinessHours] = useState<
-    StaffMemberBusinessHoursApiResponse
-  >([]);
+  const [businessHours, setBusinessHours] = useState<BusinessHoursApiResponse>(
+    []
+  );
+  const [staffBusinessHours, setStaffBusinessHours] =
+    useState<StaffMemberBusinessHoursApiResponse>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('any');
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -111,6 +113,9 @@ function ReserveContent() {
       if (dbUserData) setDbUser(dbUserData);
       if (tenant) setTenant(tenant);
       setStaffMembers(staffMembers);
+      if (staffMembers.length === 1) {
+        setSelectedStaffId(staffMembers[0].id);
+      }
       setReservationMenu(reservationMenu ?? null);
       setBusinessHours(businessHours || []);
       setStaffBusinessHours(staffBusinessHours || []);
@@ -267,11 +272,13 @@ function ReserveContent() {
         {user && (
           <div className="space-y-8">
             {/* スタッフ選択 */}
-            <StaffSelection
-              staffMembers={staffMembers}
-              selectedStaffId={selectedStaffId}
-              onStaffSelect={setSelectedStaffId}
-            />
+            {staffMembers.length > 1 && (
+              <StaffSelection
+                staffMembers={staffMembers}
+                selectedStaffId={selectedStaffId}
+                onStaffSelect={setSelectedStaffId}
+              />
+            )}
 
             {/* カレンダー */}
             {monthlyAvailability && (

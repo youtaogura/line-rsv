@@ -24,8 +24,6 @@ export function TimeSlotCard({
   onAddReservation,
   onReservationClick,
 }: Props) {
-  console.log(slot);
-
   const displayTime = slot.endTime
     ? `${slot.startTime}-${slot.endTime}`
     : slot.startTime;

@@ -1,6 +1,5 @@
 import type { ReservationMenuApiResponse } from '@/app/api/public/reservation-menu/route';
 import { format } from 'date-fns';
-import { useEffect } from 'react';
 import { TimeSlot } from '../types';
 import { TimeSlotContainer } from './TimeSlotContainer';
 import { TimeSlotItem } from './TimeSlotItem';
@@ -20,10 +19,6 @@ export function TimeSlotList({
   onTimeSelect,
   reservationMenu,
 }: TimeSlotListProps) {
-  useEffect(() => {
-    console.log(availableSlots);
-  }, [availableSlots]);
-
   if (!selectedDate) {
     return null;
   }

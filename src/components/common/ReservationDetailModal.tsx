@@ -117,6 +117,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
     try {
       await onStaffAssignment(reservation.id, selectedStaffId);
       setSelectedStaffId('');
+      alert('担当スタッフを割り当てました');
     } catch (_error) {
       alert('担当スタッフの割り当てに失敗しました');
     } finally {

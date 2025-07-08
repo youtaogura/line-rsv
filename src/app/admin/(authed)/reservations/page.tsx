@@ -28,7 +28,7 @@ import {
   useAdminUsers,
 } from '@/hooks/admin';
 import { adminApi } from '@/lib/api';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface ReservationMenuSimple {
   id: string;
@@ -199,21 +199,22 @@ function ReservationsContent() {
     fetchTenant,
   ]);
 
+  const fetchMonthlyAvailability = useCallback((month: string) => {
+    const date = new Date(month);
+    adminApi
+      .getMonthlyAvailability(date.getFullYear(), date.getMonth())
+      .then((response) => {
+        setMonthlyAvailability(response.data ?? null);
+      })
+      .catch(console.error);
+  }, []);
+
   // 月間利用可能性データを取得（カレンダー表示とスタッフ割り当て機能で使用）
   useEffect(() => {
     if (isAuthenticated && session?.user?.tenant_id) {
-      const currentDate = new Date(currentMonth);
-      adminApi
-        .getMonthlyAvailability(
-          currentDate.getFullYear(),
-          currentDate.getMonth()
-        )
-        .then((response) => {
-          setMonthlyAvailability(response.data ?? null);
-        })
-        .catch(console.error);
+      fetchMonthlyAvailability(currentMonth);
     }
-  }, [isAuthenticated, session, currentMonth]);
+  }, [isAuthenticated, session, currentMonth, fetchMonthlyAvailability]);
 
   useEffect(() => {
     if (isAuthenticated && session?.user) {
@@ -361,7 +362,11 @@ function ReservationsContent() {
         {viewMode === 'calendar' && (
           <AdminReservationCalendar
             reservations={selectedStaffReservations}
-            onDeleteReservation={deleteReservation}
+            onDeleteReservation={async (id) => {
+              await deleteReservation(id);
+              await fetchReservations();
+              await fetchMonthlyAvailability(currentMonth);
+            }}
             onCreateReservation={handleCreateReservation}
             availableUsers={users}
             selectedStaffId={selectedStaffId}
