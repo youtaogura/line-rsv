@@ -1,5 +1,6 @@
 'use client';
 
+import { PasswordResetModal } from '@/components/admin/PasswordResetModal';
 import { PageLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { PasswordResetModal } from '@/components/admin/PasswordResetModal';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -15,7 +15,8 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
+  const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] =
+    useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,14 +49,14 @@ export default function AdminLogin() {
 
   return (
     <PageLayout centerContent>
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full mx-auto px-4 space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
             FiLUP 管理画面ログイン
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-xs shadow-sm -space-y-px">
+          <div className="rounded-xs shadow-sm">
             <div>
               <label htmlFor="username" className="sr-only">
                 ユーザー名
@@ -68,6 +69,7 @@ export default function AdminLogin() {
                 placeholder="ユーザー名"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                className="w-full"
               />
             </div>
             <div>
@@ -83,6 +85,7 @@ export default function AdminLogin() {
                   placeholder="パスワード"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pr-10"
                 />
                 <Button
                   type="button"
@@ -112,12 +115,12 @@ export default function AdminLogin() {
               {loading ? 'ログイン中...' : 'ログイン'}
             </Button>
           </div>
-          
+
           <div className="text-center">
             <Button
               type="button"
               variant="link"
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="text-sm text-gray-600 hover:text-gray-800 px-0"
               onClick={() => setIsPasswordResetModalOpen(true)}
             >
               パスワードを忘れた方はこちら
@@ -125,7 +128,7 @@ export default function AdminLogin() {
           </div>
         </form>
       </div>
-      
+
       <PasswordResetModal
         isOpen={isPasswordResetModalOpen}
         onClose={() => setIsPasswordResetModalOpen(false)}
