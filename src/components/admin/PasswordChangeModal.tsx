@@ -1,10 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface PasswordChangeModalProps {
   isOpen: boolean;
@@ -96,7 +96,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>パスワード変更</DialogTitle>
           <DialogDescription>

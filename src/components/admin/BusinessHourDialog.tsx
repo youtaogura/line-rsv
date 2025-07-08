@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,8 +9,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus } from 'lucide-react';
+import React, { useState } from 'react';
 import { TimeSelector } from './TimeSelector';
 
 interface BusinessHourDialogProps {
@@ -69,7 +75,6 @@ export const BusinessHourDialog: React.FC<BusinessHourDialogProps> = ({
     }
   };
 
-
   const dayOptions = [
     { value: 1, label: '月曜日' },
     { value: 2, label: '火曜日' },
@@ -88,7 +93,7 @@ export const BusinessHourDialog: React.FC<BusinessHourDialogProps> = ({
           営業時間を追加
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>営業時間を追加</DialogTitle>
           <DialogDescription>

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface StaffMemberDialogProps {
   onCreateStaffMember: (name: string) => Promise<boolean>;
@@ -52,7 +52,7 @@ export const StaffMemberDialog: React.FC<StaffMemberDialogProps> = ({
           スタッフを追加
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>新しいスタッフを追加</DialogTitle>
           <DialogDescription>
@@ -84,10 +84,7 @@ export const StaffMemberDialog: React.FC<StaffMemberDialogProps> = ({
             >
               キャンセル
             </Button>
-            <Button
-              type="submit"
-              disabled={!name.trim() || isSubmitting}
-            >
+            <Button type="submit" disabled={!name.trim() || isSubmitting}>
               {isSubmitting ? '追加中...' : '追加'}
             </Button>
           </DialogFooter>

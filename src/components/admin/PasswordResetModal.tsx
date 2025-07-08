@@ -1,9 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import React, { useState } from 'react';
 
 interface PasswordResetModalProps {
   isOpen: boolean;
@@ -59,7 +59,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         throw new Error(errorData.message || 'パスワード再発行に失敗しました');
       }
 
-      setSuccess('パスワード再発行メールを送信しました。メールをご確認ください。');
+      setSuccess(
+        'パスワード再発行メールを送信しました。メールをご確認ください。'
+      );
       setEmail('');
     } catch (error) {
       console.error('Password reset error:', error);
@@ -82,7 +84,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>パスワード再発行</DialogTitle>
           <DialogDescription>
