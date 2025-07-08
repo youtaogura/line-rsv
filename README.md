@@ -42,11 +42,11 @@ npm install
 
 ```bash
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # LINE Login
-NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID=your_line_channel_id
+LINE_LOGIN_CHANNEL_ID=your_line_channel_id
 LINE_LOGIN_CHANNEL_SECRET=your_line_channel_secret
 
 # LINE Notify

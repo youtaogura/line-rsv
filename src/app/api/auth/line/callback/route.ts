@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         grant_type: 'authorization_code',
         code,
         redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/line/callback`,
-        client_id: process.env.NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID!,
+        client_id: process.env.LINE_LOGIN_CHANNEL_ID!,
         client_secret: process.env.LINE_LOGIN_CHANNEL_SECRET!,
       }),
     });

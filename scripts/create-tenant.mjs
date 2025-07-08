@@ -8,12 +8,12 @@ import readline from 'readline';
 dotenv.config({ path: '.env.local' });
 
 // 環境変数の設定
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
-    '❌ Error: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are required'
+    '❌ Error: SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required'
   );
   console.error('Please check your .env.local file');
   process.exit(1);

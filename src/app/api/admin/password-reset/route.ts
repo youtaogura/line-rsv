@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Send email with new password
     const { error: emailError } = await resend.emails.send({
-      from: 'FiLUP管理 <onboarding@resend.dev>', // TODO: use own domain
+      from: `FiLUP管理 <noreply@${process.env.RESEND_DOMAIN}>`,
       to: [email],
       subject: 'パスワード再発行のお知らせ',
       text: `パスワード再発行のお知らせ

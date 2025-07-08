@@ -101,7 +101,7 @@ CONFIRM_DELETE=yes npm run admin:delete old-admin
 **環境変数エラー**
 
 ```
-❌ Error: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are required
+❌ Error: SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required
 ```
 
 → `.env.local`ファイルを確認してください

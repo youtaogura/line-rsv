@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(_request: NextRequest) {
-  const channelId = process.env.NEXT_PUBLIC_LINE_LOGIN_CHANNEL_ID!;
+  const channelId = process.env.LINE_LOGIN_CHANNEL_ID!;
   const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/line/callback`;
   const state = Math.random().toString(36).substring(7);
 
