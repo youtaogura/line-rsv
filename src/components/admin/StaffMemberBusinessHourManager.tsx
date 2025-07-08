@@ -40,6 +40,7 @@ interface StaffMemberBusinessHourManagerProps {
     endTime: string
   ) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;
+  onCreateAllHours: (staffMemberId: string, dayOfWeek: number) => Promise<void>;
 }
 
 export const StaffMemberBusinessHourManager: React.FC<
@@ -52,6 +53,7 @@ export const StaffMemberBusinessHourManager: React.FC<
   loading,
   onCreateBusinessHour,
   onDeleteBusinessHour,
+  onCreateAllHours,
 }) => {
   const [dayOfWeek, setDayOfWeek] = useState(1); // 月曜日
   const [startHour, setStartHour] = useState('09');
@@ -59,6 +61,7 @@ export const StaffMemberBusinessHourManager: React.FC<
   const [endHour, setEndHour] = useState('18');
   const [endMinute, setEndMinute] = useState('00');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingAllHours, setIsCreatingAllHours] = useState(false);
   const [_errorMessage, setErrorMessage] = useState('');
 
   // テナントの営業時間を取得する関数
@@ -101,6 +104,22 @@ export const StaffMemberBusinessHourManager: React.FC<
     }
   };
 
+  const handleCreateAllHours = async () => {
+    alert('現在の設定は上書きされます。よろしいですか？');
+    setIsCreatingAllHours(true);
+    setErrorMessage('');
+
+    try {
+      await onCreateAllHours(staffMember.id, dayOfWeek);
+      alert('営業時間全てを対応可能に設定しました');
+    } catch (error) {
+      console.error('Failed to create all hours:', error);
+      setErrorMessage('設定に失敗しました');
+    } finally {
+      setIsCreatingAllHours(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -110,13 +129,13 @@ export const StaffMemberBusinessHourManager: React.FC<
       {/* 営業時間追加フォーム */}
       <h3 className="flex items-center space-x-2 text-md font-medium mb-2">
         <Plus className="h-4 w-4" />
-        <span>新しい営業時間を追加</span>
+        <span>対応可能時間を追加</span>
       </h3>
 
       <Card>
         <CardContent className="px-3 py-1">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dayOfWeek">曜日</Label>
                 <Select
@@ -180,8 +199,9 @@ export const StaffMemberBusinessHourManager: React.FC<
                     </p>
                     <div className="mt-1">
                       {selectedDayTenantHours.map((hour, index) => (
-                        <span key={hour.id} className="font-mono">
-                          {hour.start_time} - {hour.end_time}
+                        <span key={hour.id}>
+                          {hour.start_time.slice(0, -3)} -{' '}
+                          {hour.end_time.slice(0, -3)}
                           {index < selectedDayTenantHours.length - 1 && ', '}
                         </span>
                       ))}
@@ -210,7 +230,7 @@ export const StaffMemberBusinessHourManager: React.FC<
               </div>
             )}
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <Button
                 type="submit"
                 disabled={isSubmitting || !isDayAvailable}
@@ -218,6 +238,18 @@ export const StaffMemberBusinessHourManager: React.FC<
               >
                 <Plus className="h-4 w-4" />
                 <span>{isSubmitting ? '追加中...' : '営業時間を追加'}</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCreateAllHours}
+                disabled={isCreatingAllHours || !isDayAvailable}
+                className="flex items-center space-x-2"
+              >
+                <Clock className="h-4 w-4" />
+                <span>
+                  {isCreatingAllHours ? '設定中...' : '全時間対応可能にする'}
+                </span>
               </Button>
             </div>
           </form>

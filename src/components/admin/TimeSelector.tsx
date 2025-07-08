@@ -1,6 +1,12 @@
-import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import React from 'react';
 
 interface TimeSelectorProps {
   label: string;
@@ -20,7 +26,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   disabled = false,
 }) => {
   // 時間の選択肢（00-23）
-  const hourOptions = Array.from({ length: 24 }, (_, i) => 
+  const hourOptions = Array.from({ length: 24 }, (_, i) =>
     i.toString().padStart(2, '0')
   );
 
@@ -31,12 +37,8 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="flex items-center gap-2">
-        <Select
-          value={hour}
-          onValueChange={onHourChange}
-          disabled={disabled}
-        >
-          <SelectTrigger className="w-20">
+        <Select value={hour} onValueChange={onHourChange} disabled={disabled}>
+          <SelectTrigger className="w-18">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -53,7 +55,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
           onValueChange={onMinuteChange}
           disabled={disabled}
         >
-          <SelectTrigger className="w-20">
+          <SelectTrigger className="w-18">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

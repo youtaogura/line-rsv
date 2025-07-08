@@ -2,6 +2,7 @@ import {
   adminStaffMembersApi,
   type AdminStaffMember,
   type AdminStaffMemberBusinessHour,
+  type CreateAllStaffBusinessHoursData,
   type CreateStaffBusinessHourData,
 } from '@/lib/api';
 import { useCallback, useState } from 'react';
@@ -24,7 +25,8 @@ export const useAdminStaffMembers = () => {
           // 営業時間も一緒に取得する場合
           if (options?.withBusinessHours) {
             try {
-              const businessHoursResponse = await adminStaffMembersApi.getStaffMemberBusinessHours('all');
+              const businessHoursResponse =
+                await adminStaffMembersApi.getStaffMemberBusinessHours('all');
               if (businessHoursResponse.success) {
                 const allBusinessHoursData = businessHoursResponse.data || [];
 
@@ -32,12 +34,14 @@ export const useAdminStaffMembers = () => {
                 const businessHoursMap: {
                   [staffId: string]: AdminStaffMemberBusinessHour[];
                 } = {};
-                allBusinessHoursData.forEach((bh: AdminStaffMemberBusinessHour) => {
-                  if (!businessHoursMap[bh.staff_member_id]) {
-                    businessHoursMap[bh.staff_member_id] = [];
+                allBusinessHoursData.forEach(
+                  (bh: AdminStaffMemberBusinessHour) => {
+                    if (!businessHoursMap[bh.staff_member_id]) {
+                      businessHoursMap[bh.staff_member_id] = [];
+                    }
+                    businessHoursMap[bh.staff_member_id].push(bh);
                   }
-                  businessHoursMap[bh.staff_member_id].push(bh);
-                });
+                );
 
                 setStaffBusinessHours(businessHoursMap);
               }
@@ -78,11 +82,14 @@ export const useAdminStaffMembers = () => {
 
   const updateStaffMember = async (id: string, name: string) => {
     try {
-      const response = await adminStaffMembersApi.updateStaffMember(id, { name });
+      const response = await adminStaffMembersApi.updateStaffMember(id, {
+        name,
+      });
 
       if (response.success && response.data) {
-        setStaffMembers(staffMembers.map((sm) => (sm.id === id ? response.data! : sm)));
-        alert('スタッフ情報を更新しました');
+        setStaffMembers(
+          staffMembers.map((sm) => (sm.id === id ? response.data! : sm))
+        );
         return true;
       } else {
         alert(response.error || 'スタッフ情報の更新に失敗しました');
@@ -125,13 +132,16 @@ export const useAdminStaffMembers = () => {
 };
 
 export const useAdminStaffMemberBusinessHours = () => {
-  const [businessHours, setBusinessHours] = useState<AdminStaffMemberBusinessHour[]>([]);
+  const [businessHours, setBusinessHours] = useState<
+    AdminStaffMemberBusinessHour[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   const fetchStaffMemberBusinessHours = useCallback(
     async (staffMemberId: string) => {
       try {
-        const response = await adminStaffMembersApi.getStaffMemberBusinessHours(staffMemberId);
+        const response =
+          await adminStaffMembersApi.getStaffMemberBusinessHours(staffMemberId);
 
         if (response.success) {
           setBusinessHours(response.data || []);
@@ -150,9 +160,12 @@ export const useAdminStaffMemberBusinessHours = () => {
     []
   );
 
-  const createStaffMemberBusinessHour = async (businessHour: CreateStaffBusinessHourData) => {
+  const createStaffMemberBusinessHour = async (
+    businessHour: CreateStaffBusinessHourData
+  ) => {
     try {
-      const response = await adminStaffMembersApi.createStaffMemberBusinessHour(businessHour);
+      const response =
+        await adminStaffMembersApi.createStaffMemberBusinessHour(businessHour);
 
       if (response.success && response.data) {
         setBusinessHours([...businessHours, response.data]);
@@ -173,7 +186,8 @@ export const useAdminStaffMemberBusinessHours = () => {
     if (!confirm('この営業時間を削除しますか？')) return;
 
     try {
-      const response = await adminStaffMembersApi.deleteStaffMemberBusinessHour(id);
+      const response =
+        await adminStaffMembersApi.deleteStaffMemberBusinessHour(id);
 
       if (response.success) {
         setBusinessHours(businessHours.filter((bh) => bh.id !== id));
@@ -187,11 +201,41 @@ export const useAdminStaffMemberBusinessHours = () => {
     }
   };
 
+  const createAllStaffMemberBusinessHours = async (
+    data: CreateAllStaffBusinessHoursData
+  ) => {
+    try {
+      const response =
+        await adminStaffMembersApi.createAllStaffMemberBusinessHours(data);
+
+      if (response.success && response.data) {
+        // 該当する曜日の既存の営業時間を削除し、新しい営業時間を追加
+        const filteredBusinessHours = businessHours.filter(
+          (bh) =>
+            !(
+              bh.staff_member_id === data.staff_member_id &&
+              bh.day_of_week === data.day_of_week
+            )
+        );
+        setBusinessHours([...filteredBusinessHours, ...response.data]);
+        return true;
+      } else {
+        alert(response.error || '全時間対応可能設定に失敗しました');
+        return false;
+      }
+    } catch (error) {
+      console.error('Create all staff member business hours error:', error);
+      alert('全時間対応可能設定に失敗しました');
+      return false;
+    }
+  };
+
   return {
     businessHours,
     loading,
     fetchStaffMemberBusinessHours,
     createStaffMemberBusinessHour,
     deleteStaffMemberBusinessHour,
+    createAllStaffMemberBusinessHours,
   };
 };

@@ -55,6 +55,7 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
     fetchStaffMemberBusinessHours,
     createStaffMemberBusinessHour,
     deleteStaffMemberBusinessHour,
+    createAllStaffMemberBusinessHours,
   } = useAdminStaffMemberBusinessHours();
 
   useEffect(() => {
@@ -74,6 +75,16 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
       day_of_week: dayOfWeek,
       start_time: startTime,
       end_time: endTime,
+    });
+  };
+
+  const handleCreateAllHours = async (
+    staffMemberId: string,
+    dayOfWeek: number
+  ) => {
+    await createAllStaffMemberBusinessHours({
+      staff_member_id: staffMemberId,
+      day_of_week: dayOfWeek,
     });
   };
 
@@ -201,6 +212,7 @@ export const StaffMemberList: React.FC<StaffMemberListProps> = ({
         businessHoursLoading={businessHoursLoading}
         onCreateBusinessHour={handleCreateBusinessHour}
         onDeleteBusinessHour={deleteStaffMemberBusinessHour}
+        onCreateAllHours={handleCreateAllHours}
       />
     </>
   );

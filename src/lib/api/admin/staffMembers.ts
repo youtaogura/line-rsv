@@ -32,6 +32,11 @@ export interface CreateStaffBusinessHourData {
   end_time: string;
 }
 
+export interface CreateAllStaffBusinessHoursData {
+  staff_member_id: string;
+  day_of_week: number;
+}
+
 export const adminStaffMembersApi = {
   async getStaffMembers(): Promise<ApiResponse<AdminStaffMember[]>> {
     const url = buildAdminApiUrl('/api/admin/staff-members');
@@ -87,6 +92,17 @@ export const adminStaffMembersApi = {
     const url = buildAdminApiUrl(`/api/admin/staff-member-business-hours?id=${id}`);
     return fetchApi<{ message: string }>(url, {
       method: 'DELETE',
+    });
+  },
+
+  async createAllStaffMemberBusinessHours(data: CreateAllStaffBusinessHoursData): Promise<ApiResponse<AdminStaffMemberBusinessHour[]>> {
+    const url = buildAdminApiUrl('/api/admin/staff-member-business-hours/bulk-create');
+    return fetchApi<AdminStaffMemberBusinessHour[]>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
   },
 };

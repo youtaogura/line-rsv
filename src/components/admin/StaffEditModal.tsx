@@ -8,6 +8,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Clock, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { StaffMemberBusinessHourManager } from './StaffMemberBusinessHourManager';
@@ -40,6 +41,7 @@ interface StaffEditModalProps {
     endTime: string
   ) => Promise<void>;
   onDeleteBusinessHour: (id: string) => Promise<void>;
+  onCreateAllHours: (staffMemberId: string, dayOfWeek: number) => Promise<void>;
 }
 
 export const StaffEditModal: React.FC<StaffEditModalProps> = ({
@@ -52,6 +54,7 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
   businessHoursLoading,
   onCreateBusinessHour,
   onDeleteBusinessHour,
+  onCreateAllHours,
 }) => {
   const [activeTab, setActiveTab] = useState('info');
   const [staffName, setStaffName] = useState('');
@@ -97,7 +100,11 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className={`sm:max-w-${activeTab === 'info' ? 'xl' : '2xl'} max-h-[80vh] overflow-y-auto`}
+        className={cn(
+          { 'sm:max-w-xl': activeTab === 'info' },
+          { 'sm:max-w-[600px]': activeTab === 'schedule' },
+          'max-h-[80vh] overflow-y-auto'
+        )}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -166,6 +173,7 @@ export const StaffEditModal: React.FC<StaffEditModalProps> = ({
               loading={businessHoursLoading}
               onCreateBusinessHour={onCreateBusinessHour}
               onDeleteBusinessHour={onDeleteBusinessHour}
+              onCreateAllHours={onCreateAllHours}
             />
           </TabsContent>
         </Tabs>

@@ -23,6 +23,7 @@ export type {
   AdminStaffMemberBusinessHour,
   CreateStaffBusinessHourData,
   CreateStaffMemberData,
+  CreateAllStaffBusinessHoursData,
 } from './staffMembers';
 export type { AdminTenant } from './tenants';
 export type { ChangePasswordData, CreateAdminReservationData } from './types';
