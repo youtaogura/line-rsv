@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ReservationWithStaff } from '@/lib/types/reservation';
+import { DialogDescription } from '@radix-ui/react-dialog';
 import React, { useMemo, useState } from 'react';
 
 // ローカル型定義
@@ -132,6 +133,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
         <DialogHeader>
           <DialogTitle>予約詳細</DialogTitle>
         </DialogHeader>
+        <DialogDescription aria-hidden />
         <div className="space-y-4">
           <div>
             <div className="font-medium">

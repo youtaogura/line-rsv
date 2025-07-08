@@ -1,6 +1,8 @@
-import CredentialsProvider from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
 import { supabase } from '@/lib/supabase';
+import bcrypt from 'bcryptjs';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+const TOKEN_EXPIRATION = 60 * 60 * 8;
 
 export const authOptions = {
   providers: [
@@ -50,9 +52,10 @@ export const authOptions = {
   ],
   session: {
     strategy: 'jwt' as const,
+    maxAge: TOKEN_EXPIRATION,
   },
   jwt: {
-    maxAge: 60 * 60 * 8, // 8 hours
+    maxAge: TOKEN_EXPIRATION,
   },
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +63,8 @@ export const authOptions = {
       if (user) {
         token.tenant_id = user.tenant_id;
         token.username = user.username;
+        token.iat = Math.floor(Date.now() / 1000);
+        token.exp = Math.floor(Date.now() / 1000) + TOKEN_EXPIRATION;
       }
       return token;
     },
