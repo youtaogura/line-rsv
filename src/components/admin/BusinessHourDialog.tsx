@@ -98,6 +98,8 @@ export const BusinessHourDialog: React.FC<BusinessHourDialogProps> = ({
           <DialogTitle>営業時間を追加</DialogTitle>
           <DialogDescription>
             新しい営業時間を設定してください。
+            <br />
+            午前・午後など営業時間が分かれている場合は、同じ曜日で複数登録することができます。
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

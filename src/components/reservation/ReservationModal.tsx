@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { format as formatTz } from 'date-fns-tz';
 import { useEffect, useState } from 'react';
+import { MemberTypeBadge } from '../common';
 
 interface User {
   user_id: string;
@@ -63,7 +64,6 @@ export function ReservationModal({
 }: ReservationModalProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [note, setNote] = useState('');
   const [adminNote, setAdminNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [userMode, setUserMode] = useState<'existing' | 'new'>('existing');
@@ -82,7 +82,6 @@ export function ReservationModal({
       // モーダルが閉じたときのリセット
       setName('');
       setPhone('');
-      setNote('');
       setAdminNote('');
       setUserMode('existing');
       setSelectedUserId('');
@@ -140,7 +139,7 @@ export function ReservationModal({
         user_id: finalUserId,
         name: name.trim(),
         datetime: preselectedDateTime,
-        note: note.trim() || null,
+        note: null,
         member_type: userMode === 'new' ? 'guest' : 'regular',
         phone: userMode === 'new' ? phone.trim() || null : undefined,
         admin_note: adminNote.trim() || null,
@@ -193,11 +192,11 @@ export function ReservationModal({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="existing" id="existing" />
-                <Label htmlFor="existing">既存のお客様</Label>
+                <Label htmlFor="existing">登録済ユーザー</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="new" id="new" />
-                <Label htmlFor="new">新規のお客様</Label>
+                <Label htmlFor="new">新規登録</Label>
               </div>
             </RadioGroup>
           </div>
@@ -218,8 +217,8 @@ export function ReservationModal({
                 <SelectContent>
                   {availableUsers.map((user) => (
                     <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.name} (
-                      {user.member_type === 'regular' ? '会員' : 'ゲスト'})
+                      {user.name}
+                      <MemberTypeBadge memberType={user.member_type} />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -253,19 +252,6 @@ export function ReservationModal({
               />
             </div>
           )}
-
-          {/* メモ */}
-          <div className="space-y-2">
-            <Label htmlFor="note">お客様メモ</Label>
-            <textarea
-              id="note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={submitting}
-            />
-          </div>
 
           {/* 管理者メモ */}
           <div className="space-y-2">

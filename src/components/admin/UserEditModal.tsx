@@ -20,8 +20,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { CircleQuestionMark } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { MemberTypeBadge } from '../common';
 
 // ローカル型定義
 interface User {
@@ -127,7 +128,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="member_type">
-              会員種別 <span className="text-red-500">*</span>
+              種別 <span className="text-red-500">*</span>
             </Label>
             <div className="flex justify-between items-center">
               <Select
@@ -143,8 +144,12 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="guest">ゲスト</SelectItem>
-                  <SelectItem value="regular">会員</SelectItem>
+                  <SelectItem value="guest">
+                    <MemberTypeBadge memberType="guest" />
+                  </SelectItem>
+                  <SelectItem value="regular">
+                    <MemberTypeBadge memberType="regular" />
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -159,7 +164,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                         onClick={() => user && onMergeUser(user)}
                       >
                         統合
-                        <Info />
+                        <CircleQuestionMark />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

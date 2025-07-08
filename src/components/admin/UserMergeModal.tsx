@@ -140,7 +140,7 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="会員名で検索..."
+              placeholder="ユーザー名で検索..."
             />
           </div>
 
@@ -222,7 +222,7 @@ export const UserMergeModal: React.FC<UserMergeModalProps> = ({
               キャンセル
             </Button>
             <Button type="submit" disabled={isMerging || !selectedTargetUserId}>
-              {isMerging ? '統合中...' : '統合実行'}
+              {isMerging ? '実行中...' : '実行'}
             </Button>
           </div>
         </form>

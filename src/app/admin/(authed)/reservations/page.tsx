@@ -273,6 +273,8 @@ function ReservationsContent() {
     if (!result.success) {
       throw new Error(result.error || '予約の作成に失敗しました');
     }
+
+    await fetchMonthlyAvailability(currentMonth);
   };
 
   const handleMonthChange = (month: string) => {

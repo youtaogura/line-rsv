@@ -1,6 +1,8 @@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UI_TEXT } from '@/constants/ui';
 import React from 'react';
+import { MemberTypeBadge } from '../common';
+import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { UserCard } from './UserCard';
 
@@ -52,7 +54,7 @@ export const UserList: React.FC<UserListProps> = ({
         </div>
 
         <div className="flex items-center">
-          <label className="block text-sm font-medium mr-2">会員種別:</label>
+          <label className="block text-sm font-medium mr-2">種別:</label>
           <RadioGroup
             value={userFilter}
             onValueChange={(value) => onUserFilterChange(value as UserFilter)}
@@ -61,19 +63,19 @@ export const UserList: React.FC<UserListProps> = ({
             <div className="flex items-center space-x-1">
               <RadioGroupItem value="all" id="all" />
               <label htmlFor="all" className="text-sm">
-                全て
+                <Badge className="bg-gray-200 text-gray-900">全て</Badge>
               </label>
             </div>
             <div className="flex items-center space-x-1">
               <RadioGroupItem value="regular" id="regular" />
               <label htmlFor="regular" className="text-sm">
-                リピート
+                <MemberTypeBadge memberType="regular" />
               </label>
             </div>
             <div className="flex items-center space-x-1">
               <RadioGroupItem value="guest" id="guest" />
               <label htmlFor="guest" className="text-sm">
-                新規
+                <MemberTypeBadge memberType="guest" />
               </label>
             </div>
           </RadioGroup>
